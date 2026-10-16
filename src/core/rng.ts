@@ -1,3 +1,3 @@
-// Seeded random number generator (e.g. mulberry32). By hand.
+// Seeded random number generator (e.g. mulberry32).
 
 export {};

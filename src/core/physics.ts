@@ -1,3 +1,3 @@
-// simulate(level, run, jump): fixed-timestep run through a level → goal / ceiling / wall / pit, optional path. By hand.
+// simulate(level, run, jump): fixed-timestep run through a level → goal / ceiling / wall / pit, optional path.
 
 export {};

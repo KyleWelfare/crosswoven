@@ -2,7 +2,7 @@
 
 A small interactive about projectile motion. Drag a launch arrow to set run speed and jump speed so one jump clears every gap in a level. In Design mode, edit levels while a validator proves each one is solvable.
 
-Work in progress. See [DESIGN.md](DESIGN.md).
+Work in progress. See [docs/DESIGN.md](docs/DESIGN.md).
 
 ## Development
 

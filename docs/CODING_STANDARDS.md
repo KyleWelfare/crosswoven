@@ -1,5 +1,11 @@
 # Coding standards
 
+## Modules and naming
+
+- One module per concept, named after the concept as a noun: `level.ts`, `validator.ts`, not `config.ts` or `utils.ts`. A type lives in the module that owns its concept
+- File names are kebab-case: `level-decoder.ts`. Case-insensitive filesystems on Windows and macOS hide case-only renames that then break on Linux CI
+- Types are PascalCase; functions, variables and properties camelCase; top-level constants camelCase or UPPER_CASE. ESLint enforces this
+
 ## Types
 
 Annotate every function return, parameter and variable, even where TypeScript could infer it. Agents read the type at the declaration instead of inferring it. ESLint enforces this.

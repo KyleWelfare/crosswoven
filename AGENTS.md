@@ -2,10 +2,6 @@
 
 Jump Tuner: a small browser interactive about projectile motion. Drag a launch arrow to set run speed and jump speed so one jump clears every gap in a level. Design mode edits levels while a validator proves each one is solvable.
 
-## Teaching
-
-These sessions are for learning, not just output. Explain every change the way a professor teaching the material would: the concepts behind it (Elm architecture, functional programming, canvas, physics, TypeScript), why this approach over the alternatives, and how it connects to what came before. Introduce new ideas before using them, keep explanations tied to the actual code, and point out what is worth remembering for next time.
-
 ## Docs
 
 Project docs live in `docs/`. Read the ones that apply before starting work. When you add a doc, put it in `docs/` and add a row here.

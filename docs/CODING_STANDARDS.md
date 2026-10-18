@@ -1,5 +1,9 @@
 # Coding standards
 
+## Types
+
+Annotate every function return, parameter and variable, even where TypeScript could infer it. Agents read the type at the declaration instead of inferring it. ESLint enforces this.
+
 ## Comments
 
 Don't comment what the code already says. If a competent developer or agent can work it out by reading the code, leave the comment out.

@@ -1,3 +1,3 @@
-// DOM panels: tabs, status, readouts, validator verdict, config view.
+// DOM panels: level list, progress, hint mode, undo and clear.
 
 export {};

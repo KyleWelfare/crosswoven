@@ -1,3 +1,3 @@
-// Grid search over arrow snap positions → checks, failure breakdown, example solution.
+// Certifies a puzzle: solvable, unique, no guessing needed, difficulty. Pipeline and CI only.
 
 export {};

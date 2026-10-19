@@ -1,17 +1,17 @@
 # AGENTS.md
 
-Jump Tuner: a small browser interactive about projectile motion. Drag a launch arrow to set run speed and jump speed so one jump clears every gap in a level. Design mode edits levels while a validator proves each one is solvable.
+Crosswoven: a browser logic puzzle. Lay coloured threads between pegs so the woven cloth matches a pattern; where two threads cross, their colours mix. Every shipped puzzle is generated from a picture and certified by a validator to have exactly one solution, reachable without guessing.
 
 ## Docs
 
 Project docs live in `docs/`. Read the ones that apply before starting work. When you add a doc, put it in `docs/` and add a row here.
 
-| Doc                        | Read when                                                                                                  |
-| -------------------------- | ---------------------------------------------------------------------------------------------------------- |
-| `docs/CODING_STANDARDS.md` | Every change                                                                                               |
-| `docs/ARCHITECTURE.md`     | Adding, moving or wiring up code: which layer it belongs in, how state and messages flow, where effects go |
-| `docs/DESIGN.md`           | Gameplay or API decisions: the level config, what makes a level valid, physics rules, difficulty           |
-| `docs/TESTING.md`          | Writing or changing tests, or any change to `src/core/` or `src/app/`                                      |
+| Doc                        | Read when                                                                                                             |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `docs/CODING_STANDARDS.md` | Every change                                                                                                          |
+| `docs/ARCHITECTURE.md`     | Adding, moving or wiring up code: which layer it belongs in, how state and messages flow, where effects go            |
+| `docs/DESIGN.md`           | Gameplay or API decisions: rules, the puzzle format, what makes a puzzle valid, hints, difficulty, the level pipeline |
+| `docs/TESTING.md`          | Writing or changing tests, or any change to `src/core/` or `src/app/`                                                 |
 
 ## Commands
 

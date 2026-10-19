@@ -1,3 +1,3 @@
-// Canvas stage: level, arrow, preview, animation, ghost trails.
+// Canvas board: pattern, pegs, threads, hint flags, win animation.
 
 export {};

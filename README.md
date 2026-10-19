@@ -1,6 +1,8 @@
-# Jump Tuner
+# Crosswoven
 
-A small interactive about projectile motion. Drag a launch arrow to set run speed and jump speed so one jump clears every gap in a level. In Design mode, edit levels while a validator proves each one is solvable.
+A logic puzzle in the browser. Lay coloured threads between pegs so the woven cloth matches a pattern. Where two threads cross, their colours mix, and the finished cloth is a pixel-art picture.
+
+Every puzzle is generated from a picture and certified by a validator: exactly one solution, reachable by deduction alone.
 
 Work in progress. See [docs/DESIGN.md](docs/DESIGN.md).
 

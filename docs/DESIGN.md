@@ -4,160 +4,145 @@ Decisions for version one. Architecture lives in `ARCHITECTURE.md`, testing in `
 
 ## The game
 
-A character runs along platforms and jumps automatically at each platform's edge. Before the run, the player sets one launch arrow for the whole level: its horizontal leg is **run speed**, its vertical leg is **jump speed**. One setting has to clear every gap. Gravity comes from the level's **planet**.
+Crosswoven is a logic puzzle. A grid shows a coloured pattern and some coloured pegs. The player lays threads between the pegs so the woven cloth matches the pattern. Solving it reveals a pixel-art picture.
 
-The lesson: horizontal and vertical motion are independent. Jump speed alone sets the height (`h = jump² / 2g`), run speed only stretches the arc sideways, and jump length needs both (`d = run · 2·jump / g`).
+### Rules
 
-### Play
+- There are three thread colours: red, blue and yellow
+- Every peg is the end of exactly one thread, and a thread joins two pegs of its colour. Pegs show colour only, so working out which pegs pair up is part of the puzzle
+- Threads run between orthogonally adjacent squares and never revisit a square. A thread can't pass through a peg; reaching a peg of its colour ends it
+- Each square in the pattern shows the threads that pass through it:
 
-- Drag the arrow's tip to change both speeds, or one leg to change only that one. The arrow snaps to the level's snap positions. Keyboard: arrow keys adjust, Space jumps
-- A dotted preview shows the arc up to its first peak, labelled with the height. The rest of the run is left to reasoning
-- Pressing Jump plays the run. Each try leaves a ghost trail; the last five are kept
-- When a run fails, a hint names how it failed (see Results)
-- After clearing a level, the solution map is revealed with the player's attempts plotted on it
+  | Square | Threads through it      |
+  | ------ | ----------------------- |
+  | Blank  | None                    |
+  | Red    | One red                 |
+  | Blue   | One blue                |
+  | Yellow | One yellow              |
+  | Purple | One red and one blue    |
+  | Orange | One red and one yellow  |
+  | Green  | One blue and one yellow |
+
+- Two threads can share a square only if they're different colours and cross straight over each other at right angles: one runs across, the other down. This is what makes the colours depend on each other
+- Pegs sit on single-colour squares
+- The puzzle is solved when every peg is tied and every square matches the pattern
+
+### The guarantee
+
+Every shipped puzzle has exactly one solution, and it can be reached by deduction alone, without guessing. The validator proves both for every level (see Validation).
+
+## Play
+
+- Drag from a peg to lay a thread. Drag back along it to take steps off. Drag from any square of an existing thread to reroute it from there. Dragging from a peg that already has a thread starts that thread again
+- Nothing stops a move that breaks a rule. The board is checked once every peg is tied
+- **Hint mode** is a toggle. While it's on, squares that break a rule are flagged live, and a Hint button highlights one forced move with a one-line reason ("this red peg can only go up: every other neighbour has no red")
+- Undo and Clear
+- On a win, the threads fade back and the cloth fills in with the finished picture
 
 ### Levels
 
-Five hand-made levels, one idea each, unlocked in order:
+- About 12 hand-drawn picture puzzles, rising in difficulty, unlocked in order
+- Grid sizes from 5×5 to 15×15
+- Each level shows its difficulty: Easy, Medium or Hard, rated by the hardest deduction it needs
+- Progress (cleared or not) is saved in local storage. No accounts, scores or sound
 
-| Level             | Constraint                             | What it teaches                                       |
-| ----------------- | -------------------------------------- | ----------------------------------------------------- |
-| 1 · Gap           | One flat gap, jump speed locked        | Run speed stretches the same jump further             |
-| 2 · Short landing | Narrow landing platform                | You aim for a range, not a threshold                  |
-| 3 · Ledge         | A higher platform, jump speed unlocked | Only jump speed sets the height, and it counts twice  |
-| 4 · Ceiling       | A block caps the peak                  | Height is capped; make up the distance with run speed |
-| 5 · Planets       | The same layout on Moon and Jupiter    | Gravity scales the whole arc                          |
+## Puzzle format
 
-Progress (cleared or not, try count per level) is saved in local storage. No accounts, scores or ratings. No sound in version one.
-
-### Design mode
-
-- Move, resize, add and remove platforms and ceilings. Everything snaps to 10 units
-- Switch planet
-- On every change the validator reruns and shows the verdict, each check's result, the solution map coloured by failure type, and one example solution drawn on the level
-- Undo and redo (Ctrl+Z / Ctrl+Shift+Z and buttons)
-- Copy the level as JSON. Paste a level in; it goes through the decoder and shows readable errors if it's invalid
-- The working level is saved in local storage
-- "Play this level" switches to Play mode. Rejected levels can be played, with a banner saying which check failed. Hand-made and generated levels are always valid
-
-Arrow ranges and steps aren't editable in the UI, only in the config.
-
-### Look
-
-Graph-paper notebook: grid paper, ink platforms and ceilings, a bright character and arc, dimension labels on gaps and ledges. Works in light and dark themes.
-
-## The level config
-
-The config is the API used by designers, a content agent or a tutor. It's versioned JSON with named fields.
+A level is versioned JSON. The pattern is one string per row; pegs are coordinates, and each peg takes the colour of its square.
 
 ```json
 {
   "version": 1,
-  "id": "ceiling",
-  "world": { "width": 800, "height": 360 },
-  "planet": "earth",
-  "platforms": [
-    { "x": 0, "width": 170, "top": 60 },
-    { "x": 300, "width": 80, "top": 60 },
-    { "x": 500, "width": 60, "top": 140 },
-    { "x": 680, "width": 120, "top": 60 }
-  ],
-  "ceilings": [{ "x": 380, "width": 120, "bottom": 210 }],
-  "arrow": {
-    "runSpeed": { "min": 120, "max": 320, "step": 10 },
-    "jumpSpeed": { "min": 300, "max": 700, "step": 20 }
-  }
+  "id": "lattice",
+  "title": "Lattice",
+  "pattern": [".RRR.", "BPBPB", "BPBPB", "BPBRR", "BR.RR"],
+  "pegs": [
+    { "x": 2, "y": 0 },
+    { "x": 3, "y": 0 },
+    { "x": 4, "y": 1 },
+    { "x": 4, "y": 2 },
+    { "x": 2, "y": 3 },
+    { "x": 0, "y": 4 },
+    { "x": 1, "y": 4 },
+    { "x": 3, "y": 4 }
+  ]
 }
 ```
 
-- **Units:** world units, units/s and units/s². y points up from the bottom of the world
-- **World:** every level is 800×360 for now. The size is in the config so variable sizes later don't need a format change
-- **Planets:** `moon` (g = 700), `earth` (1300), `jupiter` (2100). Scaled for play, not real ratios
-- **Arrow:** defaults are run speed 120–320 step 10 and jump speed 300–700 step 20, giving 441 snap positions. A level may override them. A locked speed is a range with `min` equal to `max`; its leg is drawn greyed with a lock and can't be dragged
-- **Flag:** placed on the last platform, a fixed distance from its right edge
-- **Ceilings** extend from `bottom` to the top of the world
+This example is a real generated puzzle with exactly one solution. It uses only red and blue.
+
+- **Pattern codes:** `.` blank, `R` red, `B` blue, `Y` yellow, `P` purple, `O` orange, `G` green
+- **Coordinates:** squares, with `x` to the right and `y` down from the top-left
 
 ### Decoder rules
 
-The decoder turns unknown JSON into a `Level` or a list of readable errors. It rejects:
+The decoder turns unknown JSON into a `Puzzle` or a list of readable errors. It rejects:
 
-- Missing fields, wrong types, unknown planet, unsupported version
-- Anything outside the world
-- Platforms out of left-to-right order or overlapping
-- Platforms narrower than the minimum width
-- A first platform that doesn't start at the left edge or is too short to start on
-- A last platform too short to hold the flag
-- Ceilings overlapping platforms
-- Arrow ranges with `min > max`, a step that doesn't divide the range, or a non-positive step
+- Missing fields, wrong types, unsupported version
+- A grid smaller than 5×5 or larger than 15×15, or rows of different lengths
+- Unknown pattern codes
+- Pegs outside the grid, on blank or two-colour squares, or duplicated
+- An odd number of pegs of any colour, or a colour in the pattern with no pegs
 
-Errors name the problem and the piece: "platform 3 overlaps platform 2".
+Errors name the problem and the place: "peg 4 at (2, 7) is on a purple square".
 
-## Physics
-
-- One `simulate(level, run, jump)`, used by both the game and the validator, so they can't disagree
-- Fixed timestep of 1/240 s. Runs are capped at 10 s
-- The character is an 18×18 box, so what you see is what collides
-- It starts near the left of the first platform and runs at run speed. When its box passes a platform's right edge it jumps with jump speed, and gravity pulls it down
-
-### Results
-
-| Result      | When                                                       |
-| ----------- | ---------------------------------------------------------- |
-| Cleared     | Reaches the flag on the last platform                      |
-| Hit ceiling | The box touches a ceiling                                  |
-| Hit ledge   | The box hits a platform's side before landing on top       |
-| Fell short  | Drops below the world before reaching the next platform    |
-| Flew past   | Drops below the world after passing over the next platform |
-
-Each failure has one built-in hint. Hints aren't configurable per level.
+The decoder checks shape only. Whether the pattern can be woven at all is the validator's job.
 
 ## Validation
 
-Every input a player can give is a snap position, so the validator simulates all of them. Its verdict is exact, not an estimate.
+The validator certifies a puzzle. It runs in the level pipeline and in CI. The shipped game only includes the logic solver, for hints.
 
-A level **ships** when all three checks pass:
+| Check      | Rule                                                             |
+| ---------- | ---------------------------------------------------------------- |
+| Decodes    | The level passes the decoder                                     |
+| Solvable   | At least one solution exists                                     |
+| Unique     | Exactly one solution exists                                      |
+| No guesses | The logic solver reaches the solution using deduction rules only |
+| Difficulty | The hardest rule the logic solver needed sets the level's rating |
 
-| Check       | Rule                                                    |
-| ----------- | ------------------------------------------------------- |
-| Solvable    | At least 1 snap position clears it                      |
-| Fair margin | At least 4 clear it, so nobody hunts for a single pixel |
-| Not trivial | At most 25% clear it, so the setting matters            |
+Two solvers back this up, and each checks the other:
 
-Thresholds live in one place so they're easy to tune.
+- **Search solver:** backtracking search. Finds every solution (stopping at two), so it proves solvable and unique
+- **Logic solver:** applies deduction rules one at a time, the way a person would, recording each step and its reason. If it gets stuck before the end, the puzzle needs guessing and is rejected. Its steps also power hints in the game
 
-The validator also returns the result for every snap position (for the solution map), a breakdown of failures by type, and one example solution near the middle of the clearing region.
+## Level pipeline
 
-In Design mode it runs in a Web Worker. If the level changes while a validation is running, only the latest result is used.
+Claude draws each picture as a small text grid in the repo, using the pattern codes. `npm run levels` then turns each picture into a level:
 
-### Difficulty
+1. The generator lays threads that weave the picture, choosing how each colour splits into threads and where the pegs go. It's seeded, so the same picture and seed always give the same level
+2. The validator certifies the result. If it fails, the generator tries another seed
+3. If no seed works, the script reports which squares are at fault, so the picture can be fixed. Some pictures can't be woven at all: for example, a purple square on the edge of the grid has no room to cross
+4. Certified levels are written to `src/levels/`
 
-Difficulty is the share of snap positions that clear the level:
+CI re-validates every shipped level, so a generator change can't silently break one.
 
-| Band   | Share                             |
-| ------ | --------------------------------- |
-| Easy   | 15–25%                            |
-| Medium | 5–15%                             |
-| Hard   | 1–5% (still at least 4 positions) |
+## Look
 
-### Solution map
+Kept from the prototype and refined later:
 
-A grid of every arrow setting: run speed across, jump speed up. Clearing settings are highlighted; failed settings are coloured by failure type, so the map shows the physics (a ceiling appears as a band across the top, short and past in opposite corners).
-
-## Generator
-
-Seeded, so the same seed always gives the same level. Given a difficulty band, it picks a planet, platform count, gaps, heights and an optional ceiling from seeded ranges, validates the result, and keeps it if it ships and lands in the band. Otherwise it tries again.
-
-The generator is in version one because it drives the main property test. An endless-mode screen built on it can be cut.
+- A weave theme. Crossings alternate over and under on a checkerboard, like plain-weave cloth
+- Squares show a pale wash of their target colour, deeper once the threads there match. Two-colour squares show two small pips naming their colours
+- Pegs are hollow until tied
+- Light and dark themes
 
 ## Targets
 
-- Desktop and phones, mouse and touch. On phones in portrait the stage shrinks and the panels stack below it
-- Steady 60 fps while dragging and animating on a mid-range phone
-- The solution map updates within about 100 ms of a change in Design mode
+- Desktop with a mouse, and phones with touch in portrait. A 15×15 puzzle must be playable on a phone
+- Steady 60 fps while drawing
+- A hint appears within about 100 ms
 
-## Stretch goals
+## Out of scope for version one
 
-- Endless mode
-- Suggested fixes for rejected levels in Design mode ("raise the ceiling 20 units")
-- Sound
-- Variable world sizes
+- Design mode and player-made puzzles
+- Keyboard play and screen reader support
+- Daily or endless generated puzzles
+
+## Open questions
+
+- When every peg is tied but the board is wrong, what does the player see: just "not solved yet", or a count of wrong squares?
+- Does the shipped game keep a "Show answer" button?
+- Do level files store the solution, or is it always derived by the solver?
+- Which deduction rules the logic solver uses, and how they map to Easy, Medium and Hard. To decide when building the validator
+- What a hint does when the player's board already has mistakes
+- Which 12 pictures make the level pack
+- Squares at 15×15 on a phone are about 24 px. Is that enough to drag accurately, or do large puzzles need zoom?

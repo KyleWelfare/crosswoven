@@ -105,6 +105,8 @@ Two solvers back this up, and each checks the other:
 - **Search solver:** backtracking search. Finds every solution (stopping at two), so it proves solvable and unique
 - **Logic solver:** applies deduction rules one at a time, the way a person would, recording each step and its reason. If it gets stuck before the end, the puzzle needs guessing and is rejected. Its steps also power hints in the game
 
+`Puzzle` stores squares as readable colour names. The solvers convert the pattern once to bitmasks of thread colours (red 1, blue 2, yellow 4, so purple is 3), because their work is set operations: what a square still needs, whether a colour may enter, whether a square is satisfied.
+
 ## Level pipeline
 
 Claude draws each picture as a small text grid in the repo, using the pattern codes. `npm run levels` then turns each picture into a level:

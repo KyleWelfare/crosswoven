@@ -4,13 +4,14 @@ Decisions for version one. Architecture lives in `ARCHITECTURE.md`, testing in `
 
 ## The game
 
-Crosswoven is a logic puzzle. A grid shows a coloured pattern and some coloured pegs. The player lays threads between the pegs so the woven cloth matches the pattern. Solving it reveals a pixel-art picture.
+Crosswoven is a logic puzzle. A grid shows a coloured pattern and some numbered, coloured pegs. The player lays threads between the pegs so the woven cloth matches the pattern. Solving it reveals a pixel-art picture.
 
 ### Rules
 
 - There are three thread colours: red, blue and yellow
-- Every peg is the end of exactly one thread, and a thread joins two pegs of its colour. Pegs show colour only, so working out which pegs pair up is part of the puzzle
-- Threads run between orthogonally adjacent squares and never revisit a square. A thread can't pass through a peg; reaching a peg of its colour ends it
+- Every peg is the end of exactly one thread. A peg shows its colour and the length of its thread, counted in squares from peg to peg with both pegs included
+- A thread joins two pegs of the same colour and the same number. A peg marked 1 is a whole thread on its own, one square long
+- Threads run between orthogonally adjacent squares and never revisit a square. A thread can't pass through a peg
 - Each square in the pattern shows the threads that pass through it:
 
   | Square | Threads through it      |
@@ -27,6 +28,8 @@ Crosswoven is a logic puzzle. A grid shows a coloured pattern and some coloured 
 - Pegs sit on single-colour squares
 - The puzzle is solved when every peg is tied and every square matches the pattern
 
+The numbers keep each thread within reach of its pegs, so deductions stay local and puzzles scale to large grids, as in PathPix. Without them, any two pegs of a colour could pair from anywhere on the board, and an experiment found no unique 15×15 puzzles at all; with them, most random 15×15 layouts were unique before any tuning.
+
 ### The guarantee
 
 Every shipped puzzle has exactly one solution, and it can be reached by deduction alone, without guessing. The validator proves both for every level (see Validation).
@@ -34,45 +37,59 @@ Every shipped puzzle has exactly one solution, and it can be reached by deductio
 ## Play
 
 - Drag from a peg to lay a thread. Drag back along it to take steps off. Drag from any square of an existing thread to reroute it from there. Dragging from a peg that already has a thread starts that thread again
+- While drawing, the thread shows how many squares it has, so the player can match it to the peg's number
 - Nothing stops a move that breaks a rule. The board is checked once every peg is tied
-- **Hint mode** is a toggle. While it's on, squares that break a rule are flagged live, and a Hint button highlights one forced move with a one-line reason ("this red peg can only go up: every other neighbour has no red")
+- **Hint mode** is a toggle. While it's on, squares that break a rule are flagged live, and a Hint button highlights one forced move with a one-line reason ("this 3 can only reach the other 3 by going down")
 - Undo and Clear
 - On a win, the threads fade back and the cloth fills in with the finished picture
 
 ### Levels
 
 - About 12 hand-drawn picture puzzles, rising in difficulty, unlocked in order
-- Grid sizes from 5×5 to 15×15
+- Grid sizes from 5×5 to 15×15. Larger grids are possible with numbered pegs, but 15×15 is the most a phone screen holds for version one
 - Each level shows its difficulty: Easy, Medium or Hard, rated by the hardest deduction it needs
 - Progress (cleared or not) is saved in local storage. No accounts, scores or sound
 
+## Pictures
+
+Pictures are real objects: a heart, a fish, a mushroom. Most squares are single colours or blank, drawn like ordinary pixel art.
+
+Two-colour squares are an accent, not the main material. At a two-colour square one thread runs straight across and the other straight down, so:
+
+- Both of its colours must continue into the neighbours on the matching sides: one colour into the squares left and right of it, the other into the squares above and below
+- It can't sit on the edge of the grid
+- Two-colour squares only form straight bands, so they suit things that are bands in real life: a stripe, a belt, a ribbon, a strap
+
+A picture that wants a mixed colour as a freeform area (a purple grape, a green leaf) should use a single colour there instead.
+
 ## Puzzle format
 
-A level is versioned JSON. The pattern is one string per row; pegs are coordinates, and each peg takes the colour of its square.
+A level is versioned JSON. The pattern is one string per row; pegs are coordinates with the length of their thread, and each peg takes the colour of its square.
 
 ```json
 {
-  "version": 1,
+  "version": 2,
   "id": "lattice",
   "title": "Lattice",
   "pattern": [".RRR.", "BPBPB", "BPBPB", "BPBRR", "BR.RR"],
   "pegs": [
-    { "x": 2, "y": 0 },
-    { "x": 3, "y": 0 },
-    { "x": 4, "y": 1 },
-    { "x": 4, "y": 2 },
-    { "x": 2, "y": 3 },
-    { "x": 0, "y": 4 },
-    { "x": 1, "y": 4 },
-    { "x": 3, "y": 4 }
+    { "x": 2, "y": 0, "length": 6 },
+    { "x": 3, "y": 0, "length": 7 },
+    { "x": 4, "y": 1, "length": 10 },
+    { "x": 4, "y": 2, "length": 10 },
+    { "x": 2, "y": 3, "length": 4 },
+    { "x": 0, "y": 4, "length": 4 },
+    { "x": 1, "y": 4, "length": 6 },
+    { "x": 3, "y": 4, "length": 7 }
   ]
 }
 ```
 
-This example is a real generated puzzle with exactly one solution. It uses only red and blue.
+This example has exactly one solution. It uses only red and blue.
 
 - **Pattern codes:** `.` blank, `R` red, `B` blue, `Y` yellow, `P` purple, `O` orange, `G` green
 - **Coordinates:** squares, with `x` to the right and `y` down from the top-left
+- **Length:** squares in the thread, both pegs included. A peg with length 1 is a thread on its own
 
 ### Decoder rules
 
@@ -82,7 +99,8 @@ The decoder turns unknown JSON into a `Puzzle` or a list of readable errors. It 
 - A grid smaller than 5×5 or larger than 15×15, or rows of different lengths
 - Unknown pattern codes
 - Pegs outside the grid, on blank or two-colour squares, or duplicated
-- An odd number of pegs of any colour, or a colour in the pattern with no pegs
+- A length that isn't a whole number from 1 up
+- An odd number of pegs of any colour and length above 1, since those pair up, or a colour in the pattern with no pegs
 
 Errors name the problem and the place: "peg 4 at (2, 7) is on a purple square".
 
@@ -100,26 +118,28 @@ The validator certifies a puzzle. It runs in the level pipeline and in CI. The s
 | No guesses | The logic solver reaches the solution using deduction rules only |
 | Difficulty | The hardest rule the logic solver needed sets the level's rating |
 
-Two solvers back this up, and each checks the other:
+Both solvers start from the same idea: for each pair of pegs that could join (same colour, same number, close enough to reach each other), list every path of exactly that length that follows the rules. Each solver then works on those candidate paths.
 
-- **Search solver:** backtracking search. Finds every solution (stopping at two), so it proves solvable and unique
-- **Logic solver:** applies deduction rules one at a time, the way a person would, recording each step and its reason. If it gets stuck before the end, the puzzle needs guessing and is rejected. Its steps also power hints in the game
+- **Search solver:** chooses one path per peg so that every square gets exactly the threads the pattern asks for. Finds every solution (stopping at two), so it proves solvable and unique
+- **Logic solver:** rules out candidate paths one deduction at a time, the way a person would, recording each step and its reason. If it gets stuck before the end, the puzzle needs guessing and is rejected. Its steps also power hints in the game
+
+Each solver is checked against the other, so a bug in one shows up as a disagreement.
 
 ### Deduction rules
 
-The logic solver tracks every link between neighbouring squares, per colour, as unknown, linked or blocked. Links into a square without that colour start blocked. Each step decides one link using one rule, and the solver always uses the easiest rule that makes progress.
+Proposed from the experiment that showed local deduction solves almost every unique puzzle. Final tiers are settled when the logic solver is rebuilt.
 
-| Rule     | Difficulty | Statement                                                                                                                                                                                       |
-| -------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Count    | Easy       | A peg has exactly one link and any other square exactly two, per colour. If only that many links are still possible, all are linked; if that many are linked, the rest are blocked              |
-| Crossing | Easy       | Once anything shows which way one thread runs through a two-colour square, both threads there are fixed: one straight across, the other straight down                                           |
-| Loop     | Medium     | A square can't link to two squares of the same piece of thread: that would close a loop. Links every remaining choice shares are linked; links none of them use are blocked                     |
-| Strand   | Medium     | A link is blocked if finishing a thread with it would cut other squares of that colour off from every free peg                                                                                  |
-| Parity   | Hard       | Within a region one colour can still reach, free pegs pair up, so their count is even. A link is linked if blocking it would split a region into two parts with an odd number of free pegs each |
+| Rule       | Difficulty | Statement                                                                                                                         |
+| ---------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Partner    | Easy       | A peg can only pair with a peg of its colour and number that its thread could reach. If only one can, they pair                   |
+| Only path  | Easy       | When a pair has one path left, that is its thread                                                                                 |
+| Crossing   | Easy       | At a two-colour square the threads run perpendicular, so once one thread's direction there is known, the other's is too           |
+| Shared     | Medium     | Squares that every remaining path of a peg passes through belong to that peg's thread; no other thread of its colour may use them |
+| Only reach | Medium     | A square that only one peg's paths can reach must be on that peg's thread, so its paths that miss the square are ruled out        |
 
 A puzzle's difficulty is the hardest rule its solve needs. Trial and error ("assume this, follow it, hit a contradiction") is not a rule: a puzzle that needs it counts as needing guessing and is rejected.
 
-A hint shows the next link to draw and the rule that forced it. Steps that block links stay internal, since players only draw threads.
+A hint shows the next square or link the player can draw and the rule that forced it.
 
 `Puzzle` stores squares as readable colour names. The solvers convert the pattern once to bitmasks of thread colours (red 1, blue 2, yellow 4, so purple is 3), because their work is set operations: what a square still needs, whether a colour may enter, whether a square is satisfied.
 
@@ -127,10 +147,12 @@ A hint shows the next link to draw and the rule that forced it. Steps that block
 
 Claude draws each picture as a small text grid in the repo, using the pattern codes. `npm run levels` then turns each picture into a level:
 
-1. The generator lays threads that weave the picture, choosing how each colour splits into threads and where the pegs go. It's seeded, so the same picture and seed always give the same level
-2. The validator certifies the result. If it fails, the generator tries another seed
+1. The generator covers each colour's squares with short threads, running straight through two-colour squares, and puts numbered pegs at their ends. It's seeded, so the same picture and seed always give the same level
+2. The validator certifies the result. If the puzzle has more than one solution, the generator re-lays threads where the two solutions differ, usually by splitting them shorter, and tries again. If that doesn't converge, it tries another seed
 3. If no seed works, the script reports which squares are at fault, so the picture can be fixed. Some pictures can't be woven at all: for example, a purple square on the edge of the grid has no room to cross
 4. Certified levels are written to `src/levels/`
+
+Short threads keep candidate paths few and deductions local; long threads through open areas are what make puzzles ambiguous or slow to check.
 
 CI re-validates every shipped level, so a generator change can't silently break one.
 
@@ -140,7 +162,7 @@ Kept from the prototype and refined later:
 
 - A weave theme. Crossings alternate over and under on a checkerboard, like plain-weave cloth
 - Squares show a pale wash of their target colour, deeper once the threads there match. Two-colour squares show two small pips naming their colours
-- Pegs are hollow until tied
+- Pegs show their number, and are hollow until tied
 - Light and dark themes
 
 ## Targets
@@ -157,10 +179,12 @@ Kept from the prototype and refined later:
 
 ## Open questions
 
+- What makes a puzzle Hard, now that the deduction rules are path-based. To settle when the logic solver is rebuilt
+- Is there a maximum thread length? Long threads in open areas have many candidate paths, which slows both solvers
 - When every peg is tied but the board is wrong, what does the player see: just "not solved yet", or a count of wrong squares?
 - Does the shipped game keep a "Show answer" button?
 - Do level files store the solution, or is it always derived by the solver?
-- Should difficulty also count steps? A 15×15 puzzle that only needs the Count rule can still be a long solve. Revisit after playtesting
+- Should difficulty also count steps? A large puzzle that only needs Easy rules can still be a long solve. Revisit after playtesting
 - What a hint does when the player's board already has mistakes
 - Which 12 pictures make the level pack
 - Squares at 15×15 on a phone are about 24 px. Is that enough to drag accurately, or do large puzzles need zoom?

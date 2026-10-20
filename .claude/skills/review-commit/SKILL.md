@@ -63,7 +63,7 @@ Comments are reserved for what the code cannot say. If the code explains itself,
 
 - Restates the next line, or narrates a section ("// Set up the store")
 - Repeats a function, variable or type name in prose
-- Explains *what* or *how* instead of *why*
+- Explains _what_ or _how_ instead of _why_
 - Would be unnecessary after a rename or a small extraction (say which)
 - Is stale or contradicts the code
 

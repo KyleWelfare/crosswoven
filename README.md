@@ -11,6 +11,6 @@ Work in progress. See [docs/DESIGN.md](docs/DESIGN.md).
 ```sh
 npm install
 npm run dev      # local dev server
-npm run check    # lint, typecheck, tests
+npm run check    # format check, lint, typecheck, tests
 npm run build    # production build in dist/
 ```

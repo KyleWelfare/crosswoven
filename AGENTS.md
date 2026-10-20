@@ -16,5 +16,5 @@ Project docs live in `docs/`. Read the ones that apply before starting work. Whe
 ## Commands
 
 - `npm run dev`: local dev server
-- `npm run check`: lint, typecheck, tests. Run before calling any change done
+- `npm run check`: format check, lint, typecheck, tests. Run before calling any change done
 - `npm run build`: production build in `dist/`

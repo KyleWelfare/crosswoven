@@ -4,21 +4,7 @@ import type { Point, Puzzle } from "../src/core/puzzle.ts";
 import { findSolutions } from "../src/core/search-solver.ts";
 import type { Solution, Thread } from "../src/core/thread.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
-
-function puzzleOf(
-  pattern: readonly string[],
-  pegs: readonly (readonly [number, number])[],
-): Puzzle {
-  const result: DecodeResult = decodeLevel({
-    version: 1,
-    id: "test",
-    title: "Test",
-    pattern,
-    pegs: pegs.map(([x, y]: readonly [number, number]): Point => ({ x, y })),
-  });
-  if (!result.ok) throw new Error(result.errors.join("; "));
-  return result.puzzle;
-}
+import { puzzleOf } from "./fixtures/puzzle-of.ts";
 
 /** Threads as "red (0,0) (1,0)", which reads better in a failing assertion than nested objects. */
 function describeSolution(solution: Solution): string[] {

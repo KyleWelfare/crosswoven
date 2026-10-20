@@ -1,4 +1,5 @@
-import type { Point, ThreadColour } from "../../src/core/puzzle.ts";
+import fc from "fast-check";
+import { THREAD_COLOURS, type Point, type ThreadColour } from "../../src/core/puzzle.ts";
 import type { Solution, Thread } from "../../src/core/thread.ts";
 
 export interface ThreadPlan {
@@ -17,6 +18,8 @@ export interface LevelJson {
 }
 
 export interface Weave {
+  readonly width: number;
+  readonly height: number;
   readonly level: LevelJson;
   /** In the same canonical order as the search solver's solutions. */
   readonly threads: Solution;
@@ -57,8 +60,31 @@ export function weave(width: number, height: number, plans: readonly ThreadPlan[
     const squares: readonly Point[] | undefined = layThread(board, width, height, plan);
     if (squares) threads.push({ colour: plan.colour, squares });
   }
-  return { level: levelOf(width, height, threads), threads: canonical(threads, width) };
+  return {
+    width,
+    height,
+    level: levelOf(width, height, threads),
+    threads: canonical(threads, width),
+  };
 }
+
+/** Small boards, so the search solver can usually list every solution. */
+export const randomWeaves: fc.Arbitrary<Weave> = fc
+  .record({
+    width: fc.integer({ min: 5, max: 7 }),
+    height: fc.integer({ min: 5, max: 7 }),
+    plans: fc.array(
+      fc.record({
+        colour: fc.constantFrom<ThreadColour>(...THREAD_COLOURS),
+        start: fc.record({ x: fc.nat(6), y: fc.nat(6) }),
+        steps: fc.array(fc.integer({ min: 0, max: 3 }), { maxLength: 16 }),
+      }),
+      { maxLength: 8 },
+    ),
+  })
+  .map((input: { width: number; height: number; plans: ThreadPlan[] }): Weave =>
+    weave(input.width, input.height, input.plans),
+  );
 
 /**
  * The level these threads weave. Written independently of the search solver so the two can check

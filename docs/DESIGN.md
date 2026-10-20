@@ -105,6 +105,22 @@ Two solvers back this up, and each checks the other:
 - **Search solver:** backtracking search. Finds every solution (stopping at two), so it proves solvable and unique
 - **Logic solver:** applies deduction rules one at a time, the way a person would, recording each step and its reason. If it gets stuck before the end, the puzzle needs guessing and is rejected. Its steps also power hints in the game
 
+### Deduction rules
+
+The logic solver tracks every link between neighbouring squares, per colour, as unknown, linked or blocked. Links into a square without that colour start blocked. Each step decides one link using one rule, and the solver always uses the easiest rule that makes progress.
+
+| Rule     | Difficulty | Statement                                                                                                                                                                                       |
+| -------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Count    | Easy       | A peg has exactly one link and any other square exactly two, per colour. If only that many links are still possible, all are linked; if that many are linked, the rest are blocked              |
+| Crossing | Easy       | Once anything shows which way one thread runs through a two-colour square, both threads there are fixed: one straight across, the other straight down                                           |
+| Loop     | Medium     | A square can't link to two squares of the same piece of thread: that would close a loop. Links every remaining choice shares are linked; links none of them use are blocked                     |
+| Strand   | Medium     | A link is blocked if finishing a thread with it would cut other squares of that colour off from every free peg                                                                                  |
+| Parity   | Hard       | Within a region one colour can still reach, free pegs pair up, so their count is even. A link is linked if blocking it would split a region into two parts with an odd number of free pegs each |
+
+A puzzle's difficulty is the hardest rule its solve needs. Trial and error ("assume this, follow it, hit a contradiction") is not a rule: a puzzle that needs it counts as needing guessing and is rejected.
+
+A hint shows the next link to draw and the rule that forced it. Steps that block links stay internal, since players only draw threads.
+
 `Puzzle` stores squares as readable colour names. The solvers convert the pattern once to bitmasks of thread colours (red 1, blue 2, yellow 4, so purple is 3), because their work is set operations: what a square still needs, whether a colour may enter, whether a square is satisfied.
 
 ## Level pipeline
@@ -144,7 +160,7 @@ Kept from the prototype and refined later:
 - When every peg is tied but the board is wrong, what does the player see: just "not solved yet", or a count of wrong squares?
 - Does the shipped game keep a "Show answer" button?
 - Do level files store the solution, or is it always derived by the solver?
-- Which deduction rules the logic solver uses, and how they map to Easy, Medium and Hard. To decide when building the validator
+- Should difficulty also count steps? A 15×15 puzzle that only needs the Count rule can still be a long solve. Revisit after playtesting
 - What a hint does when the player's board already has mistakes
 - Which 12 pictures make the level pack
 - Squares at 15×15 on a phone are about 24 px. Is that enough to drag accurately, or do large puzzles need zoom?

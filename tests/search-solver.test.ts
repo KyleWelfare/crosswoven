@@ -4,7 +4,8 @@ import type { Point, Puzzle } from "../src/core/puzzle.ts";
 import { findSolutions } from "../src/core/search-solver.ts";
 import type { Solution, Thread } from "../src/core/thread.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
-import { puzzleOf } from "./fixtures/puzzle-of.ts";
+import { decoded, puzzleOf } from "./fixtures/puzzle-of.ts";
+import { pairingLevel, turningCrossingLevel } from "./fixtures/reference-puzzles.ts";
 
 /** Threads as "red (0,0) (1,0)", which reads better in a failing assertion than nested objects. */
 function describeSolution(solution: Solution): string[] {
@@ -48,15 +49,7 @@ describe("findSolutions", (): void => {
   });
 
   it("finds every way to pair pegs", (): void => {
-    const puzzle: Puzzle = puzzleOf(
-      ["RR...", "RR...", ".....", ".....", "....."],
-      [
-        [0, 0],
-        [1, 0],
-        [0, 1],
-        [1, 1],
-      ],
-    );
+    const puzzle: Puzzle = decoded(pairingLevel);
     expect(solutionsOf(puzzle)).toEqual([
       ["red (0,0) (1,0)", "red (0,1) (1,1)"],
       ["red (0,0) (0,1)", "red (1,0) (1,1)"],
@@ -64,29 +57,13 @@ describe("findSolutions", (): void => {
   });
 
   it("stops at the limit", (): void => {
-    const puzzle: Puzzle = puzzleOf(
-      ["RR...", "RR...", ".....", ".....", "....."],
-      [
-        [0, 0],
-        [1, 0],
-        [0, 1],
-        [1, 1],
-      ],
-    );
+    const puzzle: Puzzle = decoded(pairingLevel);
     expect(findSolutions(puzzle, 1)).toHaveLength(1);
   });
 
   describe("rules", (): void => {
     it("rejects a crossing where a thread turns", (): void => {
-      const puzzle: Puzzle = puzzleOf(
-        [".....", "..B..", ".RPB.", "..R..", "....."],
-        [
-          [2, 1],
-          [3, 2],
-          [1, 2],
-          [2, 3],
-        ],
-      );
+      const puzzle: Puzzle = decoded(turningCrossingLevel);
       expect(solutionsOf(puzzle)).toEqual([]);
     });
 

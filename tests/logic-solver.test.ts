@@ -9,6 +9,13 @@ import type { Puzzle } from "../src/core/puzzle.ts";
 import { findSolutions } from "../src/core/search-solver.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
 import { decoded, puzzleOf } from "./fixtures/puzzle-of.ts";
+import {
+  crossingLevel,
+  guessingLevel,
+  loopLevel,
+  strandLevel,
+  turningCrossingLevel,
+} from "./fixtures/reference-puzzles.ts";
 
 function rulesUsed(result: LogicResult): ReadonlySet<Rule> {
   return new Set(result.steps.map((step: Step): Rule => step.rule));
@@ -22,43 +29,10 @@ function expectNeeds(puzzle: Puzzle, easier: readonly Rule[], rule: Rule): Logic
   return result;
 }
 
-const crossingPuzzle: Puzzle = puzzleOf(
-  [".BRR.", "RPR..", "RPR..", ".B...", "....."],
-  [
-    [1, 0],
-    [3, 0],
-    [2, 2],
-    [1, 3],
-  ],
-);
-
-const loopPuzzle: Puzzle = puzzleOf(
-  [".....", ".....", "..YYY", "..YYY", "....."],
-  [
-    [2, 2],
-    [2, 3],
-  ],
-);
-
-/** The only two pegs sit side by side, but joining them directly would strand the rest. */
-const strandPuzzle: Puzzle = puzzleOf(
-  [".RRRR", ".RRRR", ".RRRR", "..RR.", "....."],
-  [
-    [2, 3],
-    [3, 3],
-  ],
-);
-
-/** Two loops of red: settling which way the left side runs takes a two-step "what if". */
-const guessingPuzzle: Puzzle = puzzleOf(
-  [".....", "RRRRR", "RR.RR", "RR.RR", "RRRRR"],
-  [
-    [2, 1],
-    [4, 1],
-    [3, 3],
-    [2, 4],
-  ],
-);
+const crossingPuzzle: Puzzle = decoded(crossingLevel);
+const loopPuzzle: Puzzle = decoded(loopLevel);
+const strandPuzzle: Puzzle = decoded(strandLevel);
+const guessingPuzzle: Puzzle = decoded(guessingLevel);
 
 describe("solveLogically", (): void => {
   it("solves the example puzzle to the search solver's answer", (): void => {
@@ -139,15 +113,7 @@ describe("solveLogically", (): void => {
   });
 
   it("reports a contradiction on a puzzle with no solution", (): void => {
-    const puzzle: Puzzle = puzzleOf(
-      [".....", "..B..", ".RPB.", "..R..", "....."],
-      [
-        [2, 1],
-        [3, 2],
-        [1, 2],
-        [2, 3],
-      ],
-    );
+    const puzzle: Puzzle = decoded(turningCrossingLevel);
     expect(solveLogically(puzzle).status).toBe("contradiction");
   });
 

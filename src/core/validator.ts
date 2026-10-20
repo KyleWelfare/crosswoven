@@ -2,7 +2,7 @@ import { decodeLevel, type DecodeResult } from "./level-decoder.ts";
 import { solveLogically, type Difficulty, type LogicResult } from "./logic-solver.ts";
 import type { Puzzle } from "./puzzle.ts";
 import { findSolutions } from "./search-solver.ts";
-import type { Solution } from "./thread.ts";
+import { sameSolution, type Solution } from "./thread.ts";
 
 export type Rejection = "invalid" | "unsolvable" | "not-unique" | "needs-guessing";
 
@@ -40,7 +40,7 @@ export function validatePuzzle(puzzle: Puzzle): Verdict {
       `no deduction rule applies after ${String(logic.steps.length)} steps`,
     );
   }
-  if (JSON.stringify(logic.solution) !== JSON.stringify(solution)) {
+  if (!sameSolution(logic.solution, solution)) {
     throw new Error(`logic and search solvers disagree on puzzle "${puzzle.id}"`);
   }
   return { ok: true, puzzle, difficulty: logic.difficulty, solution };

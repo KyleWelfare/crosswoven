@@ -12,6 +12,24 @@ export interface Thread {
  */
 export type Solution = readonly Thread[];
 
+export function sameSolution(a: Solution, b: Solution): boolean {
+  return (
+    a.length === b.length &&
+    a.every((thread: Thread, i: number): boolean => {
+      const other: Thread | undefined = b[i];
+      return (
+        other !== undefined &&
+        thread.colour === other.colour &&
+        thread.squares.length === other.squares.length &&
+        thread.squares.every((square: Point, j: number): boolean => {
+          const match: Point | undefined = other.squares[j];
+          return match !== undefined && match.x === square.x && match.y === square.y;
+        })
+      );
+    })
+  );
+}
+
 /** Whether a colour's thread joins two neighbouring squares, numbered `y * width + x`. */
 export type LinkTest = (colour: ThreadColour, a: number, b: number) => boolean;
 

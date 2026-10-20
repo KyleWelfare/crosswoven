@@ -1,20 +1,13 @@
 import fc from "fast-check";
 import { THREAD_COLOURS, type Point, type ThreadColour } from "../../src/core/puzzle.ts";
 import type { Solution, Thread } from "../../src/core/thread.ts";
+import type { LevelJson } from "./level-json.ts";
 
 export interface ThreadPlan {
   readonly colour: ThreadColour;
   readonly start: Point;
   /** Indexes into `STEPS`. */
   readonly steps: readonly number[];
-}
-
-export interface LevelJson {
-  readonly version: number;
-  readonly id: string;
-  readonly title: string;
-  readonly pattern: readonly string[];
-  readonly pegs: readonly Point[];
 }
 
 export interface Weave {

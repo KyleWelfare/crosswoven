@@ -1,4 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import type * as LogicSolver from "../src/core/logic-solver.ts";
+import { solveLogically } from "../src/core/logic-solver.ts";
 import { findSolutions } from "../src/core/search-solver.ts";
 import { validateLevel } from "../src/core/validator.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
@@ -11,6 +13,15 @@ import {
   strandLevel,
   turningCrossingLevel,
 } from "./fixtures/reference-puzzles.ts";
+
+// The real solver throughout, except where a test fakes a solver bug with mockReturnValueOnce.
+vi.mock(
+  import("../src/core/logic-solver.ts"),
+  async (importOriginal: () => Promise<typeof LogicSolver>): Promise<typeof LogicSolver> => {
+    const actual: typeof LogicSolver = await importOriginal();
+    return { ...actual, solveLogically: vi.fn(actual.solveLogically) };
+  },
+);
 
 describe("validateLevel", (): void => {
   it("ships the example puzzle with its one solution", (): void => {
@@ -48,9 +59,24 @@ describe("validateLevel", (): void => {
     });
   });
 
-  it("rates each shipped puzzle by the hardest rule it needs", (): void => {
+  it("rates a puzzle by the hardest rule it needs", (): void => {
     expect(validateLevel(crossingLevel)).toMatchObject({ ok: true, difficulty: "easy" });
     expect(validateLevel(loopLevel)).toMatchObject({ ok: true, difficulty: "medium" });
     expect(validateLevel(strandLevel)).toMatchObject({ ok: true, difficulty: "medium" });
+  });
+
+  it("throws when the logic solver finds a contradiction in a solvable puzzle", (): void => {
+    vi.mocked(solveLogically).mockReturnValueOnce({ status: "contradiction", steps: [] });
+    expect((): unknown => validateLevel(crossingLevel)).toThrow("found a contradiction");
+  });
+
+  it("throws when the solvers reach different solutions", (): void => {
+    vi.mocked(solveLogically).mockReturnValueOnce({
+      status: "solved",
+      steps: [],
+      difficulty: "easy",
+      solution: [],
+    });
+    expect((): unknown => validateLevel(crossingLevel)).toThrow("solvers disagree");
   });
 });

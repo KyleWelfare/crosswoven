@@ -1,7 +1,7 @@
-import { levelJson, type TestLevel } from "./puzzle-of.ts";
+import { levelJson, type LevelJson } from "./level-json.ts";
 
 /** Easy: needs the Crossing rule on top of Count. */
-export const crossingLevel: TestLevel = levelJson(
+export const crossingLevel: LevelJson = levelJson(
   [".BRR.", "RPR..", "RPR..", ".B...", "....."],
   [
     [1, 0],
@@ -12,7 +12,7 @@ export const crossingLevel: TestLevel = levelJson(
 );
 
 /** Medium: (3,2) can't link down to (3,3), the other end of its own piece. */
-export const loopLevel: TestLevel = levelJson(
+export const loopLevel: LevelJson = levelJson(
   [".....", ".....", "..YYY", "..YYY", "....."],
   [
     [2, 2],
@@ -21,7 +21,7 @@ export const loopLevel: TestLevel = levelJson(
 );
 
 /** Medium: the only two pegs sit side by side, but joining them directly would strand the rest. */
-export const strandLevel: TestLevel = levelJson(
+export const strandLevel: LevelJson = levelJson(
   [".RRRR", ".RRRR", ".RRRR", "..RR.", "....."],
   [
     [2, 3],
@@ -30,7 +30,7 @@ export const strandLevel: TestLevel = levelJson(
 );
 
 /** Unique, but settling which way the left side runs takes a two-step "what if". */
-export const guessingLevel: TestLevel = levelJson(
+export const guessingLevel: LevelJson = levelJson(
   [".....", "RRRRR", "RR.RR", "RR.RR", "RRRRR"],
   [
     [2, 1],
@@ -41,7 +41,7 @@ export const guessingLevel: TestLevel = levelJson(
 );
 
 /** No solution: both threads would have to turn at the crossing. */
-export const turningCrossingLevel: TestLevel = levelJson(
+export const turningCrossingLevel: LevelJson = levelJson(
   [".....", "..B..", ".RPB.", "..R..", "....."],
   [
     [2, 1],
@@ -52,7 +52,7 @@ export const turningCrossingLevel: TestLevel = levelJson(
 );
 
 /** Two solutions: the four pegs pair up across or down. */
-export const pairingLevel: TestLevel = levelJson(
+export const pairingLevel: LevelJson = levelJson(
   ["RR...", "RR...", ".....", ".....", "....."],
   [
     [0, 0],

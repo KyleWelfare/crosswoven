@@ -1,3 +1,3 @@
-// Msg union type: every way the state can change.
+// TODO: the Msg union, one variant per way the state can change.
 
 export {};

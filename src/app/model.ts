@@ -1,3 +1,3 @@
-// App state: current level, threads, drag state, hint mode, progress.
+// TODO: the Model: current level, threads, drag state, hint mode, progress.
 
 export {};

@@ -1,6 +1,6 @@
 # Testing
 
-Unit and property tests with Vitest and fast-check. `npm test` runs them once, `npm run test:watch` reruns on change, and CI runs them on every push.
+Unit and property tests with Vitest and fast-check. `npm test` runs them once, `npm run test:watch` reruns on change, and CI runs them on pushes to `main` and on pull requests.
 
 ## What gets tested
 

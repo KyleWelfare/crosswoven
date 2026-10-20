@@ -11,6 +11,7 @@ The app uses a model-view-update architecture. State lives in one place, changes
 | `src/view/`   | Draws the model to canvas and DOM; turns input events into `Msg`s                          | `app/`, `core/` types   | Yes             |
 | `src/main.ts` | The runtime: holds the current model, dispatches messages, schedules renders, runs effects | everything              | Yes             |
 | `scripts/`    | The level pipeline (`npm run levels`): pictures in `pictures/`, certified levels out       | `core/`                 | No              |
+| `src/levels/` | Certified levels written by the pipeline, as JSON                                          | nothing: data only      | No              |
 
 `core/` and `app/` must run in Node with no browser, so they can be tested directly.
 
@@ -45,6 +46,6 @@ Anything that isn't pure happens in `main.ts` or `view/`, and its result comes b
 - Reading and saving progress in local storage
 - Resize, device pixel ratio
 
-`update` requests effects by returning commands alongside the new model: `update(model, msg) → [model, cmds]`. Commands are plain data, e.g. `{ type: "SaveProgress"; progress }`. `main.ts` carries them out, and any result comes back as a `Msg`. Tests can assert which commands a message produces without running them.
+`update` requests effects through the `cmds` it returns. Commands are plain data, e.g. `{ type: "SaveProgress"; progress }`. `main.ts` carries them out, and any result comes back as a `Msg`. Tests can assert which commands a message produces without running them.
 
 Hints run the logic solver on the main thread. If they miss the 100 ms target in `DESIGN.md`, it moves to a Web Worker.

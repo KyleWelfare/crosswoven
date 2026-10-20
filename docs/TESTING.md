@@ -24,6 +24,7 @@ Example tests check the cases we thought of. Property tests check rules that mus
 
 - **The core guarantee:** for any picture and seed, a level the generator returns passes the validator.
 - **The search solver never misses:** lay random threads that follow the rules, derive the pattern and pegs from them, and the search solver's solutions include those threads.
+- **The search solver never invents:** every solution it returns weaves the same pattern and pegs and breaks no rule, checked by code written independently of the solver (`tests/fixtures/random-weave.ts`).
 - **The solvers agree:** whenever the logic solver finishes a puzzle, its answer matches the search solver's.
 - **The generator is deterministic:** the same picture and seed always give the same level.
 - **Decoding round-trips:** a valid puzzle encoded to JSON and decoded again comes back equal.

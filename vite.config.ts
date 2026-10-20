@@ -5,6 +5,7 @@ export default defineConfig({
   base: "./",
   test: {
     include: ["tests/**/*.test.ts"],
+    setupFiles: ["tests/setup.ts"],
     passWithNoTests: true,
   },
 });

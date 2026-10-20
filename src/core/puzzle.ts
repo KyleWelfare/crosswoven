@@ -45,3 +45,17 @@ export function threadsThrough(square: SquareColour): readonly ThreadColour[] {
 export function isThreadColour(square: SquareColour): square is ThreadColour {
   return threadsBySquare[square].length === 1;
 }
+
+/** Bit `1 << i` is set for `THREAD_COLOURS[i]`: red 1, blue 2, yellow 4. */
+export type ColourMask = number;
+
+export function colourBit(colour: ThreadColour): ColourMask {
+  return 1 << THREAD_COLOURS.indexOf(colour);
+}
+
+export function squareMask(square: SquareColour): ColourMask {
+  return threadsThrough(square).reduce(
+    (mask: ColourMask, colour: ThreadColour): ColourMask => mask | colourBit(colour),
+    0,
+  );
+}

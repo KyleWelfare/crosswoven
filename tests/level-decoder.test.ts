@@ -5,6 +5,7 @@ import {
   encodeLevel,
   type DecodeResult,
 } from "../src/core/level-decoder.ts";
+import { DEFAULT_LENGTHS } from "../src/core/picture.ts";
 import type { Puzzle } from "../src/core/puzzle.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
 
@@ -287,9 +288,29 @@ describe("decodePicture", (): void => {
         width: 5,
         height: 5,
         pattern: decoded(examplePuzzle).pattern,
+        lengths: DEFAULT_LENGTHS,
       },
     });
   });
+
+  it("takes thread lengths when given", (): void => {
+    const { id, title, pattern }: typeof examplePuzzle = examplePuzzle;
+    expect(decodePicture({ id, title, pattern, lengths: [3, 7] })).toMatchObject({
+      ok: true,
+      picture: { lengths: { min: 3, max: 7 } },
+    });
+  });
+
+  it.each([[[0, 3]], [[5, 2]], [[2]], [[2.5, 4]], ["2-5"]])(
+    "rejects lengths %j",
+    (lengths: unknown): void => {
+      const { id, title, pattern }: typeof examplePuzzle = examplePuzzle;
+      expect(decodePicture({ id, title, pattern, lengths })).toEqual({
+        ok: false,
+        errors: [`"lengths" must be [min, max], whole numbers with 1 <= min <= max`],
+      });
+    },
+  );
 
   it("rejects bad fields the way levels do", (): void => {
     expect(decodePicture({ id: "", pattern: ["...."] })).toEqual({

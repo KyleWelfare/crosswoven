@@ -1,5 +1,5 @@
 import { solveLogically, type Difficulty, type LogicResult } from "./logic-solver.ts";
-import type { Picture } from "./picture.ts";
+import type { Picture, ThreadLengths } from "./picture.ts";
 import {
   THREAD_COLOURS,
   formatPoint,
@@ -16,10 +16,6 @@ import { findSolutions, type SearchResult } from "./search-solver.ts";
 import { toSolution, type Solution, type Thread } from "./thread.ts";
 import { validatePuzzle, type Verdict } from "./validator.ts";
 
-/** Laid threads aim for this many squares. To be tuned by playtesting. */
-export const MIN_LAID_LENGTH: number = 2;
-export const MAX_LAID_LENGTH: number = 5;
-
 export type Laying =
   | { readonly ok: true; readonly puzzle: Puzzle; readonly threads: Solution }
   /** The picture can't be woven, and these squares are why. */
@@ -30,6 +26,7 @@ interface Grid {
   readonly width: number;
   readonly height: number;
   readonly squares: readonly SquareColour[];
+  readonly lengths: ThreadLengths;
 }
 
 interface ColourPath {
@@ -233,7 +230,12 @@ function puzzleOf(picture: Picture, threads: Solution): Puzzle {
 }
 
 function gridOf(picture: Picture): Grid {
-  return { width: picture.width, height: picture.height, squares: picture.pattern.flat() };
+  return {
+    width: picture.width,
+    height: picture.height,
+    squares: picture.pattern.flat(),
+    lengths: picture.lengths,
+  };
 }
 
 function uniquePoints(points: readonly Point[]): readonly Point[] {
@@ -420,7 +422,7 @@ function layColour(
       undefined,
     );
   const grow = (path: number[]): void => {
-    const target: number = randomInt(rng, MIN_LAID_LENGTH, MAX_LAID_LENGTH);
+    const target: number = randomInt(rng, grid.lengths.min, grid.lengths.max);
     for (const atEnd of [true, false]) {
       while (path.length < target) {
         const end: number | undefined = atEnd ? path.at(-1) : path[0];
@@ -456,7 +458,7 @@ function layColour(
 function joinNeighbour(grid: Grid, paths: number[][], square: number): boolean {
   const nearby: ReadonlySet<number> = new Set<number>(neighbours(grid, square));
   for (const path of paths) {
-    if (path.length >= MAX_LAID_LENGTH) continue;
+    if (path.length >= grid.lengths.max) continue;
     if (nearby.has(path.at(-1) ?? -1)) {
       path.push(square);
       return true;

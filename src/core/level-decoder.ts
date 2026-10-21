@@ -1,4 +1,4 @@
-import type { Picture } from "./picture.ts";
+import { DEFAULT_LENGTHS, type Picture, type ThreadLengths } from "./picture.ts";
 import {
   MAX_SIZE,
   MIN_SIZE,
@@ -55,18 +55,38 @@ const codesBySquare: ReadonlyMap<SquareColour, string> = new Map<SquareColour, s
   ]),
 );
 
-/** A picture file holds a level's id, title and pattern, with no version or pegs. */
+/**
+ * A picture file holds a level's id, title and pattern, with no version or pegs. An optional
+ * `lengths: [min, max]` sets how long the generator lays its threads.
+ */
 export function decodePicture(json: unknown): PictureResult {
   if (!isJsonObject(json)) return { ok: false, errors: ["the picture must be a JSON object"] };
   const errors: string[] = [];
   const id: string | undefined = decodeText(json, "id", errors);
   const title: string | undefined = decodeText(json, "title", errors);
   const pattern: Pattern | undefined = decodePattern(json["pattern"], errors);
-  if (errors.length > 0 || id === undefined || title === undefined || !pattern) {
+  const lengths: ThreadLengths | undefined = decodeLengths(json["lengths"], errors);
+  if (errors.length > 0 || id === undefined || title === undefined || !pattern || !lengths) {
     return { ok: false, errors };
   }
   const width: number = pattern[0]?.length ?? 0;
-  return { ok: true, picture: { id, title, width, height: pattern.length, pattern } };
+  return { ok: true, picture: { id, title, width, height: pattern.length, pattern, lengths } };
+}
+
+function decodeLengths(value: unknown, errors: string[]): ThreadLengths | undefined {
+  if (value === undefined) return DEFAULT_LENGTHS;
+  if (Array.isArray(value) && value.length === 2) {
+    const pair: readonly unknown[] = value;
+    const min: unknown = pair[0];
+    const max: unknown = pair[1];
+    if (isWholeNumber(min) && isWholeNumber(max) && min >= 1 && max >= min) return { min, max };
+  }
+  errors.push(`"lengths" must be [min, max], whole numbers with 1 <= min <= max`);
+  return undefined;
+}
+
+function isWholeNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value);
 }
 
 export function encodeLevel(puzzle: Puzzle): LevelFile {

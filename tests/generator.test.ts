@@ -1,7 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
-  MAX_LAID_LENGTH,
   generateLevel,
   layThreads,
   type Attempt,
@@ -9,7 +8,7 @@ import {
   type Laying,
 } from "../src/core/generator.ts";
 import { encodeLevel } from "../src/core/level-decoder.ts";
-import type { Picture } from "../src/core/picture.ts";
+import { DEFAULT_LENGTHS, type Picture, type ThreadLengths } from "../src/core/picture.ts";
 import type { Peg, Point, Puzzle, SquareColour } from "../src/core/puzzle.ts";
 import type { Thread } from "../src/core/thread.ts";
 import { validateLevel } from "../src/core/validator.ts";
@@ -18,8 +17,8 @@ import { decoded } from "./fixtures/puzzle-of.ts";
 import { levelOf, randomWeaves, ruleBreaks, type Weave } from "./fixtures/random-weave.ts";
 
 function pictureOf(puzzle: Puzzle): Picture {
-  const { id, title, width, height, pattern }: Picture = puzzle;
-  return { id, title, width, height, pattern };
+  const { id, title, width, height, pattern }: Puzzle = puzzle;
+  return { id, title, width, height, pattern, lengths: DEFAULT_LENGTHS };
 }
 
 const squareCodes: ReadonlyMap<string, SquareColour> = new Map<string, SquareColour>([
@@ -32,7 +31,7 @@ const squareCodes: ReadonlyMap<string, SquareColour> = new Map<string, SquareCol
   ["G", "green"],
 ]);
 
-function picture(rows: readonly string[]): Picture {
+function picture(rows: readonly string[], lengths: ThreadLengths = DEFAULT_LENGTHS): Picture {
   return {
     id: "test",
     title: "Test",
@@ -41,6 +40,7 @@ function picture(rows: readonly string[]): Picture {
     pattern: rows.map((row: string): SquareColour[] =>
       Array.from(row, (code: string): SquareColour => squareCodes.get(code) ?? "blank"),
     ),
+    lengths,
   };
 }
 
@@ -84,12 +84,22 @@ describe("layThreads", (): void => {
     );
   });
 
-  it("keeps laid threads short", (): void => {
+  it("keeps laid threads within the picture's lengths", (): void => {
+    const long: Picture = { ...heart, lengths: { min: 4, max: 8 } };
     for (const seed of [1, 2, 3, 4, 5]) {
       for (const thread of laid(layThreads(heart, seed)).threads) {
-        expect(thread.squares.length).toBeLessThanOrEqual(MAX_LAID_LENGTH);
+        expect(thread.squares.length).toBeLessThanOrEqual(DEFAULT_LENGTHS.max);
+      }
+      for (const thread of laid(layThreads(long, seed)).threads) {
+        expect(thread.squares.length).toBeLessThanOrEqual(8);
       }
     }
+  });
+
+  it("lays fewer pegs with longer threads", (): void => {
+    const pegs = (lengths: ThreadLengths): number =>
+      laid(layThreads({ ...heart, lengths }, 1)).puzzle.pegs.length;
+    expect(pegs({ min: 5, max: 9 })).toBeLessThan(pegs(DEFAULT_LENGTHS));
   });
 
   it("runs threads straight through a band of crossings", (): void => {

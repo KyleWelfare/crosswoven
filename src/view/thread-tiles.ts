@@ -1,3 +1,5 @@
+import { createSprite, type Sprite } from "./sprite-cache.ts";
+
 /**
  * The thread through one square, drawn heading east: `straight` crosses west to east, `corner`
  * turns from the north edge to the west edge, and `end` runs from a peg at the centre to the east
@@ -5,11 +7,7 @@
  */
 export type Piece = "straight" | "corner" | "end";
 
-/** Tiles already drawn at `size` device pixels, keyed by piece and colour. */
-export interface TileCache {
-  size: number;
-  readonly tiles: Map<string, HTMLCanvasElement>;
-}
+export type Axis = "across" | "down";
 
 interface Rgb {
   readonly r: number;
@@ -29,38 +27,19 @@ const TWISTS_PER_SQUARE: number = 4.5;
 /** Tangent of the grooves' slant against the thread. */
 const TWIST_SLANT: number = 0.8;
 const FIBRE_NOISE: number = 0.08;
+/** Fraction of a square over which the shadow on the lower thread at a crossing fades out. */
+const WEAVE_SHADOW: number = 0.14;
 
-export function createTileCache(): TileCache {
-  return { size: 0, tiles: new Map<string, HTMLCanvasElement>() };
-}
-
-/** `width` is the thread's width as a fraction of the square. */
-export function threadTile(
-  cache: TileCache,
+/** `size` is in device pixels and `width` is the thread's width as a fraction of the square. */
+export function drawThreadTile(
   piece: Piece,
   colour: string,
   size: number,
   width: number,
 ): HTMLCanvasElement {
-  if (cache.size !== size) {
-    cache.tiles.clear();
-    cache.size = size;
-  }
-  const key: string = `${piece} ${colour}`;
-  let tile: HTMLCanvasElement | undefined = cache.tiles.get(key);
-  if (!tile) {
-    tile = drawTile(piece, parseColour(colour), size, (width * size) / 2);
-    cache.tiles.set(key, tile);
-  }
-  return tile;
-}
-
-function drawTile(piece: Piece, base: Rgb, size: number, halfWidth: number): HTMLCanvasElement {
-  const tile: HTMLCanvasElement = document.createElement("canvas");
-  tile.width = size;
-  tile.height = size;
-  const context: CanvasRenderingContext2D | null = tile.getContext("2d");
-  if (!context) throw new Error("Canvas 2D context unavailable");
+  const base: Rgb = parseColour(colour);
+  const halfWidth: number = (width * size) / 2;
+  const { canvas, context }: Sprite = createSprite(size, size);
   const image: ImageData = context.createImageData(size, size);
 
   const length: number = piece === "corner" ? (Math.PI * size) / 4 : size;
@@ -88,7 +67,46 @@ function drawTile(piece: Piece, base: Rgb, size: number, halfWidth: number): HTM
     }
   }
   context.putImageData(image, 0, 0);
-  return tile;
+  return canvas;
+}
+
+/** Both threads at a crossing in one tile, with the top one shading the one beneath. */
+export function drawCrossingTile(
+  under: HTMLCanvasElement,
+  over: HTMLCanvasElement,
+  overAxis: Axis,
+  shadow: string,
+  width: number,
+): HTMLCanvasElement {
+  const size: number = under.width;
+  const { canvas, context }: Sprite = createSprite(size, size);
+  context.drawImage(under, 0, 0);
+
+  const middle: number = size / 2;
+  const threadWidth: number = width * size;
+  const dx: number = overAxis === "across" ? 1 : 0;
+  const dy: number = 1 - dx;
+  const fade: number = WEAVE_SHADOW * size;
+  const alongOver: number = threadWidth / 2;
+  const alongUnder: number = threadWidth / 2 + fade;
+  const gradient: CanvasGradient = context.createLinearGradient(
+    middle - dy * alongUnder,
+    middle - dx * alongUnder,
+    middle + dy * alongUnder,
+    middle + dx * alongUnder,
+  );
+  const edge: number = fade / (2 * alongUnder);
+  gradient.addColorStop(0, "transparent");
+  gradient.addColorStop(edge, shadow);
+  gradient.addColorStop(1 - edge, shadow);
+  gradient.addColorStop(1, "transparent");
+  const halfWidth: number = dx * alongOver + dy * alongUnder;
+  const halfHeight: number = dy * alongOver + dx * alongUnder;
+  context.fillStyle = gradient;
+  context.fillRect(middle - halfWidth, middle - halfHeight, 2 * halfWidth, 2 * halfHeight);
+
+  context.drawImage(over, 0, 0);
+  return canvas;
 }
 
 /**
@@ -126,11 +144,7 @@ function lit(channel: number, light: number, gloss: number): number {
 }
 
 function parseColour(colour: string): Rgb {
-  const probe: HTMLCanvasElement = document.createElement("canvas");
-  probe.width = 1;
-  probe.height = 1;
-  const context: CanvasRenderingContext2D | null = probe.getContext("2d");
-  if (!context) throw new Error("Canvas 2D context unavailable");
+  const { context }: Sprite = createSprite(1, 1);
   context.fillStyle = colour;
   context.fillRect(0, 0, 1, 1);
   const [r = 0, g = 0, b = 0]: Uint8ClampedArray = context.getImageData(0, 0, 1, 1).data;

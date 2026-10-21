@@ -8,7 +8,7 @@ import type { Point, ThreadColour } from "./core/puzzle.ts";
 import type { Thread } from "./core/thread.ts";
 import { drawBraid } from "./view/braid.ts";
 import { drawStage } from "./view/stage.ts";
-import { createTileCache, type TileCache } from "./view/thread-tiles.ts";
+import { createSpriteCache, type SpriteCache } from "./view/sprite-cache.ts";
 
 // TODO: replace the demo with the level list once the pipeline ships levels to src/levels/.
 const demoLevel: unknown = {
@@ -76,7 +76,7 @@ drawBraid(braid);
 const decoded: DecodeResult = decodeLevel(demoLevel);
 if (!decoded.ok) throw new Error(decoded.errors.join("; "));
 const model: Model = { puzzle: decoded.puzzle, threads: demoThreads };
-const tiles: TileCache = createTileCache();
+const sprites: SpriteCache = createSpriteCache();
 
 let renderPending: boolean = false;
 
@@ -85,7 +85,7 @@ function scheduleRender(): void {
   renderPending = true;
   requestAnimationFrame((): void => {
     renderPending = false;
-    drawStage(stage, model, tiles);
+    drawStage(stage, model, sprites);
   });
 }
 

@@ -30,12 +30,28 @@ interface Target {
   readonly webSocketDebuggerUrl?: string;
 }
 
+/** A way for Chrome to draw, set by its launch flags. */
+interface Raster {
+  readonly name: string;
+  readonly flags: readonly string[];
+}
+
 interface Run {
+  readonly raster: string;
   readonly throttle: number;
   readonly result: BenchResult;
 }
 
 const SIZES: readonly number[] = [5, 15];
+const RASTERS: readonly Raster[] = [
+  { name: "GPU", flags: [] },
+  // How Chrome draws on a device whose GPU driver it has blocklisted. Throttling slows this too,
+  // because unaccelerated canvas rasterises on the main thread.
+  {
+    name: "CPU only",
+    flags: ["--disable-gpu", "--disable-gpu-compositing", "--disable-accelerated-2d-canvas"],
+  },
+];
 /** CPU slowdowns. 4x stands in for a mid-range phone; Chrome can't throttle the GPU. */
 const THROTTLES: readonly number[] = [1, 4];
 /** iPhone 16. */
@@ -53,12 +69,29 @@ await main();
 async function main(): Promise<void> {
   const server: ViteDevServer = await createServer({ logLevel: "error" });
   await server.listen();
-  const base: string | undefined = server.resolvedUrls?.local[0];
-  if (!base) throw new Error("Vite dev server has no local URL");
+  try {
+    const base: string | undefined = server.resolvedUrls?.local[0];
+    if (!base) throw new Error("Vite dev server has no local URL");
+    const runs: Run[] = [];
+    for (const raster of RASTERS)
+      runs.push(...(await benchInChrome(`${base}bench/render.html`, raster)));
+    console.log(report(runs));
+  } finally {
+    await server.close();
+  }
+}
+
+async function benchInChrome(url: string, raster: Raster): Promise<Run[]> {
   const profile: string = mkdtempSync(join(tmpdir(), "crosswoven-bench-"));
   const chrome: ChildProcess = spawn(
     chromePath(),
-    ["--headless=new", "--remote-debugging-port=0", `--user-data-dir=${profile}`, "about:blank"],
+    [
+      "--headless=new",
+      "--remote-debugging-port=0",
+      `--user-data-dir=${profile}`,
+      ...raster.flags,
+      "about:blank",
+    ],
     { stdio: "ignore" },
   );
   try {
@@ -68,16 +101,11 @@ async function main(): Promise<void> {
       const runs: Run[] = [];
       for (const throttle of THROTTLES) {
         for (const size of SIZES) {
-          const result: BenchResult = await runOnce(
-            devTools,
-            `${base}bench/render.html`,
-            size,
-            throttle,
-          );
-          runs.push({ throttle, result });
+          const result: BenchResult = await runOnce(devTools, url, size, throttle);
+          runs.push({ raster: raster.name, throttle, result });
         }
       }
-      console.log(report(runs));
+      return runs;
     } finally {
       devTools.close();
     }
@@ -87,7 +115,6 @@ async function main(): Promise<void> {
     });
     chrome.kill();
     await exited;
-    await server.close();
     // Chrome can hold its profile files for a moment after exiting on Windows.
     rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
   }
@@ -202,8 +229,9 @@ async function waitFor<T>(probe: () => T | undefined | Promise<T | undefined>): 
 }
 
 function report(runs: readonly Run[]): string {
-  const rows: string[] = runs.map(({ throttle, result }: Run): string =>
+  const rows: string[] = runs.map(({ raster, throttle, result }: Run): string =>
     [
+      raster,
       `${String(result.size)}×${String(result.size)}`,
       `${String(throttle)}×`,
       String(result.canvasCalls),
@@ -217,15 +245,22 @@ function report(runs: readonly Run[]): string {
   const largest: Run | undefined = runs.find(
     (run: Run): boolean => run.throttle === 1 && run.result.size === Math.max(...SIZES),
   );
+  const renderers: string[] = RASTERS.map((raster: Raster): string => {
+    const run: Run | undefined = runs.find(
+      (candidate: Run): boolean => candidate.raster === raster.name,
+    );
+    return `- ${raster.name}: ${run?.result.renderer ?? "unknown"}`;
+  });
   const breakdown: string = Object.entries(largest?.result.callsByMethod ?? {})
     .sort(([, a]: [string, number], [, b]: [string, number]): number => b - a)
     .map(([name, count]: [string, number]): string => `${name} ${String(count)}`)
     .join(", ");
   return [
-    `Renderer: ${runs[0]?.result.renderer ?? "unknown"}`,
+    "Renderers:",
+    ...renderers,
     "",
-    "| Board | CPU | Canvas calls / frame | Issue commands (ms) | First frame, building tiles (ms) | Frame interval median / p90 / max (ms) |",
-    "| ----- | --- | -------------------: | ------------------: | -------------------------------: | -------------------------------------: |",
+    "| Raster | Board | CPU | Canvas calls / frame | Issue commands (ms) | First frame, building tiles (ms) | Frame interval median / p90 / max (ms) |",
+    "| ------ | ----- | --- | -------------------: | ------------------: | -------------------------------: | -------------------------------------: |",
     ...rows.map((row: string): string => `| ${row} |`),
     "",
     `Canvas calls per ${String(Math.max(...SIZES))}×${String(Math.max(...SIZES))} frame: ${breakdown}`,

@@ -5,7 +5,7 @@ import type { Model } from "../src/app/model.ts";
 import type { Peg, Point, SquareColour } from "../src/core/puzzle.ts";
 import type { Thread } from "../src/core/thread.ts";
 import { drawStage } from "../src/view/stage.ts";
-import { createTileCache, type TileCache } from "../src/view/thread-tiles.ts";
+import { createSpriteCache, type SpriteCache } from "../src/view/sprite-cache.ts";
 import type { Bench, BenchResult } from "./result.ts";
 
 declare global {
@@ -24,9 +24,9 @@ async function run(size: number): Promise<BenchResult> {
   const canvas: HTMLCanvasElement | null = document.querySelector<HTMLCanvasElement>("#stage");
   if (!canvas) throw new Error("Canvas #stage not found");
   const model: Model = worstCase(size);
-  const tiles: TileCache = createTileCache();
+  const sprites: SpriteCache = createSpriteCache();
   const draw = (): void => {
-    drawStage(canvas, model, tiles);
+    drawStage(canvas, model, sprites);
   };
 
   const firstFrame: number = timed(draw);

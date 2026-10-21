@@ -122,7 +122,7 @@ describe("layThreads", (): void => {
     });
   });
 
-  it("reports a ring of crossings that leaves a thread no ends", (): void => {
+  it("reports a ring of crossings that leaves a thread no ends, and its centre pulled four ways", (): void => {
     const ring: Picture = picture(["..B..", ".RPR.", "BPBPB", ".RPR.", "..B.."]);
     expect(layThreads(ring, 1)).toEqual({
       ok: false,
@@ -131,12 +131,58 @@ describe("layThreads", (): void => {
         { x: 2, y: 1 },
         { x: 3, y: 1 },
         { x: 1, y: 2 },
+        { x: 2, y: 2 },
         { x: 3, y: 2 },
         { x: 1, y: 3 },
         { x: 2, y: 3 },
         { x: 3, y: 3 },
       ],
     });
+  });
+
+  it("reports every square pulled three ways, across colours", (): void => {
+    const rows: readonly string[] = [
+      "...B...",
+      "..RPR..",
+      ".BPBPB.",
+      "..R.R..",
+      ".......",
+      "...R...",
+      "..BPB..",
+      ".RPRPR.",
+      "..B.B..",
+    ];
+    expect(layThreads(picture(rows), 1)).toEqual({
+      ok: false,
+      badSquares: [
+        { x: 3, y: 2 },
+        { x: 3, y: 7 },
+      ],
+    });
+  });
+
+  it("reports a ring and a square pulled three ways in one colour together", (): void => {
+    const rows: readonly string[] = [
+      "...B...",
+      "..RPR..",
+      ".BPBPB.",
+      "..RPR..",
+      "...B...",
+      ".......",
+      "...R...",
+      "..BPB..",
+      ".RPRPR.",
+      "..B.B..",
+    ];
+    const laying: Laying = layThreads(picture(rows), 1);
+    expect(laying.ok).toBe(false);
+    if (laying.ok) return;
+    expect(laying.badSquares).toEqual(
+      expect.arrayContaining([
+        { x: 2, y: 1 },
+        { x: 3, y: 8 },
+      ]),
+    );
   });
 
   it("reports a crossing whose neighbours don't line up", (): void => {

@@ -51,22 +51,31 @@ export function layThreads(picture: Picture, seed: number): Laying {
   const orientation: Found<Orientation> = orientCrossings(grid);
   if (!orientation.ok) return badLaying(grid, orientation.bad);
 
-  const rng: Rng = createRng(seed);
-  const paths: ColourPath[] = [];
+  const forcedByColour: Map<ThreadColour, readonly (readonly number[])[]> = new Map<
+    ThreadColour,
+    readonly (readonly number[])[]
+  >();
+  const bad: number[] = [];
   for (const colour of THREAD_COLOURS) {
-    const forced: Found<readonly (readonly number[])[]> = forcedPaths(
+    const found: Found<readonly (readonly number[])[]> = forcedPaths(
       grid,
       orientation.value,
       colour,
     );
-    if (!forced.ok) return badLaying(grid, forced.bad);
+    if (found.ok) forcedByColour.set(colour, found.value);
+    else bad.push(...found.bad);
+  }
+  if (bad.length > 0) return badLaying(grid, bad);
 
-    for (const squares of layColour(grid, colour, forced.value, rng)) {
+  const rng: Rng = createRng(seed);
+  const paths: ColourPath[] = [];
+  for (const [colour, forced] of forcedByColour) {
+    for (const squares of layColour(grid, colour, forced, rng)) {
       paths.push({ colour, squares });
     }
   }
   const threads: Solution = toSolution(
-    paths.map((path: ColourPath): Thread => threadOf(grid, path)),
+    paths.map((path: ColourPath): Thread => threadOfPath(grid, path)),
     grid.width,
   );
   return { ok: true, puzzle: puzzleOf(picture, threads), threads };
@@ -366,22 +375,22 @@ function forcedPaths(
     }
   }
 
+  // A square pulled three ways ends the traces through it, so a ring elsewhere is still found.
   const bad: number[] = [...links].flatMap(([square, linked]: [number, number[]]): number[] =>
     linked.length > 2 ? [square] : [],
   );
-  if (bad.length > 0) return { ok: false, bad };
 
   const paths: number[][] = [];
   const traced: Set<number> = new Set<number>();
   for (const [start, linked] of links) {
-    if (linked.length !== 1 || traced.has(start)) continue;
+    if (linked.length !== 1 || traced.has(start) || bad.includes(start)) continue;
     const path: number[] = [start];
     let previous: number | undefined;
     let current: number = start;
     for (;;) {
       traced.add(current);
       const next: number | undefined = (links.get(current) ?? []).find(
-        (square: number): boolean => square !== previous,
+        (square: number): boolean => square !== previous && !bad.includes(square),
       );
       if (next === undefined) break;
       path.push(next);
@@ -391,8 +400,11 @@ function forcedPaths(
     paths.push(path);
   }
   // A ring of bands has no ends to trace from, and so nowhere for its pegs.
-  const ring: number[] = [...links.keys()].filter((square: number): boolean => !traced.has(square));
-  return ring.length > 0 ? { ok: false, bad: ring } : { ok: true, value: paths };
+  const ring: number[] = [...links.keys()].filter(
+    (square: number): boolean => !traced.has(square) && !bad.includes(square),
+  );
+  const faults: number[] = [...bad, ...ring];
+  return faults.length > 0 ? { ok: false, bad: faults } : { ok: true, value: paths };
 }
 
 /**
@@ -426,8 +438,9 @@ function layColour(
     for (const atEnd of [true, false]) {
       while (path.length < target) {
         const end: number | undefined = atEnd ? path.at(-1) : path[0];
-        const options: readonly number[] = neighbours(grid, end ?? -1).filter(
-          (next: number): boolean => free.has(next),
+        if (end === undefined) break;
+        const options: readonly number[] = neighbours(grid, end).filter((next: number): boolean =>
+          free.has(next),
         );
         const next: number | undefined = mostCutOff(shuffled(rng, options));
         if (next === undefined) break;
@@ -483,7 +496,7 @@ function pegsOf(threads: Solution): readonly Peg[] {
   return pegs.sort((a: Peg, b: Peg): number => a.y - b.y || a.x - b.x);
 }
 
-function threadOf(grid: Grid, path: ColourPath): Thread {
+function threadOfPath(grid: Grid, path: ColourPath): Thread {
   return {
     colour: path.colour,
     squares: path.squares.map((square: number): Point => pointAt(grid, square)),

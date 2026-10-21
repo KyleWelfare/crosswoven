@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import type * as LogicSolver from "../src/core/logic-solver.ts";
 import { solveLogically } from "../src/core/logic-solver.ts";
-import { findSolutions } from "../src/core/search-solver.ts";
 import { validateLevel } from "../src/core/validator.ts";
+import { allSolutions } from "./fixtures/all-solutions.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
 import { decoded } from "./fixtures/puzzle-of.ts";
 import {
@@ -11,6 +11,7 @@ import {
   loopLevel,
   pairingLevel,
   strandLevel,
+  openLevel,
   turningCrossingLevel,
 } from "./fixtures/reference-puzzles.ts";
 
@@ -29,7 +30,7 @@ describe("validateLevel", (): void => {
       ok: true,
       puzzle: decoded(examplePuzzle),
       difficulty: "easy",
-      solution: findSolutions(decoded(examplePuzzle), 2)[0],
+      solution: allSolutions(decoded(examplePuzzle), 2)[0],
     });
   });
 
@@ -38,6 +39,14 @@ describe("validateLevel", (): void => {
       ok: false,
       rejection: "invalid",
       errors: ["unsupported version 1; expected 2"],
+    });
+  });
+
+  it("rejects a puzzle too open to check, naming the pegs", (): void => {
+    expect(validateLevel(openLevel)).toEqual({
+      ok: false,
+      rejection: "too-open",
+      errors: ["the red pegs at (0, 0) and (14, 14) have more than 100000 possible paths"],
     });
   });
 

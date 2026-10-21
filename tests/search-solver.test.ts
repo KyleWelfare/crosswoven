@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { decodeLevel, type DecodeResult } from "../src/core/level-decoder.ts";
 import type { Point, Puzzle } from "../src/core/puzzle.ts";
-import { findSolutions } from "../src/core/search-solver.ts";
+import { findSolutions, type SearchResult } from "../src/core/search-solver.ts";
 import type { Solution, Thread } from "../src/core/thread.ts";
+import { allSolutions } from "./fixtures/all-solutions.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
 import { decoded, puzzleOf } from "./fixtures/puzzle-of.ts";
-import { pairingLevel, turningCrossingLevel } from "./fixtures/reference-puzzles.ts";
+import { openLevel, pairingLevel, turningCrossingLevel } from "./fixtures/reference-puzzles.ts";
 
 /** Threads as "red (0,0) (1,0)", which reads better in a failing assertion than nested objects. */
 function describeSolution(solution: Solution): string[] {
@@ -16,7 +17,7 @@ function describeSolution(solution: Solution): string[] {
 }
 
 function solutionsOf(puzzle: Puzzle): string[][] {
-  return findSolutions(puzzle, 10).map(describeSolution);
+  return allSolutions(puzzle, 10).map(describeSolution);
 }
 
 describe("findSolutions", (): void => {
@@ -58,10 +59,46 @@ describe("findSolutions", (): void => {
 
   it("stops at the limit", (): void => {
     const puzzle: Puzzle = decoded(pairingLevel);
-    expect(findSolutions(puzzle, 1)).toHaveLength(1);
+    expect(allSolutions(puzzle, 1)).toHaveLength(1);
+  });
+
+  it("reports pegs with too many paths to check", (): void => {
+    const result: SearchResult = findSolutions(decoded(openLevel), 2);
+    expect(result).toMatchObject({
+      ok: false,
+      pegs: [
+        { x: 0, y: 0 },
+        { x: 14, y: 14 },
+      ],
+    });
   });
 
   describe("rules", (): void => {
+    it("pairs pegs by length, not just colour", (): void => {
+      const puzzle: Puzzle = puzzleOf(
+        ["RRR..", "RRR..", ".....", ".....", "....."],
+        [
+          [0, 0, 3],
+          [2, 0, 3],
+          [0, 1, 3],
+          [2, 1, 3],
+        ],
+      );
+      expect(solutionsOf(puzzle)).toEqual([["red (0,0) (1,0) (2,0)", "red (0,1) (1,1) (2,1)"]]);
+    });
+
+    it("makes a length-1 peg a thread on its own", (): void => {
+      const puzzle: Puzzle = puzzleOf(
+        ["R.RR.", ".....", ".....", ".....", "....."],
+        [
+          [0, 0, 1],
+          [2, 0, 2],
+          [3, 0, 2],
+        ],
+      );
+      expect(solutionsOf(puzzle)).toEqual([["red (0,0)", "red (2,0) (3,0)"]]);
+    });
+
     it("rejects a crossing where a thread turns", (): void => {
       const puzzle: Puzzle = decoded(turningCrossingLevel);
       expect(solutionsOf(puzzle)).toEqual([]);

@@ -2,6 +2,7 @@ import {
   MAX_SIZE,
   MIN_SIZE,
   THREAD_COLOURS,
+  formatPoint,
   isThreadColour,
   threadsThrough,
   type Peg,
@@ -219,10 +220,6 @@ function checkPairs(colour: ThreadColour, pegs: readonly Peg[], errors: string[]
       );
     }
   }
-}
-
-function formatPoint(point: Point): string {
-  return `(${String(point.x)}, ${String(point.y)})`;
 }
 
 function isJsonObject(value: unknown): value is JsonObject {

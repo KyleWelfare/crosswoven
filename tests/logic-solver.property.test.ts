@@ -2,8 +2,8 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import { solveLogically, type LogicResult, type Step } from "../src/core/logic-solver.ts";
 import type { Point, Puzzle } from "../src/core/puzzle.ts";
-import { findSolutions } from "../src/core/search-solver.ts";
 import type { Solution, Thread } from "../src/core/thread.ts";
+import { allSolutions } from "./fixtures/all-solutions.ts";
 import { decoded } from "./fixtures/puzzle-of.ts";
 import { randomWeaves, type Weave } from "./fixtures/random-weave.ts";
 
@@ -32,7 +32,7 @@ describe("solveLogically properties", (): void => {
         const puzzle: Puzzle = decoded(weave.level);
         const result: LogicResult = solveLogically(puzzle);
         if (result.status !== "solved") return;
-        expect(findSolutions(puzzle, 2)).toEqual([result.solution]);
+        expect(allSolutions(puzzle, 2)).toEqual([result.solution]);
       }),
     );
   });
@@ -41,7 +41,7 @@ describe("solveLogically properties", (): void => {
     fc.assert(
       fc.property(randomWeaves, (weave: Weave): void => {
         const puzzle: Puzzle = decoded(weave.level);
-        const solutions: readonly Solution[] = findSolutions(puzzle, LIMIT);
+        const solutions: readonly Solution[] = allSolutions(puzzle, LIMIT);
         if (solutions.length === LIMIT) return;
         for (const step of solveLogically(puzzle).steps) {
           for (const solution of solutions) expect(hasLink(solution, step)).toBe(step.linked);

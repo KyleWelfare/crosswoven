@@ -61,3 +61,12 @@ export const pairingLevel: LevelJson = levelJson(
     [1, 1, 2],
   ],
 );
+
+/** Too open to check: tens of millions of paths join the two corners. */
+export const openLevel: LevelJson = levelJson(
+  Array.from({ length: 15 }, (): string => "R".repeat(15)),
+  [
+    [0, 0, 29],
+    [14, 14, 29],
+  ],
+);

@@ -61,3 +61,7 @@ export function squareMask(square: SquareColour): ColourMask {
     0,
   );
 }
+
+export function formatPoint(point: Point): string {
+  return `(${String(point.x)}, ${String(point.y)})`;
+}

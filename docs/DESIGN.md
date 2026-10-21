@@ -113,6 +113,7 @@ The validator certifies a puzzle. It runs in the level pipeline and in CI. The s
 | Check      | Rule                                                             |
 | ---------- | ---------------------------------------------------------------- |
 | Decodes    | The level passes the decoder                                     |
+| Checkable  | No pair of pegs has more than 100,000 possible paths             |
 | Solvable   | At least one solution exists                                     |
 | Unique     | Exactly one solution exists                                      |
 | No guesses | The logic solver reaches the solution using deduction rules only |
@@ -180,7 +181,7 @@ Kept from the prototype and refined later:
 ## Open questions
 
 - What makes a puzzle Hard, now that the deduction rules are path-based. To settle when the logic solver is rebuilt
-- Is there a maximum thread length? Long threads in open areas have many candidate paths, which slows both solvers
+- Is there a maximum thread length? Long threads in open areas have many candidate paths, which slows both solvers. For now the validator rejects a pair with more than 100,000 paths
 - When every peg is tied but the board is wrong, what does the player see: just "not solved yet", or a count of wrong squares?
 - Does the shipped game keep a "Show answer" button?
 - Do level files store the solution, or is it always derived by the solver?

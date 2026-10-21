@@ -6,7 +6,7 @@ import {
   type Step,
 } from "../src/core/logic-solver.ts";
 import type { Puzzle } from "../src/core/puzzle.ts";
-import { findSolutions } from "../src/core/search-solver.ts";
+import { allSolutions } from "./fixtures/all-solutions.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
 import { decoded, puzzleOf } from "./fixtures/puzzle-of.ts";
 import {
@@ -39,7 +39,7 @@ describe("solveLogically", (): void => {
     const puzzle: Puzzle = decoded(examplePuzzle);
     const result: LogicResult = solveLogically(puzzle);
     if (result.status !== "solved") throw new Error(`expected solved, got ${result.status}`);
-    expect(result.solution).toEqual(findSolutions(puzzle, 2)[0]);
+    expect(result.solution).toEqual(allSolutions(puzzle, 2)[0]);
   });
 
   describe("rules", (): void => {
@@ -108,7 +108,7 @@ describe("solveLogically", (): void => {
   });
 
   it("gets stuck on a puzzle that needs guessing", (): void => {
-    expect(findSolutions(guessingPuzzle, 2)).toHaveLength(1);
+    expect(allSolutions(guessingPuzzle, 2)).toHaveLength(1);
     expect(solveLogically(guessingPuzzle).status).toBe("stuck");
   });
 

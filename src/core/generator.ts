@@ -1,6 +1,8 @@
+import { solveLogically, type Difficulty, type LogicResult } from "./logic-solver.ts";
 import type { Picture } from "./picture.ts";
 import {
   THREAD_COLOURS,
+  formatPoint,
   neighbourSquares,
   threadsThrough,
   type Peg,
@@ -10,7 +12,9 @@ import {
   type ThreadColour,
 } from "./puzzle.ts";
 import { createRng, randomInt, shuffled, type Rng } from "./rng.ts";
+import { findSolutions, type SearchResult } from "./search-solver.ts";
 import { toSolution, type Solution, type Thread } from "./thread.ts";
+import { validatePuzzle, type Verdict } from "./validator.ts";
 
 /** Laid threads aim for this many squares. To be tuned by playtesting. */
 export const MIN_LAID_LENGTH: number = 2;
@@ -46,11 +50,7 @@ type Found<T> =
  * validator's job.
  */
 export function layThreads(picture: Picture, seed: number): Laying {
-  const grid: Grid = {
-    width: picture.width,
-    height: picture.height,
-    squares: picture.pattern.flat(),
-  };
+  const grid: Grid = gridOf(picture);
   const orientation: Found<Orientation> = orientCrossings(grid);
   if (!orientation.ok) return badLaying(grid, orientation.bad);
 
@@ -72,7 +72,183 @@ export function layThreads(picture: Picture, seed: number): Laying {
     paths.map((path: ColourPath): Thread => threadOf(grid, path)),
     grid.width,
   );
-  return { ok: true, puzzle: { ...picture, pegs: pegsOf(threads) }, threads };
+  return { ok: true, puzzle: puzzleOf(picture, threads), threads };
+}
+
+/** Rounds of splitting per seed, and seeds, before the generator gives up on a picture. */
+export const ROUNDS_PER_SEED: number = 50;
+export const SEEDS: number = 10;
+
+export type Outcome = "accepted" | "too-open" | "not-unique" | "needs-guessing";
+
+/** One laying the generator tried. Kept for How It Works, which replays them. */
+export interface Attempt {
+  readonly seed: number;
+  readonly threads: Solution;
+  readonly outcome: Outcome;
+  /** The squares that got it rejected. */
+  readonly trouble: readonly Point[];
+}
+
+export type Generation =
+  | {
+      readonly ok: true;
+      readonly puzzle: Puzzle;
+      readonly difficulty: Difficulty;
+      readonly attempts: readonly Attempt[];
+    }
+  /** The picture can't be woven, or never settled: these squares are why. */
+  | {
+      readonly ok: false;
+      readonly badSquares: readonly Point[];
+      readonly attempts: readonly Attempt[];
+    };
+
+interface Check {
+  readonly outcome: Outcome;
+  readonly trouble: readonly Point[];
+}
+
+/**
+ * Lays threads, then splits a thread where the puzzle goes wrong until the validator accepts it.
+ * Each split adds two pegs, which can only narrow the solutions. Seeds are tried from 1 up, so a
+ * picture always gives the same level.
+ */
+export function generateLevel(picture: Picture): Generation {
+  const grid: Grid = gridOf(picture);
+  const attempts: Attempt[] = [];
+  const unsettled: Point[] = [];
+  for (let seed: number = 1; seed <= SEEDS; seed++) {
+    const laying: Laying = layThreads(picture, seed);
+    if (!laying.ok) return { ok: false, badSquares: laying.badSquares, attempts };
+    let threads: Solution | undefined = laying.threads;
+    let trouble: readonly Point[] = [];
+    for (let round: number = 0; threads && round < ROUNDS_PER_SEED; round++) {
+      const puzzle: Puzzle = puzzleOf(picture, threads);
+      const check: Check = checkLaying(puzzle);
+      attempts.push({ seed, threads, ...check });
+      if (check.outcome === "accepted") return accepted(puzzle, attempts);
+      trouble = check.trouble;
+      threads = splitTrouble(grid, threads, trouble);
+    }
+    unsettled.push(...trouble);
+  }
+  return { ok: false, badSquares: uniquePoints(unsettled), attempts };
+}
+
+/** The validator's checks, but saying where the trouble is so the generator knows what to split. */
+function checkLaying(puzzle: Puzzle): Check {
+  const search: SearchResult = findSolutions(puzzle, 2);
+  if (!search.ok) return { outcome: "too-open", trouble: search.pegs.map(pointOf) };
+  const [first, second]: readonly (Solution | undefined)[] = search.solutions;
+  if (!first) throw new Error(`the generator's own threads don't solve "${puzzle.id}"`);
+  if (second) return { outcome: "not-unique", trouble: differingSquares(first, second) };
+  const logic: LogicResult = solveLogically(puzzle);
+  if (logic.status === "stuck") return { outcome: "needs-guessing", trouble: logic.unsettled };
+  return { outcome: "accepted", trouble: [] };
+}
+
+function accepted(puzzle: Puzzle, attempts: readonly Attempt[]): Generation {
+  const verdict: Verdict = validatePuzzle(puzzle);
+  if (!verdict.ok) {
+    throw new Error(`the validator rejected "${puzzle.id}" after the generator's checks passed`);
+  }
+  return { ok: true, puzzle, difficulty: verdict.difficulty, attempts };
+}
+
+/** Squares whose thread, of any colour, differs between the two solutions. */
+function differingSquares(first: Solution, second: Solution): readonly Point[] {
+  const threadAt = (solution: Solution): ReadonlyMap<string, string> =>
+    new Map<string, string>(
+      solution.flatMap((thread: Thread): [string, string][] =>
+        thread.squares.map((square: Point): [string, string] => [
+          `${thread.colour} ${formatPoint(square)}`,
+          JSON.stringify(thread.squares),
+        ]),
+      ),
+    );
+  const firstAt: ReadonlyMap<string, string> = threadAt(first);
+  const secondAt: ReadonlyMap<string, string> = threadAt(second);
+  return uniquePoints(
+    first.flatMap((thread: Thread): Point[] =>
+      thread.squares.filter(
+        (square: Point): boolean =>
+          firstAt.get(`${thread.colour} ${formatPoint(square)}`) !==
+          secondAt.get(`${thread.colour} ${formatPoint(square)}`),
+      ),
+    ),
+  );
+}
+
+/**
+ * Splits the longest thread through the trouble squares, as near its middle as a cut can go.
+ * Undefined if none of them can be split.
+ */
+function splitTrouble(
+  grid: Grid,
+  threads: Solution,
+  trouble: readonly Point[],
+): Solution | undefined {
+  const troubleKeys: ReadonlySet<string> = new Set<string>(trouble.map(formatPoint));
+  const target: Thread | undefined = threads
+    .filter(
+      (thread: Thread): boolean =>
+        cutsOf(grid, thread).length > 0 &&
+        thread.squares.some((square: Point): boolean => troubleKeys.has(formatPoint(square))),
+    )
+    .reduce<Thread | undefined>(
+      (longest: Thread | undefined, thread: Thread): Thread =>
+        longest && longest.squares.length >= thread.squares.length ? longest : thread,
+      undefined,
+    );
+  if (!target) return undefined;
+  const middle: number = (target.squares.length - 1) / 2;
+  const cut: number = cutsOf(grid, target).reduce((best: number, index: number): number =>
+    Math.abs(index + 0.5 - middle) < Math.abs(best + 0.5 - middle) ? index : best,
+  );
+  const pieces: readonly Thread[] = [
+    { colour: target.colour, squares: target.squares.slice(0, cut + 1) },
+    { colour: target.colour, squares: target.squares.slice(cut + 1) },
+  ];
+  return toSolution(
+    [...threads.filter((thread: Thread): boolean => thread !== target), ...pieces],
+    grid.width,
+  );
+}
+
+/** Indexes `i` where cutting between squares `i` and `i + 1` leaves both new ends off crossings. */
+function cutsOf(grid: Grid, thread: Thread): readonly number[] {
+  return thread.squares.slice(0, -1).flatMap((square: Point, index: number): number[] => {
+    const next: Point | undefined = thread.squares[index + 1];
+    return next &&
+      !isCrossing(grid, squareOf(grid, square)) &&
+      !isCrossing(grid, squareOf(grid, next))
+      ? [index]
+      : [];
+  });
+}
+
+function puzzleOf(picture: Picture, threads: Solution): Puzzle {
+  return { ...picture, pegs: pegsOf(threads) };
+}
+
+function gridOf(picture: Picture): Grid {
+  return { width: picture.width, height: picture.height, squares: picture.pattern.flat() };
+}
+
+function uniquePoints(points: readonly Point[]): readonly Point[] {
+  const byKey: Map<string, Point> = new Map<string, Point>(
+    points.map((point: Point): [string, Point] => [formatPoint(point), point]),
+  );
+  return [...byKey.values()].sort((a: Point, b: Point): number => a.y - b.y || a.x - b.x);
+}
+
+function squareOf(grid: Grid, point: Point): number {
+  return point.y * grid.width + point.x;
+}
+
+function pointOf(point: Point): Point {
+  return { x: point.x, y: point.y };
 }
 
 /**

@@ -1,9 +1,18 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { MAX_LAID_LENGTH, layThreads, type Laying } from "../src/core/generator.ts";
+import {
+  MAX_LAID_LENGTH,
+  generateLevel,
+  layThreads,
+  type Attempt,
+  type Generation,
+  type Laying,
+} from "../src/core/generator.ts";
+import { encodeLevel } from "../src/core/level-decoder.ts";
 import type { Picture } from "../src/core/picture.ts";
 import type { Peg, Point, Puzzle, SquareColour } from "../src/core/puzzle.ts";
 import type { Thread } from "../src/core/thread.ts";
+import { validateLevel } from "../src/core/validator.ts";
 import type { LevelJson, PegJson } from "./fixtures/level-json.ts";
 import { decoded } from "./fixtures/puzzle-of.ts";
 import { levelOf, randomWeaves, ruleBreaks, type Weave } from "./fixtures/random-weave.ts";
@@ -125,6 +134,53 @@ describe("layThreads", (): void => {
     expect(layThreads(picture([".....", ".R...", "RPB..", ".....", "....."]), 1)).toEqual({
       ok: false,
       badSquares: [{ x: 1, y: 2 }],
+    });
+  });
+});
+
+function generated(generation: Generation): Extract<Generation, { ok: true }> {
+  if (!generation.ok) throw new Error("expected a level, got bad squares");
+  return generation;
+}
+
+describe("generateLevel", (): void => {
+  it("gives the same level for the same picture", (): void => {
+    expect(generateLevel(heart)).toEqual(generateLevel(heart));
+  });
+
+  it("always ends in a level the validator accepts", (): void => {
+    fc.assert(
+      fc.property(randomWeaves, (weave: Weave): void => {
+        const { puzzle }: Extract<Generation, { ok: true }> = generated(
+          generateLevel(pictureOf(decoded(weave.level))),
+        );
+        expect(validateLevel(encodeLevel(puzzle))).toMatchObject({ ok: true });
+      }),
+    );
+  });
+
+  it("splits a thread where two solutions differ, then tries again", (): void => {
+    const rows: readonly string[] = [
+      "..........",
+      "........BB",
+      "....YYY.B.",
+      "...YYY....",
+      "..........",
+    ];
+    const attempts: readonly Attempt[] = generated(generateLevel(picture(rows))).attempts;
+    expect(attempts.map((attempt: Attempt): string => attempt.outcome)).toEqual([
+      "not-unique",
+      "accepted",
+    ]);
+    expect(attempts[0]?.trouble).not.toEqual([]);
+    expect(attempts[1]?.threads.length).toBe((attempts[0]?.threads.length ?? 0) + 1);
+  });
+
+  it("reports a picture that can't be woven", (): void => {
+    expect(generateLevel(picture(["RPR..", ".B...", ".....", ".....", "....."]))).toEqual({
+      ok: false,
+      badSquares: [{ x: 1, y: 0 }],
+      attempts: [],
     });
   });
 });

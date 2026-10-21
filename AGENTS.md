@@ -18,3 +18,4 @@ Project docs live in `docs/`. Read the ones that apply before starting work. Whe
 - `npm run dev`: local dev server
 - `npm run check`: format check, lint, typecheck, tests. Run before calling any change done
 - `npm run build`: production build in `dist/`
+- `npm run levels`: turns each picture in `pictures/` into a certified level in `src/levels/`

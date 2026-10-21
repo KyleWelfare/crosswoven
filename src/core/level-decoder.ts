@@ -1,3 +1,4 @@
+import type { Picture } from "./picture.ts";
 import {
   MAX_SIZE,
   MIN_SIZE,
@@ -20,7 +21,7 @@ type Pattern = readonly (readonly SquareColour[])[];
 
 type JsonObject = Readonly<Record<string, unknown>>;
 
-type PegEntry = Omit<Peg, "colour">;
+export type PegEntry = Omit<Peg, "colour">;
 
 const SUPPORTED_VERSION: number = 2;
 
@@ -33,6 +34,52 @@ const squareCodes: ReadonlyMap<string, SquareColour> = new Map<string, SquareCol
   ["O", "orange"],
   ["G", "green"],
 ]);
+
+export type PictureResult =
+  | { readonly ok: true; readonly picture: Picture }
+  | { readonly ok: false; readonly errors: readonly string[] };
+
+/** The JSON a level is saved as. */
+export interface LevelFile {
+  readonly version: number;
+  readonly id: string;
+  readonly title: string;
+  readonly pattern: readonly string[];
+  readonly pegs: readonly PegEntry[];
+}
+
+const codesBySquare: ReadonlyMap<SquareColour, string> = new Map<SquareColour, string>(
+  [...squareCodes].map(([code, square]: [string, SquareColour]): [SquareColour, string] => [
+    square,
+    code,
+  ]),
+);
+
+/** A picture file holds a level's id, title and pattern, with no version or pegs. */
+export function decodePicture(json: unknown): PictureResult {
+  if (!isJsonObject(json)) return { ok: false, errors: ["the picture must be a JSON object"] };
+  const errors: string[] = [];
+  const id: string | undefined = decodeText(json, "id", errors);
+  const title: string | undefined = decodeText(json, "title", errors);
+  const pattern: Pattern | undefined = decodePattern(json["pattern"], errors);
+  if (errors.length > 0 || id === undefined || title === undefined || !pattern) {
+    return { ok: false, errors };
+  }
+  const width: number = pattern[0]?.length ?? 0;
+  return { ok: true, picture: { id, title, width, height: pattern.length, pattern } };
+}
+
+export function encodeLevel(puzzle: Puzzle): LevelFile {
+  return {
+    version: SUPPORTED_VERSION,
+    id: puzzle.id,
+    title: puzzle.title,
+    pattern: puzzle.pattern.map((row: readonly SquareColour[]): string =>
+      row.map((square: SquareColour): string => codesBySquare.get(square) ?? ".").join(""),
+    ),
+    pegs: puzzle.pegs.map(({ x, y, length }: Peg): PegEntry => ({ x, y, length })),
+  };
+}
 
 /** Checks shape only: whether the pattern can be woven is the validator's job. */
 export function decodeLevel(json: unknown): DecodeResult {

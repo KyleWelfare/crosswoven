@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "id": "heart",
+  "title": "Heart",
+  "pattern": [".......", ".RR.RR.", "RRRRRRR", "RRRRRRR", ".RRRRR.", "..RRR..", "...R..."],
+  "pegs": [
+    { "x": 1, "y": 1, "length": 4 },
+    { "x": 2, "y": 1, "length": 4 },
+    { "x": 4, "y": 1, "length": 5 },
+    { "x": 5, "y": 1, "length": 4 },
+    { "x": 0, "y": 2, "length": 2 },
+    { "x": 3, "y": 2, "length": 5 },
+    { "x": 0, "y": 3, "length": 2 },
+    { "x": 2, "y": 3, "length": 3 },
+    { "x": 5, "y": 3, "length": 4 },
+    { "x": 6, "y": 3, "length": 4 },
+    { "x": 1, "y": 4, "length": 3 },
+    { "x": 2, "y": 4, "length": 2 },
+    { "x": 3, "y": 4, "length": 2 },
+    { "x": 2, "y": 5, "length": 3 },
+    { "x": 4, "y": 5, "length": 4 },
+    { "x": 3, "y": 6, "length": 3 }
+  ]
+}

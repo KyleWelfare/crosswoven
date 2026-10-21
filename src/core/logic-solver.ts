@@ -47,8 +47,14 @@ export type LogicResult =
       readonly difficulty: Difficulty;
       readonly solution: Solution;
     }
-  /** "stuck": no rule applies, so the puzzle needs guessing. "contradiction": it has no solution. */
-  | { readonly status: "stuck" | "contradiction"; readonly steps: readonly Step[] }
+  /** No rule applies, so the puzzle needs guessing. `unsettled` pegs still have more than one path. */
+  | {
+      readonly status: "stuck";
+      readonly steps: readonly Step[];
+      readonly unsettled: readonly Point[];
+    }
+  /** The puzzle has no solution. */
+  | { readonly status: "contradiction"; readonly steps: readonly Step[] }
   | { readonly status: "too-open"; readonly pegs: readonly [Peg, Peg] };
 
 /**
@@ -87,7 +93,9 @@ export function solveLogically(puzzle: Puzzle, rules: readonly Rule[] = RULES): 
   }
 
   if (hasContradiction(board)) return { status: "contradiction", steps: board.steps };
-  if (!isSolved(board)) return { status: "stuck", steps: board.steps };
+  if (!isSolved(board)) {
+    return { status: "stuck", steps: board.steps, unsettled: unsettledPegs(board) };
+  }
   return {
     status: "solved",
     steps: board.steps,
@@ -275,4 +283,10 @@ function pointAt(board: Board, square: number): Point {
 
 function pointOf(point: Point): Point {
   return { x: point.x, y: point.y };
+}
+
+function unsettledPegs(board: Board): readonly Point[] {
+  return board.puzzle.pegs.flatMap((peg: Peg, index: number): Point[] =>
+    liveIn(board, board.byPeg[index]).length > 1 ? [pointOf(peg)] : [],
+  );
 }

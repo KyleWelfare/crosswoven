@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { decodeLevel, type DecodeResult } from "../src/core/level-decoder.ts";
+import {
+  decodeLevel,
+  decodePicture,
+  encodeLevel,
+  type DecodeResult,
+} from "../src/core/level-decoder.ts";
 import type { Puzzle } from "../src/core/puzzle.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
 
@@ -268,5 +273,39 @@ describe("decodeLevel", (): void => {
         "the pattern uses yellow but there are no yellow pegs",
       ]);
     });
+  });
+});
+
+describe("decodePicture", (): void => {
+  it("decodes a level's id, title and pattern, with no version or pegs", (): void => {
+    const { id, title, pattern }: typeof examplePuzzle = examplePuzzle;
+    expect(decodePicture({ id, title, pattern })).toEqual({
+      ok: true,
+      picture: {
+        id,
+        title,
+        width: 5,
+        height: 5,
+        pattern: decoded(examplePuzzle).pattern,
+      },
+    });
+  });
+
+  it("rejects bad fields the way levels do", (): void => {
+    expect(decodePicture({ id: "", pattern: ["...."] })).toEqual({
+      ok: false,
+      errors: [
+        `"id" must be a non-empty string`,
+        `missing field "title"`,
+        "the pattern has 1 rows; it needs 5 to 15",
+        "row 0 has 4 squares; rows need 5 to 15",
+      ],
+    });
+  });
+});
+
+describe("encodeLevel", (): void => {
+  it("writes a puzzle back as the JSON it decodes from", (): void => {
+    expect(encodeLevel(decoded(examplePuzzle))).toEqual(examplePuzzle);
   });
 });

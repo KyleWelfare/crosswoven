@@ -1,7 +1,7 @@
 import "../src/styles/tokens.css";
 import "../src/styles/base.css";
 import "../src/styles/layout.css";
-import type { Model } from "../src/app/model.ts";
+import type { Game } from "../src/app/model.ts";
 import type { Peg, Point, SquareColour } from "../src/core/puzzle.ts";
 import type { Thread } from "../src/core/thread.ts";
 import { drawStage } from "../src/view/stage.ts";
@@ -23,10 +23,10 @@ window.crosswovenBench = { run };
 async function run(size: number): Promise<BenchResult> {
   const canvas: HTMLCanvasElement | null = document.querySelector<HTMLCanvasElement>("#stage");
   if (!canvas) throw new Error("Canvas #stage not found");
-  const model: Model = worstCase(size);
+  const game: Game = worstCase(size);
   const sprites: SpriteCache = createSpriteCache();
   const draw = (): void => {
-    drawStage(canvas, model, sprites);
+    drawStage(canvas, game, sprites);
   };
 
   const firstFrame: number = timed(draw);
@@ -57,7 +57,7 @@ async function run(size: number): Promise<BenchResult> {
  * A red thread along every row and a blue one down every column, so every inner square is a
  * crossing and every edge square holds a tied peg. Busier than any real level.
  */
-function worstCase(size: number): Model {
+function worstCase(size: number): Game {
   const line = (at: (i: number) => Point): Point[] => [...Array(size).keys()].map(at);
   const threads: Thread[] = [];
   const pegs: Peg[] = [];
@@ -77,6 +77,7 @@ function worstCase(size: number): Model {
     Array.from({ length: size }, (): SquareColour => "purple"),
   );
   return {
+    screen: "game",
     puzzle: { id: "worst-case", title: "Worst case", width: size, height: size, pattern, pegs },
     threads,
     drag: undefined,

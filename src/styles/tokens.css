@@ -22,6 +22,7 @@
   --ink: #2a2723;
   --ink-muted: #7a7266;
   --control: #e9e2d4;
+  --surface: #fcfaf5;
 
   --board-frame: #e2dacb;
   --board-shadow: rgb(70 50 20 / 0.18);
@@ -31,21 +32,21 @@
   --wash-blue: #dce5f7;
   --wash-yellow: #f9eecb;
   --wash-purple: #e8dcf2;
-  --wash-orange: #f9e3cc;
+  --wash-orange: #fdd6ab;
   --wash-green: #d9eed8;
 
   --woven-red: #dd6a5d;
   --woven-blue: #6c8fe2;
   --woven-yellow: #e8b52a;
   --woven-purple: #a57bd5;
-  --woven-orange: #e88f45;
+  --woven-orange: #ff7b00;
   --woven-green: #6ab366;
 
   --thread-red: #d0443a;
   --thread-blue: #3a6ad0;
   --thread-yellow: #e2a81c;
   --thread-purple: #7b4fc0;
-  --thread-orange: #d4691f;
+  --thread-orange: #e85d00;
   --thread-green: #3a8f3a;
 
   --weave-shadow: rgb(0 0 0 / 0.28);
@@ -61,6 +62,7 @@
     --ink: #ece7de;
     --ink-muted: #948b7e;
     --control: #262421;
+    --surface: #1d1b19;
 
     --board-frame: #0c0b0a;
     --board-shadow: rgb(0 0 0 / 0.6);
@@ -70,21 +72,21 @@
     --wash-blue: #263049;
     --wash-yellow: #493f23;
     --wash-purple: #3a2d48;
-    --wash-orange: #493424;
+    --wash-orange: #5a3413;
     --wash-green: #29402c;
 
     --woven-red: #a8473c;
     --woven-blue: #3f63b8;
     --woven-yellow: #a88a24;
     --woven-purple: #7a58b0;
-    --woven-orange: #a8652c;
+    --woven-orange: #e06a00;
     --woven-green: #3f8a4a;
 
     --thread-red: #e6645a;
     --thread-blue: #6d95ea;
     --thread-yellow: #f0c14b;
     --thread-purple: #ab86ec;
-    --thread-orange: #f29a52;
+    --thread-orange: #ff7a0f;
     --thread-green: #70c86c;
 
     --weave-shadow: rgb(0 0 0 / 0.45);

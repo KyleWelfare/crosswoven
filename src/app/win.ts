@@ -6,7 +6,7 @@ import {
   type SquareColour,
 } from "../core/puzzle.ts";
 import type { Thread } from "../core/thread.ts";
-import type { Model } from "./model.ts";
+import type { Game } from "./model.ts";
 import { isPegTied } from "./tie.ts";
 import { wovenSquares } from "./weave.ts";
 
@@ -36,12 +36,12 @@ export function isSolved(puzzle: Puzzle, threads: readonly Thread[]): boolean {
 }
 
 /** From 0 as the puzzle is solved to 1 once the threads have faded; 0 before it's solved. */
-export function winProgress(model: Model): number {
-  return model.solvedFor === undefined ? 0 : Math.min(model.solvedFor / WIN_FADE, 1);
+export function winProgress(game: Game): number {
+  return game.solvedFor === undefined ? 0 : Math.min(game.solvedFor / WIN_FADE, 1);
 }
 
-export function isFading(model: Model): boolean {
-  return model.solvedFor !== undefined && model.solvedFor < WIN_FADE;
+export function isFading(game: Game): boolean {
+  return game.solvedFor !== undefined && game.solvedFor < WIN_FADE;
 }
 
 function runsStraightThroughCrossings(puzzle: Puzzle, thread: Thread): boolean {

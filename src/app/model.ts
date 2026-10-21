@@ -2,7 +2,20 @@ import type { Puzzle } from "../core/puzzle.ts";
 import type { Thread } from "../core/thread.ts";
 
 // TODO: hint mode and progress, as the messages that change them arrive.
-export interface Model {
+export type Model = Menu | LevelList | Game;
+
+export interface Menu {
+  readonly screen: "menu";
+  readonly rulesOpen: boolean;
+}
+
+export interface LevelList {
+  readonly screen: "levels";
+}
+
+/** A level being played. */
+export interface Game {
+  readonly screen: "game";
   readonly puzzle: Puzzle;
   /** Each starts at a peg. One that hasn't reached a second peg yet stops short. */
   readonly threads: readonly Thread[];
@@ -14,6 +27,17 @@ export interface Model {
   readonly solvedFor: number | undefined;
 }
 
-export function startLevel(puzzle: Puzzle): Model {
-  return { puzzle, threads: [], drag: undefined, history: [], solvedFor: undefined };
+export const menu: Menu = { screen: "menu", rulesOpen: false };
+
+export const levelList: LevelList = { screen: "levels" };
+
+export function startLevel(puzzle: Puzzle): Game {
+  return {
+    screen: "game",
+    puzzle,
+    threads: [],
+    drag: undefined,
+    history: [],
+    solvedFor: undefined,
+  };
 }

@@ -1,0 +1,103 @@
+.menu {
+  justify-content: center;
+  gap: var(--space-5);
+}
+
+.menu .title {
+  font-size: clamp(2.75rem, 13vw, 4rem);
+}
+
+.menu-actions {
+  display: grid;
+  gap: var(--space-3);
+  width: min(100%, 260px);
+  margin: 0 auto;
+}
+
+.rules {
+  width: min(100% - 2 * var(--space-3), 460px);
+  max-height: calc(100dvh - 2 * var(--space-3));
+  padding: var(--space-4);
+  border: 0;
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 12px 40px var(--board-shadow);
+}
+
+.rules::backdrop {
+  background: rgb(20 15 5 / 0.45);
+}
+
+.rules-title {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.rules-list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  padding-left: 1.25em;
+}
+
+.mixes {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mixes li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.swatches {
+  display: flex;
+  gap: 3px;
+}
+
+.swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.swatch-mix {
+  margin-left: var(--space-2);
+}
+
+.swatch-red {
+  background: var(--thread-red);
+}
+
+.swatch-blue {
+  background: var(--thread-blue);
+}
+
+.swatch-yellow {
+  background: var(--thread-yellow);
+}
+
+.swatch-purple {
+  background: var(--thread-purple);
+}
+
+.swatch-orange {
+  background: var(--thread-orange);
+}
+
+.swatch-green {
+  background: var(--thread-green);
+}
+
+.rules form {
+  display: flex;
+  justify-content: center;
+}

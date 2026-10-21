@@ -1,7 +1,7 @@
 import { sameSolution, type Thread } from "../core/thread.ts";
 import { dragTo, releasedThreads, startDrag } from "./drag.ts";
-import type { Msg } from "./messages.ts";
-import { startLevel, type Model } from "./model.ts";
+import type { GameMsg, Msg } from "./messages.ts";
+import { levelList, menu, startLevel, type Game, type Model } from "./model.ts";
 import { isFading, isSolved, WIN_FADE } from "./win.ts";
 
 /** Returns `model` itself when nothing changed, so the runtime can skip the redraw. */
@@ -9,51 +9,73 @@ import { isFading, isSolved, WIN_FADE } from "./win.ts";
 // (SaveProgress) arrives.
 export function update(model: Model, msg: Msg): Model {
   switch (msg.type) {
-    case "SquarePressed": {
-      if (model.drag || model.solvedFor !== undefined) return model;
-      const drag: Thread | undefined = startDrag(model.puzzle, model.threads, msg);
-      return drag ? { ...model, drag } : model;
-    }
-    case "SquareEntered": {
-      if (!model.drag) return model;
-      const drag: Thread = dragTo(model.puzzle, model.threads, model.drag, msg);
-      return drag === model.drag ? model : { ...model, drag };
-    }
-    case "PointerReleased":
-      if (!model.drag) return model;
-      return withThreads(
-        { ...model, drag: undefined },
-        releasedThreads(model.puzzle, model.threads, model.drag),
-      );
-    case "PointerCancelled":
-      return model.drag ? { ...model, drag: undefined } : model;
-    case "UndoPressed": {
-      const previous: readonly Thread[] | undefined = model.history.at(-1);
-      if (!previous || !isEditable(model)) return model;
-      return { ...model, threads: previous, history: model.history.slice(0, -1) };
-    }
-    case "ClearPressed":
-      return isEditable(model) ? withThreads(model, []) : model;
+    case "PlayPressed":
+      return model.screen === "menu" ? levelList : model;
+    case "HowToPlayPressed":
+      return model.screen === "menu" && !model.rulesOpen ? { ...model, rulesOpen: true } : model;
+    case "RulesClosed":
+      return model.screen === "menu" && model.rulesOpen ? { ...model, rulesOpen: false } : model;
+    case "BackPressed":
+      if (model.screen === "game") return levelList;
+      return model.screen === "levels" ? menu : model;
     case "LevelStarted":
       return startLevel(msg.puzzle);
+    case "SquarePressed":
+    case "SquareEntered":
+    case "PointerReleased":
+    case "PointerCancelled":
+    case "UndoPressed":
+    case "ClearPressed":
     case "Tick":
-      if (!isFading(model)) return model;
-      return { ...model, solvedFor: Math.min((model.solvedFor ?? 0) + msg.dt, WIN_FADE) };
+      return model.screen === "game" ? updateGame(model, msg) : model;
+  }
+}
+
+function updateGame(game: Game, msg: GameMsg): Game {
+  switch (msg.type) {
+    case "SquarePressed": {
+      if (game.drag || game.solvedFor !== undefined) return game;
+      const drag: Thread | undefined = startDrag(game.puzzle, game.threads, msg);
+      return drag ? { ...game, drag } : game;
+    }
+    case "SquareEntered": {
+      if (!game.drag) return game;
+      const drag: Thread = dragTo(game.puzzle, game.threads, game.drag, msg);
+      return drag === game.drag ? game : { ...game, drag };
+    }
+    case "PointerReleased":
+      if (!game.drag) return game;
+      return withThreads(
+        { ...game, drag: undefined },
+        releasedThreads(game.puzzle, game.threads, game.drag),
+      );
+    case "PointerCancelled":
+      return game.drag ? { ...game, drag: undefined } : game;
+    case "UndoPressed": {
+      const previous: readonly Thread[] | undefined = game.history.at(-1);
+      if (!previous || !isEditable(game)) return game;
+      return { ...game, threads: previous, history: game.history.slice(0, -1) };
+    }
+    case "ClearPressed":
+      return isEditable(game) ? withThreads(game, []) : game;
+    case "Tick":
+      if (!isFading(game)) return game;
+      return { ...game, solvedFor: Math.min((game.solvedFor ?? 0) + msg.dt, WIN_FADE) };
   }
 }
 
 /** A solved board is locked, and one mid-drag waits for the drag to finish. */
-function isEditable(model: Model): boolean {
-  return model.solvedFor === undefined && model.drag === undefined;
+function isEditable(game: Game): boolean {
+  return game.solvedFor === undefined && game.drag === undefined;
 }
 
 /** Keeps the board it replaces for Undo, unless nothing changed, and starts the win once solved. */
-function withThreads(model: Model, threads: readonly Thread[]): Model {
-  if (sameSolution(threads, model.threads)) return model;
+function withThreads(game: Game, threads: readonly Thread[]): Game {
+  if (sameSolution(threads, game.threads)) return game;
   return {
-    ...model,
+    ...game,
     threads,
-    history: [...model.history, model.threads],
-    solvedFor: isSolved(model.puzzle, threads) ? 0 : undefined,
+    history: [...game.history, game.threads],
+    solvedFor: isSolved(game.puzzle, threads) ? 0 : undefined,
   };
 }

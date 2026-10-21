@@ -47,7 +47,7 @@ With a GPU every case held 60 fps, but CPU-only raster at 4× fell to 10 to 12 f
 
 The board is now laid out in device pixels and drawn from sprites that are rebuilt only when the square size or palette changes, and the board image also when the level or stage size does:
 
-- [x] The board (frame, squares, pips and the board's shadow) is one offscreen canvas, copied once per frame
+- [x] The board (frame, squares and the board's shadow) is one offscreen canvas, copied once per frame
 - [x] Thread tiles are cached in all four quarter turns, so each copy lands on whole pixels with no transform or resampling
 - [x] Each crossing is one tile holding both threads and the shadow between them
 - [x] Pegs are sprites, so their shadows and gradients are drawn once

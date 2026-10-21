@@ -1,13 +1,24 @@
 import type { Puzzle } from "../core/puzzle.ts";
 
-/** Squares are board coordinates. Only the first pointer down on the board sends these. */
-export type Msg =
+export type Msg = ScreenMsg | GameMsg;
+
+/** Moves between screens. */
+export type ScreenMsg =
+  | { readonly type: "PlayPressed" }
+  | { readonly type: "HowToPlayPressed" }
+  | { readonly type: "RulesClosed" }
+  /** Leaves the level for the list, or the list for the menu. */
+  | { readonly type: "BackPressed" }
+  | { readonly type: "LevelStarted"; readonly puzzle: Puzzle };
+
+/** Only a level being played responds to these. */
+export type GameMsg =
+  /** Squares are board coordinates. Only the first pointer down on the board sends these. */
   | { readonly type: "SquarePressed"; readonly x: number; readonly y: number }
   | { readonly type: "SquareEntered"; readonly x: number; readonly y: number }
   | { readonly type: "PointerReleased" }
   | { readonly type: "PointerCancelled" }
   | { readonly type: "UndoPressed" }
   | { readonly type: "ClearPressed" }
-  | { readonly type: "LevelStarted"; readonly puzzle: Puzzle }
   /** Milliseconds since the last animation frame. */
   | { readonly type: "Tick"; readonly dt: number };

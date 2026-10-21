@@ -1,10 +1,12 @@
 import type { Msg } from "../app/messages.ts";
-import type { Model } from "../app/model.ts";
+import type { Game } from "../app/model.ts";
 import { winProgress } from "../app/win.ts";
 import type { Puzzle } from "../core/puzzle.ts";
+import { requiredElement } from "./required-element.ts";
 
-// TODO: the level list, progress and hint mode.
+// TODO: progress and hint mode.
 export interface Panels {
+  readonly title: HTMLElement;
   readonly controls: HTMLElement;
   readonly undo: HTMLButtonElement;
   readonly clear: HTMLButtonElement;
@@ -15,12 +17,13 @@ export interface Panels {
 
 export function findPanels(root: ParentNode): Panels {
   return {
-    controls: required(root, "#controls", HTMLElement),
-    undo: required(root, "#undo", HTMLButtonElement),
-    clear: required(root, "#clear", HTMLButtonElement),
-    win: required(root, "#win", HTMLElement),
-    winTitle: required(root, "#win-title", HTMLElement),
-    next: required(root, "#next", HTMLButtonElement),
+    title: requiredElement(root, "#game-title", HTMLElement),
+    controls: requiredElement(root, "#controls", HTMLElement),
+    undo: requiredElement(root, "#undo", HTMLButtonElement),
+    clear: requiredElement(root, "#clear", HTMLButtonElement),
+    win: requiredElement(root, "#win", HTMLElement),
+    winTitle: requiredElement(root, "#win-title", HTMLElement),
+    next: requiredElement(root, "#next", HTMLButtonElement),
   };
 }
 
@@ -43,23 +46,15 @@ export function listenToPanels(
 }
 
 /** The win panel fades in as the threads fade out, in the place the controls leave. */
-export function renderPanels(panels: Panels, model: Model, hasNext: boolean): void {
-  const solved: boolean = model.solvedFor !== undefined;
+export function renderPanels(panels: Panels, game: Game, levels: readonly Puzzle[]): void {
+  const solved: boolean = game.solvedFor !== undefined;
+  const number: number = levels.indexOf(game.puzzle) + 1;
+  panels.title.textContent = `Level ${String(number)}`;
   panels.controls.classList.toggle("is-hidden", solved);
-  panels.undo.disabled = model.history.length === 0;
-  panels.clear.disabled = model.threads.length === 0;
+  panels.undo.disabled = game.history.length === 0;
+  panels.clear.disabled = game.threads.length === 0;
   panels.win.classList.toggle("is-hidden", !solved);
-  panels.win.style.opacity = String(winProgress(model));
-  panels.winTitle.textContent = model.puzzle.title;
-  panels.next.hidden = !hasNext;
-}
-
-function required<T extends Element>(
-  root: ParentNode,
-  selector: string,
-  type: abstract new () => T,
-): T {
-  const element: Element | null = root.querySelector(selector);
-  if (!(element instanceof type)) throw new Error(`${selector} not found`);
-  return element;
+  panels.win.style.opacity = String(winProgress(game));
+  panels.winTitle.textContent = game.puzzle.title;
+  panels.next.hidden = number === levels.length;
 }

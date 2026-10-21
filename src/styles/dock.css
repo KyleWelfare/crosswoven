@@ -45,6 +45,25 @@
   color: var(--page);
 }
 
+.button-back {
+  justify-self: start;
+  min-width: 0;
+  padding: 0 var(--space-3) 0 var(--space-2);
+  background: none;
+}
+
+.button-back::before {
+  content: "‹";
+  margin-right: var(--space-1);
+  font-size: 1.5rem;
+  line-height: 0;
+  vertical-align: -0.1em;
+}
+
+.button-back:hover {
+  background: var(--control);
+}
+
 .win {
   display: grid;
   justify-items: center;

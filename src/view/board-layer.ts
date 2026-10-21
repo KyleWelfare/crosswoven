@@ -1,17 +1,7 @@
-import type { Point, Puzzle, SquareColour, ThreadColour } from "../core/puzzle.ts";
+import type { Point, Puzzle, SquareColour } from "../core/puzzle.ts";
 import { squareOrigin, type BoardLayout } from "./board-layout.ts";
 import type { Palette } from "./palette.ts";
 import { createSprite, type Sprite } from "./sprite.ts";
-
-const pips: Readonly<Record<SquareColour, readonly ThreadColour[]>> = {
-  blank: [],
-  red: [],
-  blue: [],
-  yellow: [],
-  purple: ["red", "blue"],
-  orange: ["red", "yellow"],
-  green: ["blue", "yellow"],
-};
 
 /** CSS pixels. */
 const BOARD_SHADOW_BLUR: number = 5;
@@ -20,8 +10,6 @@ const BOARD_SHADOW_OFFSET: number = 1;
 /** Fractions of a square. */
 const TILE_GAP: number = 0.05;
 const TILE_RADIUS: number = 0.1;
-const PIP_RADIUS: number = 0.06;
-const PIP_INSET: number = 0.17;
 
 /** Everything that only changes with the puzzle, the canvas size or the palette, as one image. */
 export function drawBoardLayer(
@@ -51,14 +39,7 @@ export function drawBoardLayer(
 
   puzzle.pattern.forEach((row: readonly SquareColour[], y: number): void => {
     row.forEach((square: SquareColour, x: number): void => {
-      paintSquare(
-        context,
-        squareOrigin(layout, { x, y }),
-        square,
-        palette.wash[square],
-        layout,
-        palette,
-      );
+      paintSquare(context, squareOrigin(layout, { x, y }), palette.wash[square], layout);
     });
   });
   return canvas;
@@ -71,17 +52,15 @@ export function drawWovenSquare(
   palette: Palette,
 ): HTMLCanvasElement {
   const { canvas, context }: Sprite = createSprite(layout.cell, layout.cell);
-  paintSquare(context, { x: 0, y: 0 }, square, palette.woven[square], layout, palette);
+  paintSquare(context, { x: 0, y: 0 }, palette.woven[square], layout);
   return canvas;
 }
 
 function paintSquare(
   context: CanvasRenderingContext2D,
   origin: Point,
-  square: SquareColour,
   fill: string,
   layout: BoardLayout,
-  palette: Palette,
 ): void {
   const cell: number = layout.cell;
   const gap: number = tileGap(layout);
@@ -95,19 +74,6 @@ function paintSquare(
     TILE_RADIUS * cell,
   );
   context.fill();
-  pips[square].forEach((colour: ThreadColour, i: number): void => {
-    const inset: number = i === 0 ? PIP_INSET : 1 - PIP_INSET;
-    context.fillStyle = palette.thread[colour];
-    context.beginPath();
-    context.arc(
-      origin.x + inset * cell,
-      origin.y + PIP_INSET * cell,
-      PIP_RADIUS * cell,
-      0,
-      2 * Math.PI,
-    );
-    context.fill();
-  });
 }
 
 function tileGap(layout: BoardLayout): number {

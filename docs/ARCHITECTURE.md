@@ -18,7 +18,7 @@ The app uses a model-view-update architecture. State lives in one place, changes
 
 ## Model, update, view
 
-- **Model**: one plain-data object holding the whole app state (current level, threads, drag state, hint mode, progress). No class instances, no functions, no DOM references. It should survive `JSON.stringify` round trips.
+- **Model**: one plain-data object holding the whole app state (current screen, current level, threads, drag state, hint mode, progress). It's a union on `screen`: the menu, the level list, or a level being played (`Game`), and board messages only reach a `Game`. No class instances, no functions, no DOM references. It should survive `JSON.stringify` round trips.
 - **Msg**: a discriminated union of every way the state can change, e.g. `{ type: "SquareEntered"; x: number; y: number }`. Name messages after what happened, not what to do.
 - **update**: `update(model, msg) → [model, cmds]`. Pure: no side effects, no reading the clock, no randomness, no mutation of the input. Same inputs, same output.
 - **view**: renders the current model. It never changes state directly; input handlers dispatch `Msg`s and nothing else.

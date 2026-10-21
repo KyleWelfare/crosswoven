@@ -2,9 +2,11 @@ import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/layout.css";
 import "./styles/masthead.css";
+import "./styles/menu.css";
+import "./styles/level-list.css";
 import "./styles/dock.css";
 import type { Msg } from "./app/messages.ts";
-import { startLevel, type Model } from "./app/model.ts";
+import { menu, type Model } from "./app/model.ts";
 import { update } from "./app/update.ts";
 import { isFading } from "./app/win.ts";
 import { decodeLevel, type DecodeResult } from "./core/level-decoder.ts";
@@ -13,7 +15,11 @@ import type { Puzzle } from "./core/puzzle.ts";
 import order from "./levels/order.json";
 import { listenForDrags } from "./view/board-input.ts";
 import { drawBraid } from "./view/braid.ts";
+import { buildLevelList } from "./view/level-list.ts";
+import { findMenu, listenToMenu, renderMenu, type MenuControls } from "./view/menu.ts";
 import { findPanels, listenToPanels, renderPanels, type Panels } from "./view/panels.ts";
+import { requiredElement } from "./view/required-element.ts";
+import { findScreens, listenForBack, renderScreens, type Screens } from "./view/screens.ts";
 import { drawStage } from "./view/stage.ts";
 import { createSpriteCache, type SpriteCache } from "./view/sprite-cache.ts";
 
@@ -39,19 +45,13 @@ function shippedLevels(): readonly Puzzle[] {
   });
 }
 
-const stage: HTMLCanvasElement | null = document.querySelector<HTMLCanvasElement>("#stage");
-if (!stage) throw new Error("Canvas #stage not found");
-const braid: SVGSVGElement | null = document.querySelector<SVGSVGElement>("#braid");
-if (!braid) throw new Error("SVG #braid not found");
-drawBraid(braid);
+const stage: HTMLCanvasElement = requiredElement(document, "#stage", HTMLCanvasElement);
+drawBraid(requiredElement(document, "#braid", SVGSVGElement));
 const levels: readonly Puzzle[] = shippedLevels();
-// TODO: drop ?level= once the level list can open any level.
-const requested: string | null = new URLSearchParams(location.search).get("level");
-const first: Puzzle | undefined =
-  levels.find((puzzle: Puzzle): boolean => puzzle.id === requested) ?? levels[0];
-if (!first) throw new Error("No levels shipped");
-let model: Model = startLevel(first);
+let model: Model = menu;
 const sprites: SpriteCache = createSpriteCache();
+const screens: Screens = findScreens(document);
+const menuControls: MenuControls = findMenu(document);
 const panels: Panels = findPanels(document);
 
 let renderPending: boolean = false;
@@ -62,7 +62,7 @@ function dispatch(msg: Msg): void {
   if (next === model) return;
   model = next;
   scheduleRender();
-  if (isFading(model)) startTicking();
+  if (winFading()) startTicking();
 }
 
 /** Zooming or moving to another screen changes the pixel ratio without resizing the canvas. */
@@ -78,13 +78,21 @@ function watchPixelRatio(): void {
 }
 
 function scheduleRender(): void {
-  if (renderPending || !stage) return;
+  if (renderPending) return;
   renderPending = true;
   requestAnimationFrame((): void => {
     renderPending = false;
+    // Screens first, so a canvas that has just appeared has a size to draw at.
+    renderScreens(screens, model);
+    renderMenu(menuControls, model);
+    if (model.screen !== "game") return;
     drawStage(stage, model, sprites);
-    renderPanels(panels, model, nextLevel() !== undefined);
+    renderPanels(panels, model, levels);
   });
+}
+
+function winFading(): boolean {
+  return model.screen === "game" && isFading(model);
 }
 
 /** Sends a Tick each animation frame for as long as the win animation runs. */
@@ -95,17 +103,24 @@ function startTicking(): void {
   const frame = (time: number): void => {
     if (last !== undefined) dispatch({ type: "Tick", dt: time - last });
     last = time;
-    if (isFading(model)) requestAnimationFrame(frame);
+    if (winFading()) requestAnimationFrame(frame);
     else ticking = false;
   };
   requestAnimationFrame(frame);
 }
 
 function nextLevel(): Puzzle | undefined {
-  return levels[levels.indexOf(model.puzzle) + 1];
+  return model.screen === "game" ? levels[levels.indexOf(model.puzzle) + 1] : undefined;
 }
 
-listenForDrags(stage, (): Puzzle => model.puzzle, dispatch);
+buildLevelList(requiredElement(document, "#level-list", HTMLElement), levels, dispatch);
+listenToMenu(menuControls, dispatch);
+listenForBack(document, dispatch);
+listenForDrags(
+  stage,
+  (): Puzzle | undefined => (model.screen === "game" ? model.puzzle : undefined),
+  dispatch,
+);
 listenToPanels(panels, dispatch, nextLevel);
 new ResizeObserver(scheduleRender).observe(stage);
 watchPixelRatio();

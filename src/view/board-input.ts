@@ -8,14 +8,14 @@ import { canvasLayout, squareAt } from "./board-layout.ts";
  */
 export function listenForDrags(
   canvas: HTMLCanvasElement,
-  currentPuzzle: () => Puzzle,
+  currentPuzzle: () => Puzzle | undefined,
   dispatch: (msg: Msg) => void,
 ): void {
   let active: number | undefined;
-  const square = (event: PointerEvent): Point => {
+  const square = (event: PointerEvent, puzzle: Puzzle): Point => {
     const bounds: DOMRect = canvas.getBoundingClientRect();
     const ratio: number = window.devicePixelRatio;
-    return squareAt(canvasLayout(canvas, currentPuzzle()), {
+    return squareAt(canvasLayout(canvas, puzzle), {
       x: (event.clientX - bounds.left) * ratio,
       y: (event.clientY - bounds.top) * ratio,
     });
@@ -27,14 +27,18 @@ export function listenForDrags(
   };
 
   canvas.addEventListener("pointerdown", (event: PointerEvent): void => {
-    if (active !== undefined || event.button !== 0) return;
+    const puzzle: Puzzle | undefined = currentPuzzle();
+    if (active !== undefined || event.button !== 0 || !puzzle) return;
     active = event.pointerId;
     // Touch captures implicitly, but a mouse would stop sending moves once it left the canvas.
     canvas.setPointerCapture(event.pointerId);
-    dispatch({ type: "SquarePressed", ...square(event) });
+    dispatch({ type: "SquarePressed", ...square(event, puzzle) });
   });
   canvas.addEventListener("pointermove", (event: PointerEvent): void => {
-    if (event.pointerId === active) dispatch({ type: "SquareEntered", ...square(event) });
+    const puzzle: Puzzle | undefined = currentPuzzle();
+    if (event.pointerId === active && puzzle) {
+      dispatch({ type: "SquareEntered", ...square(event, puzzle) });
+    }
   });
   canvas.addEventListener("pointerup", (event: PointerEvent): void => {
     finish(event, { type: "PointerReleased" });

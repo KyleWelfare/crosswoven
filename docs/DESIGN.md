@@ -39,7 +39,7 @@ Every shipped puzzle has exactly one solution, and it can be reached by deductio
 - Drag from a peg to lay a thread. Drag back along it to take steps off. Drag from any square of an existing thread to reroute it from there; where two threads cross, that picks up the one laid last. Dragging from a peg that already has a thread starts that thread again, and tapping it clears the thread
 - A thread is a string cut to its peg's number: it can't grow longer, and it ties only at a peg of its colour and number once all of its length is used. Any other peg blocks it, and so do blank squares. It can cross squares of other colours, so the board doesn't steer the player towards the solution. Reaching a peg that already had a thread replaces that thread
 - A square holds as many threads as it shows colours: one, or two crossing. Laying a thread into a full square cuts a thread already there, as in Flow, shown live while drawing. A thread whose colour the square doesn't show is cut first, then the one laid last. Each half stays at its peg and can be joined up again; a half with no peg is dropped
-- While drawing, the thread shows how many squares it has, so the player can match it to the peg's number
+- A thread being drawn shows no running count of its squares. The peg numbers are enough, and the board stays calmer
 - Nothing else stops a move that breaks a rule. The board is checked once every peg is tied
 - **Hint mode** is a toggle. While it's on, squares that break a rule are flagged live, and a Hint button highlights one forced move with a one-line reason ("this 3 can only reach the other 3 by going down")
 - Undo and Clear. Clear can be undone too
@@ -56,8 +56,9 @@ Every shipped puzzle has exactly one solution, and it can be reached by deductio
 
 The game opens on a menu:
 
-- **Play**: the level list
+- **Play**: the level list. Each level is a numbered tile showing its pattern in the board's pale washes and its grid size. The title stays hidden, since it names the picture that solving reveals. Every level is open until progress is saved; then cleared levels are marked and the rest unlock in order
 - **How to Play**: a simple modal with the rules, improved later if there's time
+- Each screen past the menu has a back button: a level goes back to the list, the list to the menu
 - **How It Works**: a slideshow of how a level is made and proven
 
 ## How It Works
@@ -195,7 +196,7 @@ Kept from the prototype and refined later:
 
 - A weave theme. Crossings alternate over and under on a checkerboard, like plain-weave cloth
 - Where two threads cross, both are dyed their mixed colour through the middle of the square, blending back to their own colours at its edges. The mixing shows in the threads, not only the squares. Wrong crossings mix too, which shows the mismatch
-- Squares show a pale wash of their target colour, deeper once the threads there match. Two-colour squares show two small pips naming their colours
+- Squares show a pale wash of their target colour, deeper once the threads there match. The colour alone names a two-colour square's threads, with no other mark, to keep the board calm
 - Pegs show their number, and are hollow until tied
 - Light and dark themes
 

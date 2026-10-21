@@ -148,7 +148,8 @@ describe("update properties", (): void => {
   it("only lays and shows threads that break no rule of laying", (): void => {
     fc.assert(
       fc.property(cases, ({ puzzle, msgs }: Case): void => {
-        const model: Model = msgs.reduce(update, startLevel(puzzle));
+        const model: Model = msgs.reduce<Model>(update, startLevel(puzzle));
+        if (model.screen !== "game") throw new Error("only board messages are sent");
         expectBoard(puzzle, model.threads);
         expectBoard(puzzle, shownThreads(puzzle, model.threads, model.drag));
         if (model.drag) expectWellFormed(puzzle, model.drag);

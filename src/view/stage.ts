@@ -1,5 +1,5 @@
-import { draggedThread, shownThreads } from "../app/drag.ts";
-import type { Model } from "../app/model.ts";
+import { shownThreads } from "../app/drag.ts";
+import type { Game } from "../app/model.ts";
 import { isPegTied } from "../app/tie.ts";
 import { mixOf, wovenSquares } from "../app/weave.ts";
 import { winProgress } from "../app/win.ts";
@@ -7,7 +7,6 @@ import type { Peg, Point, Puzzle, SquareColour } from "../core/puzzle.ts";
 import type { Thread } from "../core/thread.ts";
 import { drawBoardLayer, drawWovenSquare } from "./board-layer.ts";
 import { canvasLayout, squareOrigin, type BoardLayout } from "./board-layout.ts";
-import { drawLengthBadge } from "./length-badge.ts";
 import { readPalette, type Palette } from "./palette.ts";
 import { drawPegSprite } from "./peg-sprites.ts";
 import { rotateSprite } from "./sprite.ts";
@@ -33,9 +32,6 @@ interface Placement {
   readonly turns: number;
 }
 
-/** CSS pixels between the length badge and the square at the end of the thread. */
-const BADGE_GAP: number = 14;
-
 /**
  * Each frame copies cached sprites at whole device pixels: one image for the board, then a tile
  * per thread square, crossing and peg. Tiles are redrawn only when the square size or palette
@@ -43,11 +39,11 @@ const BADGE_GAP: number = 14;
  * for every resampled or blurred pixel.
  */
 // TODO: hint flags.
-export function drawStage(canvas: HTMLCanvasElement, model: Model, sprites: SpriteCache): void {
+export function drawStage(canvas: HTMLCanvasElement, game: Game, sprites: SpriteCache): void {
   const context: CanvasRenderingContext2D | null = canvas.getContext("2d");
   if (!context) throw new Error("Canvas 2D context unavailable");
-  canvas.style.aspectRatio = `${String(model.puzzle.width)} / ${String(model.puzzle.height)}`;
-  const layout: BoardLayout = canvasLayout(canvas, model.puzzle);
+  canvas.style.aspectRatio = `${String(game.puzzle.width)} / ${String(game.puzzle.height)}`;
+  const layout: BoardLayout = canvasLayout(canvas, game.puzzle);
   fitBackingStore(canvas, layout.width, layout.height);
   context.setTransform(1, 0, 0, 1, 0, 0);
   context.clearRect(0, 0, layout.width, layout.height);
@@ -62,31 +58,27 @@ export function drawStage(canvas: HTMLCanvasElement, model: Model, sprites: Spri
 
   const board: HTMLCanvasElement = cachedBoard(
     sprites,
-    `${model.puzzle.id} ${String(layout.width)}x${String(layout.height)}`,
-    (): HTMLCanvasElement => drawBoardLayer(model.puzzle, layout, palette),
+    `${game.puzzle.id} ${String(layout.width)}x${String(layout.height)}`,
+    (): HTMLCanvasElement => drawBoardLayer(game.puzzle, layout, palette),
   );
   context.drawImage(board, 0, 0);
-  const threads: readonly Thread[] = shownThreads(model.puzzle, model.threads, model.drag);
-  drawWovenSquares(context, model.puzzle, threads, layout, palette, sprites);
+  const threads: readonly Thread[] = shownThreads(game.puzzle, game.threads, game.drag);
+  drawWovenSquares(context, game.puzzle, threads, layout, palette, sprites);
 
   // Once solved, the threads and pegs fade back to leave the picture.
-  const fade: number = winProgress(model);
+  const fade: number = winProgress(game);
   if (fade < 1) {
     context.globalAlpha = 1 - fade;
-    drawThreads(context, model.puzzle, threads, layout, palette, sprites);
-    for (const peg of model.puzzle.pegs) {
+    drawThreads(context, game.puzzle, threads, layout, palette, sprites);
+    for (const peg of game.puzzle.pegs) {
       blit(
         context,
         layout,
         peg,
-        pegSprite(sprites, peg, isPegTied(model.puzzle, threads, peg), layout, palette),
+        pegSprite(sprites, peg, isPegTied(game.puzzle, threads, peg), layout, palette),
       );
     }
     context.globalAlpha = 1;
-  }
-  if (model.drag) {
-    const length: number = draggedThread(model.puzzle, model.threads, model.drag).squares.length;
-    drawDragLength(context, model.drag, length, layout, palette, sprites);
   }
 }
 
@@ -280,36 +272,4 @@ function crossings(puzzle: Puzzle, threads: readonly Thread[]): Map<number, Cros
     });
   }
   return found;
-}
-
-/**
- * Above the end of the thread, clear of the finger drawing it, or below when there's no room above.
- * Kept inside the canvas.
- */
-function drawDragLength(
-  context: CanvasRenderingContext2D,
-  drag: Thread,
-  length: number,
-  layout: BoardLayout,
-  palette: Palette,
-  sprites: SpriteCache,
-): void {
-  const head: Point | undefined = drag.squares.at(-1);
-  if (!head) return;
-  const badge: HTMLCanvasElement = cachedSprite(
-    sprites,
-    `length ${String(length)} ${drag.colour}`,
-    (): HTMLCanvasElement =>
-      drawLengthBadge(length, palette.thread[drag.colour], layout.ratio, palette),
-  );
-  const square: Point = squareOrigin(layout, head);
-  const gap: number = BADGE_GAP * layout.ratio;
-  const above: number = square.y - gap - badge.height;
-  const y: number = above >= 0 ? above : square.y + layout.cell + gap;
-  const x: number = square.x + (layout.cell - badge.width) / 2;
-  context.drawImage(
-    badge,
-    Math.round(Math.min(Math.max(x, 0), layout.width - badge.width)),
-    Math.round(Math.min(y, layout.height - badge.height)),
-  );
 }

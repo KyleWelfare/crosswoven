@@ -6,6 +6,11 @@ export function puzzleOf(pattern: readonly string[], pegs: readonly PegTriple[])
   return decoded(levelJson(pattern, pegs));
 }
 
+/** The pattern is the picture revealed on solving; the player sees only pegs, marks and walls. */
+export function hiddenPuzzleOf(pattern: readonly string[], pegs: readonly PegTriple[]): Puzzle {
+  return decoded({ ...levelJson(pattern, pegs), hidden: true });
+}
+
 export function decoded(json: unknown): Puzzle {
   const result: DecodeResult = decodeLevel(json);
   if (!result.ok) throw new Error(result.errors.join("; "));

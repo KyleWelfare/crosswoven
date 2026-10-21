@@ -10,14 +10,17 @@ import type { Puzzle } from "../src/core/puzzle.ts";
 import type { Solution } from "../src/core/thread.ts";
 import { allSolutions } from "./fixtures/all-solutions.ts";
 import { decoded } from "./fixtures/puzzle-of.ts";
-import { randomWeaves, type Weave } from "./fixtures/random-weave.ts";
+import { randomHiddenWeaves, randomWeaves, type Weave } from "./fixtures/random-weave.ts";
 
 const LIMIT: number = 300;
 
-describe("solveLogically properties", (): void => {
+describe.each([
+  ["", randomWeaves],
+  [" when hidden", randomHiddenWeaves],
+])("solveLogically properties%s", (_mode: string, weaves: fc.Arbitrary<Weave>): void => {
   it("agrees with the search solver whenever it finishes", (): void => {
     fc.assert(
-      fc.property(randomWeaves, (weave: Weave): void => {
+      fc.property(weaves, (weave: Weave): void => {
         const puzzle: Puzzle = decoded(weave.level);
         const result: LogicResult = solveLogically(puzzle);
         if (result.status !== "solved") return;
@@ -28,7 +31,7 @@ describe("solveLogically properties", (): void => {
 
   it("only rules out paths that are in no solution", (): void => {
     fc.assert(
-      fc.property(randomWeaves, (weave: Weave): void => {
+      fc.property(weaves, (weave: Weave): void => {
         const puzzle: Puzzle = decoded(weave.level);
         const solutions: readonly Solution[] = allSolutions(puzzle, LIMIT);
         const result: LogicResult = solveLogically(puzzle);
@@ -44,7 +47,7 @@ describe("solveLogically properties", (): void => {
 
   it("never reports a contradiction on a puzzle that has a solution", (): void => {
     fc.assert(
-      fc.property(randomWeaves, (weave: Weave): void => {
+      fc.property(weaves, (weave: Weave): void => {
         expect(solveLogically(decoded(weave.level)).status).not.toBe("contradiction");
       }),
     );
@@ -52,7 +55,7 @@ describe("solveLogically properties", (): void => {
 
   it("reaches the same verdict solving as a player, so what a player sees is never wrong", (): void => {
     fc.assert(
-      fc.property(randomWeaves, (weave: Weave): void => {
+      fc.property(weaves, (weave: Weave): void => {
         const puzzle: Puzzle = decoded(weave.level);
         const one: LogicResult = solveLogically(puzzle);
         const player: LogicResult = solveAsPlayer(puzzle).result;
@@ -67,7 +70,7 @@ describe("solveLogically properties", (): void => {
 
   it("reaches the same verdict solving in rounds", (): void => {
     fc.assert(
-      fc.property(randomWeaves, (weave: Weave): void => {
+      fc.property(weaves, (weave: Weave): void => {
         const puzzle: Puzzle = decoded(weave.level);
         const one: LogicResult = solveLogically(puzzle);
         const rounds: LogicResult = solveInRounds(puzzle).result;

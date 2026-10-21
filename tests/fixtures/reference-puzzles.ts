@@ -78,6 +78,20 @@ export const pairingLevel: LevelFile = levelJson(
   ],
 );
 
+/**
+ * Unique when shown, since the colours say which way each thread runs through the crossing. Hidden,
+ * the mark only says red and yellow cross there, so either can run across: two solutions.
+ */
+export const loneCrossingLevel: LevelFile = levelJson(
+  ["YYR..", "ROR..", "RYY..", ".....", "....."],
+  [
+    [0, 0, 5],
+    [2, 0, 5],
+    [0, 2, 5],
+    [2, 2, 5],
+  ],
+);
+
 /** Too open to check: tens of millions of paths join the two corners. */
 export const openLevel: LevelFile = levelJson(
   Array.from({ length: 15 }, (): string => "R".repeat(15)),

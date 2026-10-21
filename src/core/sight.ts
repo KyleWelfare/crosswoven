@@ -1,11 +1,13 @@
+import { THREAD_COLOURS, neighbourSquares, type Peg, type Puzzle } from "./puzzle.ts";
 import {
-  neighbourSquares,
-  threadsThrough,
-  type Peg,
-  type Puzzle,
-  type SquareColour,
-  type ThreadColour,
-} from "./puzzle.ts";
+  SLOTS_PER_SQUARE,
+  canEnter,
+  isCrossing,
+  slotOf,
+  slotsOf,
+  squareOfSlot,
+  type Slots,
+} from "./slot.ts";
 
 /**
  * What a player knows of each thread: the squares it's known to run through, from its peg out.
@@ -27,10 +29,11 @@ const LOOKAHEAD: number = 2;
 
 interface View {
   readonly puzzle: Puzzle;
+  readonly slots: Slots;
   readonly prefixes: Prefixes;
   readonly done: readonly boolean[];
-  /** For each colour and square, the peg whose known prefix holds it, or -1. */
-  readonly owners: ReadonlyMap<ThreadColour, Int32Array>;
+  /** For each slot, the peg whose known prefix holds it, or -1. */
+  readonly owners: Int32Array;
 }
 
 interface Neighbour {
@@ -46,7 +49,8 @@ interface Neighbour {
  * has only two usable neighbours is seen to belong to the thread ending at one of them.
  */
 export function seenMoves(puzzle: Puzzle, prefixes: Prefixes, done: readonly boolean[]): Seen[] {
-  const view: View = { puzzle, prefixes, done, owners: ownersOf(puzzle, prefixes) };
+  const slots: Slots = slotsOf(puzzle);
+  const view: View = { puzzle, slots, prefixes, done, owners: ownersOf(puzzle, slots, prefixes) };
   const seen: Map<number, number> = new Map<number, number>();
   for (let index: number = 0; index < puzzle.pegs.length; index++) {
     const forced: number | undefined = forcedStep(view, index);
@@ -113,20 +117,18 @@ function canStillReach(view: View, index: number, path: readonly number[]): bool
 }
 
 /**
- * Squares a thread can step to from the end of `path`: of its colour, not its own already, and free
- * unless it's the known end of a thread it could join. Out of a crossing it goes straight on.
+ * Squares a thread can step to from the end of `path`: ones its colour may enter, not its own
+ * already, and free unless it's the known end of a thread it could join. Out of a crossing it goes
+ * straight on.
  */
 function nextSquares(view: View, index: number, path: readonly number[]): number[] {
   const { puzzle }: View = view;
   const peg: Peg = pegOf(puzzle, index);
   const last: number | undefined = path.at(-1);
-  const previous: number | undefined = path.at(-2);
   if (last === undefined) return [];
-  const straightOn: number | undefined =
-    previous !== undefined && isCrossing(puzzle, last) ? 2 * last - previous : undefined;
   return neighbourSquares(puzzle.width, puzzle.height, last).filter((square: number): boolean => {
-    if (straightOn !== undefined && square !== straightOn) return false;
-    if (path.includes(square) || !coloursAt(puzzle, square).includes(peg.colour)) return false;
+    if (!goesStraight(view.slots, path, square)) return false;
+    if (path.includes(square) || !canEnter(view.slots, square, peg.colour)) return false;
     const owner: number = ownerAt(view, peg, square);
     return (
       owner === -1 ||
@@ -137,49 +139,81 @@ function nextSquares(view: View, index: number, path: readonly number[]): number
 }
 
 /**
- * A single-colour square nobody is known to cover yet must be passed through, so with just two
- * usable neighbours the thread ending at either one runs through it.
+ * A square with one slot, which nobody is known to fill yet, must be passed through, so with just
+ * two usable neighbours the thread ending at either one runs through it.
  */
 function filledPockets(view: View): Seen[] {
-  const { puzzle }: View = view;
+  const { puzzle, slots }: View = view;
+  const slotCount: Uint8Array = new Uint8Array(puzzle.width * puzzle.height);
+  for (const slot of slots.required) {
+    const square: number = squareOfSlot(slot);
+    slotCount[square] = (slotCount[square] ?? 0) + 1;
+  }
   const seen: Seen[] = [];
-  for (let square: number = 0; square < puzzle.width * puzzle.height; square++) {
-    const colours: readonly ThreadColour[] = coloursAt(puzzle, square);
-    const colour: ThreadColour | undefined = colours.length === 1 ? colours[0] : undefined;
-    const owners: Int32Array | undefined = colour && view.owners.get(colour);
-    if (!colour || !owners || owners[square] !== -1) continue;
-    const usable: readonly Neighbour[] = neighbourSquares(puzzle.width, puzzle.height, square)
-      .filter((next: number): boolean => coloursAt(puzzle, next).includes(colour))
-      .flatMap((next: number): Neighbour[] => usableNeighbour(view, owners, next));
+  for (const slot of slots.required) {
+    const square: number = squareOfSlot(slot);
+    if (slotCount[square] !== 1 || view.owners[slot] !== -1) continue;
+    const usable: readonly Neighbour[] = neighbourSquares(
+      puzzle.width,
+      puzzle.height,
+      square,
+    ).flatMap((next: number): Neighbour[] => usableNeighbour(view, square, next));
     const end: Neighbour | undefined = usable.find(({ end }: Neighbour): boolean => end !== -1);
     if (usable.length === 2 && end) seen.push({ peg: end.end, square });
   }
   return seen;
 }
 
-/** Free, or the growing end of a known thread; the inside of a known thread is no way in. */
-function usableNeighbour(view: View, owners: Int32Array, square: number): Neighbour[] {
-  const owner: number = owners[square] ?? -1;
-  if (owner === -1) return [{ square, end: -1 }];
+/**
+ * A way into `pocket` from `square`: a free slot of a colour that may enter both, or the growing
+ * end of a known thread that can step on into it. The inside of a known thread is no way in. A
+ * square offering more than one thread a way in belongs to none of them.
+ */
+function usableNeighbour(view: View, pocket: number, square: number): Neighbour[] {
+  const ends: Set<number> = new Set<number>();
+  let free: boolean = false;
+  for (const colour of THREAD_COLOURS) {
+    if (!canEnter(view.slots, pocket, colour) || !canEnter(view.slots, square, colour)) continue;
+    const owner: number = view.owners[slotOf(view.slots, square, colour)] ?? -1;
+    if (owner === -1) free = true;
+    else if (growsInto(view, owner, square, pocket)) ends.add(owner);
+  }
+  const [end]: readonly number[] = [...ends];
+  if (free || ends.size > 1) return [{ square, end: -1 }];
+  return end === undefined ? [] : [{ square, end }];
+}
+
+function growsInto(view: View, owner: number, square: number, pocket: number): boolean {
   const peg: Peg = pegOf(view.puzzle, owner);
   const prefix: readonly number[] = view.prefixes[owner] ?? [];
   const grows: boolean = !view.done[owner] && peg.length > 1 && prefix.length < peg.length;
-  return grows && prefix.at(-1) === square ? [{ square, end: owner }] : [];
+  return grows && prefix.at(-1) === square && goesStraight(view.slots, prefix, pocket);
 }
 
-function ownersOf(puzzle: Puzzle, prefixes: Prefixes): Map<ThreadColour, Int32Array> {
-  const owners: Map<ThreadColour, Int32Array> = new Map<ThreadColour, Int32Array>();
+/** Out of a crossing a thread goes straight on. */
+function goesStraight(slots: Slots, path: readonly number[], next: number): boolean {
+  const last: number | undefined = path.at(-1);
+  const previous: number | undefined = path.at(-2);
+  return (
+    last === undefined ||
+    previous === undefined ||
+    !isCrossing(slots, last) ||
+    next - last === last - previous
+  );
+}
+
+function ownersOf(puzzle: Puzzle, slots: Slots, prefixes: Prefixes): Int32Array {
+  const owners: Int32Array = new Int32Array(puzzle.width * puzzle.height * SLOTS_PER_SQUARE).fill(
+    -1,
+  );
   puzzle.pegs.forEach((peg: Peg, index: number): void => {
-    const squares: Int32Array =
-      owners.get(peg.colour) ?? new Int32Array(puzzle.width * puzzle.height).fill(-1);
-    owners.set(peg.colour, squares);
-    for (const square of prefixes[index] ?? []) squares[square] = index;
+    for (const square of prefixes[index] ?? []) owners[slotOf(slots, square, peg.colour)] = index;
   });
   return owners;
 }
 
 function ownerAt(view: View, peg: Peg, square: number): number {
-  return view.owners.get(peg.colour)?.[square] ?? -1;
+  return view.owners[slotOf(view.slots, square, peg.colour)] ?? -1;
 }
 
 function isPartner(
@@ -190,16 +224,6 @@ function isPartner(
   done: readonly boolean[],
 ): boolean {
   return j !== index && !done[j] && other.colour === peg.colour && other.length === peg.length;
-}
-
-function coloursAt(puzzle: Puzzle, square: number): readonly ThreadColour[] {
-  const colour: SquareColour =
-    puzzle.pattern[Math.floor(square / puzzle.width)]?.[square % puzzle.width] ?? "blank";
-  return threadsThrough(colour);
-}
-
-function isCrossing(puzzle: Puzzle, square: number): boolean {
-  return coloursAt(puzzle, square).length === 2;
 }
 
 function manhattan(width: number, a: number, b: number): number {

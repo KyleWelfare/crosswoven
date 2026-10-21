@@ -23,6 +23,12 @@ export interface Puzzle {
   /** Indexed `pattern[y][x]`. */
   readonly pattern: readonly (readonly SquareColour[])[];
   readonly pegs: readonly Peg[];
+  /**
+   * The player sees only the pegs, which two colours cross at each two-colour square, and blank
+   * squares as walls; the picture appears once solved. Every other square takes one thread of any
+   * colour. See "Hidden pictures" in DESIGN.md.
+   */
+  readonly hidden?: boolean;
 }
 
 export const THREAD_COLOURS: readonly ThreadColour[] = ["red", "blue", "yellow"];

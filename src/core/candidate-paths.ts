@@ -1,13 +1,11 @@
 import {
-  colourBit,
   neighbourSquares,
-  squareMask,
-  type ColourMask,
   type Peg,
   type Point,
   type Puzzle,
   type ThreadColour,
 } from "./puzzle.ts";
+import { canEnter, isCrossing, slotsOf, type Slots } from "./slot.ts";
 import { toSolution, type Solution, type Thread } from "./thread.ts";
 
 /** Squares are numbered in reading order, `y * width + x`. */
@@ -40,13 +38,13 @@ interface PegPair {
 interface Grid {
   readonly width: number;
   readonly height: number;
-  readonly masks: Uint8Array;
+  readonly slots: Slots;
   readonly isPeg: Uint8Array;
 }
 
 /**
- * Every path each pair of pegs could be joined by: the right length, through squares of the
- * thread's colour, never through another peg, and straight through two-colour squares.
+ * Every path each pair of pegs could be joined by: the right length, through squares its colour
+ * may enter, never through another peg, and straight through two-colour squares.
  */
 export function listCandidates(
   puzzle: Puzzle,
@@ -75,7 +73,7 @@ function createGrid(puzzle: Puzzle): Grid {
   return {
     width,
     height: puzzle.height,
-    masks: Uint8Array.from(puzzle.pattern.flat(), squareMask),
+    slots: slotsOf(puzzle),
     isPeg,
   };
 }
@@ -107,9 +105,9 @@ function pathsBetween(
   // Each step changes the checkerboard colour, so the spare steps must come in pairs.
   if (gap > steps || (steps - gap) % 2 === 1) return [];
 
-  const bit: ColourMask = colourBit(pair.from.colour);
+  const colour: ThreadColour = pair.from.colour;
   const path: number[] = [start];
-  const onPath: Uint8Array = new Uint8Array(grid.masks.length);
+  const onPath: Uint8Array = new Uint8Array(grid.width * grid.height);
   onPath[start] = 1;
   const paths: (readonly number[])[] = [];
 
@@ -121,7 +119,7 @@ function pathsBetween(
       return paths.length <= max;
     }
     for (const next of neighbourSquares(grid.width, grid.height, current)) {
-      if (!canEnter(path.at(-2), current, next)) continue;
+      if (!mayStep(path.at(-2), current, next)) continue;
       path.push(next);
       onPath[next] = 1;
       const withinMax: boolean = extend();
@@ -132,12 +130,14 @@ function pathsBetween(
     return true;
   }
 
-  function canEnter(previous: number | undefined, current: number, next: number): boolean {
-    if (onPath[next] === 1 || ((grid.masks[next] ?? 0) & bit) === 0) return false;
+  function mayStep(previous: number | undefined, current: number, next: number): boolean {
+    if (onPath[next] === 1 || !canEnter(grid.slots, next, colour)) return false;
     if (grid.isPeg[next] === 1 && (next !== target || path.length + 1 < length)) return false;
     if (distance(grid, next, target) > length - path.length - 1) return false;
     return (
-      previous === undefined || !isCrossing(grid, current) || next - current === current - previous
+      previous === undefined ||
+      !isCrossing(grid.slots, current) ||
+      next - current === current - previous
     );
   }
 
@@ -149,11 +149,6 @@ function distance(grid: Grid, a: number, b: number): number {
     Math.abs((a % grid.width) - (b % grid.width)) +
     Math.abs(Math.floor(a / grid.width) - Math.floor(b / grid.width))
   );
-}
-
-function isCrossing(grid: Grid, square: number): boolean {
-  const mask: ColourMask = grid.masks[square] ?? 0;
-  return (mask & (mask - 1)) !== 0;
 }
 
 export function solutionOf(width: number, chosen: readonly Candidate[]): Solution {

@@ -5,7 +5,8 @@ import {
   type CandidateList,
   type TooOpen,
 } from "./candidate-paths.ts";
-import { THREAD_COLOURS, threadsThrough, type Puzzle, type SquareColour } from "./puzzle.ts";
+import type { Puzzle } from "./puzzle.ts";
+import { SLOTS_PER_SQUARE, slotOf, slotsOf, type Slots } from "./slot.ts";
 import type { Solution } from "./thread.ts";
 
 export type SearchResult = { readonly ok: true; readonly solutions: readonly Solution[] } | TooOpen;
@@ -18,7 +19,7 @@ export type SearchResult = { readonly ok: true; readonly solutions: readonly Sol
 interface Cover {
   readonly columnsOf: readonly (readonly number[])[];
   readonly rowsIn: readonly (readonly number[])[];
-  /** Columns covered exactly once: every peg, and each colour each square asks for. */
+  /** Columns covered exactly once: every peg, and every slot (see Slots). */
   readonly required: readonly number[];
   readonly covered: Uint8Array;
   /** Chosen rows that clash with each row. A row is still an option at 0. */
@@ -63,25 +64,21 @@ export function findSolutions(puzzle: Puzzle, limit: number): SearchResult {
 }
 
 function createCover(puzzle: Puzzle, candidates: readonly Candidate[]): Cover {
-  const squares: readonly SquareColour[] = puzzle.pattern.flat();
+  const slots: Slots = slotsOf(puzzle);
   const pegCount: number = puzzle.pegs.length;
-  const colourCount: number = THREAD_COLOURS.length;
-  const slot = (square: number, colour: number): number => pegCount + square * colourCount + colour;
-  const columnCount: number = pegCount + squares.length * colourCount;
-
-  const required: number[] = [...puzzle.pegs.keys()];
-  squares.forEach((square: SquareColour, index: number): void => {
-    for (const colour of threadsThrough(square)) {
-      required.push(slot(index, THREAD_COLOURS.indexOf(colour)));
-    }
-  });
+  const columnCount: number = pegCount + puzzle.width * puzzle.height * SLOTS_PER_SQUARE;
+  const required: readonly number[] = [
+    ...puzzle.pegs.keys(),
+    ...slots.required.map((slot: number): number => pegCount + slot),
+  ];
 
   const columnsOf: readonly (readonly number[])[] = candidates.map(
     (candidate: Candidate): number[] => {
-      const colour: number = THREAD_COLOURS.indexOf(candidate.colour);
       const [first, second]: readonly [number, number] = candidate.pegs;
       const columns: number[] = first === second ? [first] : [first, second];
-      for (const square of candidate.squares) columns.push(slot(square, colour));
+      for (const square of candidate.squares) {
+        columns.push(pegCount + slotOf(slots, square, candidate.colour));
+      }
       return columns;
     },
   );

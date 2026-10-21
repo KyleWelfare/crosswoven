@@ -298,8 +298,16 @@ function cutsOf(grid: Grid, thread: Thread): readonly number[] {
 }
 
 function puzzleOf(picture: Picture, threads: Solution): Puzzle {
-  const { id, title, width, height, pattern }: Picture = picture;
-  return { id, title, width, height, pattern, pegs: pegsOf(threads) };
+  const { id, title, width, height, pattern, hidden }: Picture = picture;
+  return {
+    id,
+    title,
+    width,
+    height,
+    pattern,
+    pegs: pegsOf(threads),
+    ...(hidden === true ? { hidden } : {}),
+  };
 }
 
 function gridOf(picture: Picture): Grid {

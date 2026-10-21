@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Peg, Point, Puzzle } from "../src/core/puzzle.ts";
 import { seenMoves, type Prefixes, type Seen } from "../src/core/sight.ts";
-import { puzzleOf } from "./fixtures/puzzle-of.ts";
+import { hiddenPuzzleOf, puzzleOf } from "./fixtures/puzzle-of.ts";
 
 function square(puzzle: Puzzle, point: Point): number {
   return point.y * puzzle.width + point.x;
@@ -74,5 +74,23 @@ describe("seenMoves", (): void => {
       ],
     );
     expect(seenAtStart(puzzle)).toEqual([]);
+  });
+
+  it("sees no wall between colours in a hidden level", (): void => {
+    // Shown, (2,1) has two yellow ways in; hidden, the red square above it is a third.
+    const rows: readonly string[] = ["..RR.", ".YYY.", "YY.Y.", ".YYY.", "....."];
+    const pegs: readonly (readonly [number, number, number])[] = [
+      [1, 1, 5],
+      [3, 3, 5],
+      [3, 0, 1],
+    ];
+    const intoPocket = (puzzle: Puzzle): Seen => ({
+      peg: pegIndex(puzzle, { x: 1, y: 1 }),
+      square: square(puzzle, { x: 2, y: 1 }),
+    });
+    const shown: Puzzle = puzzleOf(rows, pegs);
+    const hidden: Puzzle = hiddenPuzzleOf(rows, pegs);
+    expect(seenAtStart(shown)).toContainEqual(intoPocket(shown));
+    expect(seenAtStart(hidden)).not.toContainEqual(intoPocket(hidden));
   });
 });

@@ -79,6 +79,29 @@ export const randomWeaves: fc.Arbitrary<Weave> = fc
     weave(input.width, input.height, input.plans),
   );
 
+/** The same boards as levels that hide their picture. */
+export const randomHiddenWeaves: fc.Arbitrary<Weave> = randomWeaves.map((woven: Weave): Weave => ({
+  ...woven,
+  level: { ...woven.level, hidden: true },
+}));
+
+/**
+ * What a hidden level shows of its pattern: blank squares, two-colour squares and the colours under
+ * pegs. Any other square only has to be covered, so it reads "#".
+ */
+export function shownWhenHidden(level: LevelFile): LevelFile {
+  const isPeg = (x: number, y: number): boolean =>
+    level.pegs.some((peg: PegEntry): boolean => peg.x === x && peg.y === y);
+  return {
+    ...level,
+    pattern: level.pattern.map((row: string, y: number): string =>
+      Array.from(row, (code: string, x: number): string =>
+        "RBY".includes(code) && !isPeg(x, y) ? "#" : code,
+      ).join(""),
+    ),
+  };
+}
+
 /**
  * The level these threads weave. Written independently of the search solver so the two can check
  * each other.

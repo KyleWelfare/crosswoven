@@ -52,11 +52,13 @@ export interface LevelFile {
   readonly title: string;
   readonly pattern: readonly string[];
   readonly pegs: readonly PegEntry[];
+  readonly hidden?: true;
 }
 
 /**
- * A picture file holds a level's id, title and pattern, with no version or pegs. Optional fields
- * steer the generator: `lengths: [min, max]`, `sameNumbers`, `targetRounds` and `seed` (see Picture).
+ * A picture file holds a level's id, title and pattern, with no version or pegs. `hidden: true`
+ * makes its level hide the picture (see Puzzle). Optional fields steer the generator:
+ * `lengths: [min, max]`, `sameNumbers`, `targetRounds` and `seed` (see Picture).
  */
 export function decodePicture(json: unknown): PictureResult {
   if (!isJsonObject(json)) return { ok: false, errors: ["the picture must be a JSON object"] };
@@ -65,6 +67,7 @@ export function decodePicture(json: unknown): PictureResult {
   const title: string | undefined = decodeText(json, "title", errors);
   const pattern: Pattern | undefined = decodePattern(json["pattern"], errors);
   const lengths: ThreadLengths | undefined = decodeLengths(json["lengths"], errors);
+  const hidden: boolean = decodeHidden(json["hidden"], errors);
   const sameNumbers: unknown = json["sameNumbers"];
   if (
     sameNumbers !== undefined &&
@@ -93,6 +96,7 @@ export function decodePicture(json: unknown): PictureResult {
       height: pattern.length,
       pattern,
       lengths,
+      ...(hidden ? { hidden } : {}),
       ...(typeof sameNumbers === "number" ? { sameNumbers } : {}),
       ...(typeof targetRounds === "number" ? { targetRounds } : {}),
       ...(typeof seed === "number" ? { seed } : {}),
@@ -112,6 +116,13 @@ function decodeLengths(value: unknown, errors: string[]): ThreadLengths | undefi
   return undefined;
 }
 
+/** Absent means the level shows its picture, so only `true` is worth writing. */
+function decodeHidden(value: unknown, errors: string[]): boolean {
+  if (value === undefined || value === true) return value === true;
+  errors.push(`"hidden" must be true, or left out`);
+  return false;
+}
+
 function isWholeNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value);
 }
@@ -125,6 +136,7 @@ export function encodeLevel(puzzle: Puzzle): LevelFile {
       row.map((square: SquareColour): string => patternCodes[square]).join(""),
     ),
     pegs: puzzle.pegs.map(({ x, y, length }: Peg): PegEntry => ({ x, y, length })),
+    ...(puzzle.hidden === true ? { hidden: true } : {}),
   };
 }
 
@@ -142,6 +154,7 @@ export function decodeLevel(json: unknown): DecodeResult {
   const title: string | undefined = decodeText(json, "title", errors);
   const pattern: Pattern | undefined = decodePattern(json["pattern"], errors);
   const entries: readonly PegEntry[] | undefined = decodePegEntries(json["pegs"], errors);
+  const hidden: boolean = decodeHidden(json["hidden"], errors);
   // Placement and counts only mean something once the pattern and every peg are well formed.
   const pegs: readonly Peg[] | undefined =
     pattern && entries ? placePegs(entries, pattern, errors) : undefined;
@@ -151,7 +164,18 @@ export function decodeLevel(json: unknown): DecodeResult {
     return { ok: false, errors };
   }
   const width: number = pattern[0]?.length ?? 0;
-  return { ok: true, puzzle: { id, title, width, height: pattern.length, pattern, pegs } };
+  return {
+    ok: true,
+    puzzle: {
+      id,
+      title,
+      width,
+      height: pattern.length,
+      pattern,
+      pegs,
+      ...(hidden ? { hidden } : {}),
+    },
+  };
 }
 
 function checkVersion(value: unknown, errors: string[]): void {

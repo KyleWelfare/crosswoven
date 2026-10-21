@@ -254,6 +254,28 @@ describe("generateLevel", (): void => {
     );
   });
 
+  it("always ends in a level the validator accepts when the picture is hidden", (): void => {
+    fc.assert(
+      fc.property(randomWeaves, (weave: Weave): void => {
+        const { puzzle }: GeneratedLevel = generated(
+          generateLevel({ ...pictureOf(decoded(weave.level)), hidden: true }),
+        );
+        expect(validateLevel(encodeLevel(puzzle))).toMatchObject({ ok: true });
+      }),
+    );
+  });
+
+  it("makes a hidden picture a hidden level the validator accepts", (): void => {
+    const hiddenHeart: Picture = {
+      ...picture(["YYYYYYY", "YRRYRRY", "RRRRRRR", "RRRRRRR", "YRRRRRY", "YYRRRYY", "YYYRYYY"]),
+      hidden: true,
+    };
+    const generation: Generation = generateLevel(hiddenHeart);
+    if (!generation.ok) throw new Error(`expected a level, got ${generation.reason}`);
+    expect(generation.puzzle.hidden).toBe(true);
+    expect(validateLevel(encodeLevel(generation.puzzle))).toMatchObject({ ok: true });
+  });
+
   it("keeps the first seed the validator accepts when there's no target", (): void => {
     const attempts: readonly Attempt[] = generated(generateLevel(heart)).attempts;
     expect(attempts.map((attempt: Attempt): number => attempt.seed)).toEqual([1]);

@@ -5,17 +5,9 @@ import {
   type Candidate,
   type CandidateList,
 } from "./candidate-paths.ts";
-import {
-  THREAD_COLOURS,
-  positionOf,
-  threadsThrough,
-  type Peg,
-  type Point,
-  type Puzzle,
-  type SquareColour,
-  type ThreadColour,
-} from "./puzzle.ts";
+import { positionOf, type Peg, type Point, type Puzzle, type ThreadColour } from "./puzzle.ts";
 import { joinedPeg, seenMoves, type Seen } from "./sight.ts";
+import { SLOTS_PER_SQUARE, slotOf, slotsOf, squareOfSlot, type Slots } from "./slot.ts";
 import type { Solution, Thread } from "./thread.ts";
 
 export type Rule = "partner" | "only-path" | "shared" | "only-reach";
@@ -65,19 +57,15 @@ export interface RoundsResult {
   readonly rounds: readonly (readonly Step[])[];
 }
 
-/**
- * Squares are numbered `y * width + x`. A slot is one colour's thread at one square, numbered
- * `square * THREAD_COLOURS.length + colour`.
- */
+/** Squares are numbered `y * width + x`, and slots as in Slots. */
 interface Board {
   readonly puzzle: Puzzle;
+  readonly slots: Slots;
   readonly candidates: readonly Candidate[];
   /** 1 while a candidate is still possible. */
   readonly alive: Uint8Array;
   readonly byPeg: readonly (readonly number[])[];
   readonly bySlot: readonly (readonly number[])[];
-  /** Slots the pattern asks for: each needs exactly one thread. */
-  readonly slots: readonly number[];
 }
 
 /** What a rule can rule out, worked out without changing the board. */
@@ -223,7 +211,7 @@ function keepTo(board: Board, peg: number, prefix: readonly number[]): void {
     }
   }
   for (const square of prefix) {
-    for (const row of liveIn(board, board.bySlot[slotOf(square, colour)])) {
+    for (const row of liveIn(board, board.bySlot[slotOf(board.slots, square, colour)])) {
       if (!candidateAt(board, row).pegs.includes(peg)) board.alive[row] = 0;
     }
   }
@@ -296,31 +284,31 @@ function roundOfFindings(board: Board, allowed: readonly Rule[]): readonly Findi
 }
 
 function itemCount(board: Board, rule: Rule): number {
-  return rule === "only-reach" ? board.slots.length : board.puzzle.pegs.length;
+  return rule === "only-reach" ? board.slots.required.length : board.puzzle.pegs.length;
 }
 
 function createBoard(puzzle: Puzzle, candidates: readonly Candidate[]): Board {
-  const squares: readonly SquareColour[] = puzzle.pattern.flat();
+  const slots: Slots = slotsOf(puzzle);
   const byPeg: number[][] = puzzle.pegs.map((): number[] => []);
   const bySlot: number[][] = Array.from(
-    { length: squares.length * THREAD_COLOURS.length },
+    { length: puzzle.width * puzzle.height * SLOTS_PER_SQUARE },
     (): number[] => [],
   );
   candidates.forEach((candidate: Candidate, row: number): void => {
     const [first, second]: readonly [number, number] = candidate.pegs;
     byPeg[first]?.push(row);
     if (second !== first) byPeg[second]?.push(row);
-    for (const square of candidate.squares) bySlot[slotOf(square, candidate.colour)]?.push(row);
+    for (const square of candidate.squares) {
+      bySlot[slotOf(slots, square, candidate.colour)]?.push(row);
+    }
   });
   return {
     puzzle,
+    slots,
     candidates,
     alive: new Uint8Array(candidates.length).fill(1),
     byPeg,
     bySlot,
-    slots: squares.flatMap((square: SquareColour, index: number): number[] =>
-      threadsThrough(square).map((colour: ThreadColour): number => slotOf(index, colour)),
-    ),
   };
 }
 
@@ -349,13 +337,14 @@ function findOnlyPath(board: Board, index: number): Finding | undefined {
   const clashes: readonly number[] = liveIn(board, [
     ...candidate.pegs.flatMap((pegIndex: number): readonly number[] => board.byPeg[pegIndex] ?? []),
     ...candidate.squares.flatMap(
-      (square: number): readonly number[] => board.bySlot[slotOf(square, candidate.colour)] ?? [],
+      (square: number): readonly number[] =>
+        board.bySlot[slotOf(board.slots, square, candidate.colour)] ?? [],
     ),
   ]).filter((row: number): boolean => row !== only);
   return finding("only-path", peg.colour, positionOf(peg), clashes);
 }
 
-/** Squares on every remaining path of a peg are its own, so other threads of its colour lose them. */
+/** Squares on every remaining path of a peg are its own, so other threads lose those slots. */
 function findShared(board: Board, index: number): Finding | undefined {
   const peg: Peg = pegOf(board, index);
   const paths: readonly (readonly number[])[] = liveIn(board, board.byPeg[index]).map(
@@ -369,7 +358,8 @@ function findShared(board: Board, index: number): Finding | undefined {
   const others: readonly number[] = liveIn(
     board,
     shared.flatMap(
-      (square: number): readonly number[] => board.bySlot[slotOf(square, peg.colour)] ?? [],
+      (square: number): readonly number[] =>
+        board.bySlot[slotOf(board.slots, square, peg.colour)] ?? [],
     ),
   ).filter((row: number): boolean => !candidateAt(board, row).pegs.includes(index));
   return finding("shared", peg.colour, positionOf(peg), others);
@@ -377,7 +367,7 @@ function findShared(board: Board, index: number): Finding | undefined {
 
 /** If every path through a slot belongs to one peg, that peg's paths that miss the slot go. */
 function findOnlyReach(board: Board, item: number): Finding | undefined {
-  const slot: number | undefined = board.slots[item];
+  const slot: number | undefined = board.slots.required[item];
   if (slot === undefined) throw new RangeError(`no slot ${String(item)}`);
   const through: readonly number[] = liveIn(board, board.bySlot[slot]);
   const [first, ...rest]: readonly number[] = through;
@@ -385,7 +375,7 @@ function findOnlyReach(board: Board, item: number): Finding | undefined {
   const owners: readonly number[] = candidateAt(board, first).pegs.filter((peg: number): boolean =>
     rest.every((row: number): boolean => candidateAt(board, row).pegs.includes(peg)),
   );
-  const square: Point = pointAt(board, Math.floor(slot / THREAD_COLOURS.length));
+  const square: Point = pointAt(board, squareOfSlot(slot));
   for (const owner of owners) {
     const misses: readonly number[] = liveIn(board, board.byPeg[owner]).filter(
       (row: number): boolean => !through.includes(row),
@@ -430,7 +420,9 @@ function ruleOut(board: Board, { rule, colour, at, rows }: Finding): Step {
 function hasContradiction(board: Board): boolean {
   return (
     board.byPeg.some((rows: readonly number[]): boolean => liveIn(board, rows).length === 0) ||
-    board.slots.some((slot: number): boolean => liveIn(board, board.bySlot[slot]).length === 0)
+    board.slots.required.some(
+      (slot: number): boolean => liveIn(board, board.bySlot[slot]).length === 0,
+    )
   );
 }
 
@@ -438,7 +430,9 @@ function hasContradiction(board: Board): boolean {
 function isSolved(board: Board): boolean {
   return (
     board.byPeg.every((rows: readonly number[]): boolean => liveIn(board, rows).length === 1) &&
-    board.slots.every((slot: number): boolean => liveIn(board, board.bySlot[slot]).length === 1)
+    board.slots.required.every(
+      (slot: number): boolean => liveIn(board, board.bySlot[slot]).length === 1,
+    )
   );
 }
 
@@ -461,10 +455,6 @@ function pegOf(board: Board, index: number): Peg {
 function partnerOf(board: Board, row: number, peg: number): number {
   const [first, second]: readonly [number, number] = candidateAt(board, row).pegs;
   return first === peg ? second : first;
-}
-
-function slotOf(square: number, colour: ThreadColour): number {
-  return square * THREAD_COLOURS.length + THREAD_COLOURS.indexOf(colour);
 }
 
 function pointAt(board: Board, square: number): Point {

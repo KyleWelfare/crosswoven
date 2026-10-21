@@ -10,7 +10,7 @@ import {
 import type { Puzzle } from "../src/core/puzzle.ts";
 import { allSolutions } from "./fixtures/all-solutions.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
-import { decoded } from "./fixtures/puzzle-of.ts";
+import { decoded, hiddenPuzzleOf } from "./fixtures/puzzle-of.ts";
 import {
   guessingLevel,
   onlyPathLevel,
@@ -80,6 +80,35 @@ describe("solveLogically", (): void => {
       expect(steps).toContainEqual(
         expect.objectContaining({ rule: "only-reach", at: { x: 1, y: 6 } }),
       );
+    });
+  });
+
+  it("in a hidden level, rules out paths of other colours through a thread's squares", (): void => {
+    const puzzle: Puzzle = hiddenPuzzleOf(
+      ["...Y.", "..BYY", "..BB.", ".....", "....."],
+      [
+        [3, 0, 3],
+        [2, 1, 3],
+        [4, 1, 3],
+        [3, 2, 3],
+      ],
+    );
+    const result: LogicResult = solveLogically(puzzle);
+    if (result.status !== "solved") throw new Error(`expected solved, got ${result.status}`);
+    expect(result.steps[0]).toEqual({
+      rule: "only-path",
+      colour: "yellow",
+      at: { x: 3, y: 0 },
+      ruledOut: [
+        {
+          colour: "blue",
+          squares: [
+            { x: 2, y: 1 },
+            { x: 3, y: 1 },
+            { x: 3, y: 2 },
+          ],
+        },
+      ],
     });
   });
 

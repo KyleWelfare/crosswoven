@@ -8,6 +8,7 @@ import examplePuzzle from "./fixtures/example-puzzle.json";
 import { decoded } from "./fixtures/puzzle-of.ts";
 import {
   guessingLevel,
+  loneCrossingLevel,
   openLevel,
   pairingLevel,
   partnerLevel,
@@ -59,6 +60,14 @@ describe("validateLevel", (): void => {
 
   it("rejects a puzzle with two solutions", (): void => {
     expect(validateLevel(pairingLevel)).toMatchObject({ ok: false, rejection: "not-unique" });
+  });
+
+  it("rejects a hidden level that only showing its picture made unique", (): void => {
+    expect(validateLevel(loneCrossingLevel)).toMatchObject({ ok: true });
+    expect(validateLevel({ ...loneCrossingLevel, hidden: true })).toMatchObject({
+      ok: false,
+      rejection: "not-unique",
+    });
   });
 
   it("rejects a unique puzzle that needs guessing", (): void => {

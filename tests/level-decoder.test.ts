@@ -93,6 +93,15 @@ describe("decodeLevel", (): void => {
       );
       expect(puzzle.pegs[8]).toEqual({ x: 1, y: 0, colour: "red", length: 1 });
     });
+
+    it("decodes a level that hides its picture", (): void => {
+      expect(decoded(withFields({ hidden: true })).hidden).toBe(true);
+      expect(decoded(examplePuzzle).hidden).toBeUndefined();
+    });
+
+    it.each([[false], ["yes"], [1]])("rejects hidden %j", (hidden: unknown): void => {
+      expect(errorsFor(withFields({ hidden }))).toEqual([`"hidden" must be true, or left out`]);
+    });
   });
 
   describe("fields", (): void => {
@@ -337,6 +346,18 @@ describe("decodePicture", (): void => {
     });
   });
 
+  it("takes a hidden picture, and rejects anything but true", (): void => {
+    const { id, title, pattern }: typeof examplePuzzle = examplePuzzle;
+    expect(decodePicture({ id, title, pattern, hidden: true })).toMatchObject({
+      ok: true,
+      picture: { hidden: true },
+    });
+    expect(decodePicture({ id, title, pattern, hidden: "true" })).toEqual({
+      ok: false,
+      errors: [`"hidden" must be true, or left out`],
+    });
+  });
+
   it("takes a pinned seed, a whole number from 1 up", (): void => {
     const { id, title, pattern }: typeof examplePuzzle = examplePuzzle;
     expect(decodePicture({ id, title, pattern, seed: 65 })).toMatchObject({
@@ -367,5 +388,10 @@ describe("decodePicture", (): void => {
 describe("encodeLevel", (): void => {
   it("writes a puzzle back as the JSON it decodes from", (): void => {
     expect(encodeLevel(decoded(examplePuzzle))).toEqual(examplePuzzle);
+  });
+
+  it("writes a hidden level back with its flag", (): void => {
+    const hidden: Record<string, unknown> = withFields({ hidden: true });
+    expect(encodeLevel(decoded(hidden))).toEqual(hidden);
   });
 });

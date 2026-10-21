@@ -1,4 +1,4 @@
-import type { SquareColour, ThreadColour } from "../core/puzzle.ts";
+import type { MixedColour, SquareColour, ThreadColour } from "../core/puzzle.ts";
 
 /** The board's colours and font, read from the custom properties in src/styles/tokens.css. */
 export interface Palette {
@@ -11,7 +11,8 @@ export interface Palette {
   readonly weaveShadow: string;
   readonly shade: string;
   readonly font: string;
-  readonly thread: Readonly<Record<ThreadColour, string>>;
+  /** Mixed colours dye both threads where they cross. */
+  readonly thread: Readonly<Record<ThreadColour | MixedColour, string>>;
   readonly wash: Readonly<Record<SquareColour, string>>;
   /** Squares whose threads already match the pattern. */
   readonly woven: Readonly<Record<SquareColour, string>>;
@@ -33,6 +34,9 @@ export function readPalette(element: Element): Palette {
       red: css("--thread-red"),
       blue: css("--thread-blue"),
       yellow: css("--thread-yellow"),
+      purple: css("--thread-purple"),
+      orange: css("--thread-orange"),
+      green: css("--thread-green"),
     },
     wash: {
       blank: css("--wash-blank"),

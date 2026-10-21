@@ -29,6 +29,11 @@ const TWIST_SLANT: number = 0.8;
 const FIBRE_NOISE: number = 0.08;
 /** Fraction of a square over which the shadow on the lower thread at a crossing fades out. */
 const WEAVE_SHADOW: number = 0.14;
+/**
+ * Fraction of a square at each end of a dyed piece over which its own colour blends into the dye.
+ * Short, so the mix shows outside the top thread, but not a hard switch that reads as a separate piece.
+ */
+const DYE_BLEND: number = 0.2;
 
 /** `size` is in device pixels and `width` is the thread's width as a fraction of the square. */
 export function drawThreadTile(
@@ -67,6 +72,29 @@ export function drawThreadTile(
     }
   }
   context.putImageData(image, 0, 0);
+  return canvas;
+}
+
+/**
+ * Two straight pieces heading east, drawn alike but for colour: `own` at the edges, where the
+ * thread meets its neighbouring pieces, and `dye` through the middle.
+ */
+export function dyeStraightTile(own: HTMLCanvasElement, dye: HTMLCanvasElement): HTMLCanvasElement {
+  const size: number = own.width;
+  const middle: Sprite = createSprite(size, size);
+  middle.context.drawImage(dye, 0, 0);
+  const fade: CanvasGradient = middle.context.createLinearGradient(0, 0, size, 0);
+  fade.addColorStop(0, "transparent");
+  fade.addColorStop(DYE_BLEND, "black");
+  fade.addColorStop(1 - DYE_BLEND, "black");
+  fade.addColorStop(1, "transparent");
+  middle.context.globalCompositeOperation = "destination-in";
+  middle.context.fillStyle = fade;
+  middle.context.fillRect(0, 0, size, size);
+
+  const { canvas, context }: Sprite = createSprite(size, size);
+  context.drawImage(own, 0, 0);
+  context.drawImage(middle.canvas, 0, 0);
   return canvas;
 }
 

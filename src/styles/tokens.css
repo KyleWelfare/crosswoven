@@ -44,6 +44,9 @@
   --thread-red: #d0443a;
   --thread-blue: #3a6ad0;
   --thread-yellow: #e2a81c;
+  --thread-purple: #7b4fc0;
+  --thread-orange: #d4691f;
+  --thread-green: #3a8f3a;
   --thread-shade: rgb(0 0 0 / 0.2);
 
   --weave-shadow: rgb(0 0 0 / 0.28);
@@ -80,6 +83,9 @@
     --thread-red: #e6645a;
     --thread-blue: #6d95ea;
     --thread-yellow: #f0c14b;
+    --thread-purple: #ab86ec;
+    --thread-orange: #f29a52;
+    --thread-green: #70c86c;
     --thread-shade: rgb(0 0 0 / 0.28);
 
     --weave-shadow: rgb(0 0 0 / 0.45);

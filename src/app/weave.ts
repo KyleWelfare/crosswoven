@@ -1,6 +1,7 @@
 import {
   THREAD_COLOURS,
   threadsThrough,
+  type MixedColour,
   type Puzzle,
   type SquareColour,
   type ThreadColour,
@@ -9,6 +10,18 @@ import type { Thread } from "../core/thread.ts";
 
 /** Threads of one colour through each square, numbered `y * width + x`. */
 type Counts = Readonly<Record<ThreadColour, Uint8Array>>;
+
+const MIXED_COLOURS: readonly MixedColour[] = ["purple", "orange", "green"];
+
+/** Threads of one colour never share a square, so only two different colours mix. */
+export function mixOf(a: ThreadColour, b: ThreadColour): MixedColour {
+  const mixed: MixedColour | undefined = MIXED_COLOURS.find(
+    (colour: MixedColour): boolean =>
+      a !== b && threadsThrough(colour).includes(a) && threadsThrough(colour).includes(b),
+  );
+  if (!mixed) throw new Error(`${a} doesn't mix with itself`);
+  return mixed;
+}
 
 /**
  * Which squares, numbered `y * width + x`, have exactly the threads their colour asks for: one of

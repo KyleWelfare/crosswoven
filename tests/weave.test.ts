@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { wovenSquares } from "../src/app/weave.ts";
+import { mixOf, wovenSquares } from "../src/app/weave.ts";
 import type { Puzzle } from "../src/core/puzzle.ts";
 import type { Thread } from "../src/core/thread.ts";
 import { puzzleOf } from "./fixtures/puzzle-of.ts";
@@ -51,5 +51,18 @@ describe("wovenSquares", (): void => {
   it("never marks a blank square, even with a thread through it", (): void => {
     const overBlank: Thread = threadOf("red", [0, 1], [1, 1]);
     expect(wovenAt(cross, [overBlank])).toEqual([]);
+  });
+});
+
+describe("mixOf", (): void => {
+  it("mixes each pair of thread colours, in either order", (): void => {
+    expect(mixOf("red", "blue")).toBe("purple");
+    expect(mixOf("yellow", "red")).toBe("orange");
+    expect(mixOf("blue", "yellow")).toBe("green");
+    expect(mixOf("blue", "red")).toBe("purple");
+  });
+
+  it("throws for one colour on its own", (): void => {
+    expect((): unknown => mixOf("red", "red")).toThrow();
   });
 });

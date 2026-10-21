@@ -192,6 +192,7 @@ CI re-validates every shipped level, so a generator change can't silently break 
 Kept from the prototype and refined later:
 
 - A weave theme. Crossings alternate over and under on a checkerboard, like plain-weave cloth
+- Where two threads cross, both are dyed their mixed colour through the middle of the square, blending back to their own colours at its edges. The mixing shows in the threads, not only the squares. Wrong crossings mix too, which shows the mismatch
 - Squares show a pale wash of their target colour, deeper once the threads there match. Two-colour squares show two small pips naming their colours
 - Pegs show their number, and are hollow until tied
 - Light and dark themes

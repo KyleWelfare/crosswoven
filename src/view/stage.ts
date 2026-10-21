@@ -1,7 +1,7 @@
 import { draggedThread, shownThreads } from "../app/drag.ts";
 import type { Model } from "../app/model.ts";
 import { isPegTied } from "../app/tie.ts";
-import { wovenSquares } from "../app/weave.ts";
+import { mixOf, wovenSquares } from "../app/weave.ts";
 import { winProgress } from "../app/win.ts";
 import type { Peg, Point, Puzzle, SquareColour } from "../core/puzzle.ts";
 import type { Thread } from "../core/thread.ts";
@@ -11,7 +11,13 @@ import { drawLengthBadge } from "./length-badge.ts";
 import { readPalette, type Palette } from "./palette.ts";
 import { drawPegSprite } from "./peg-sprites.ts";
 import { cachedSprite, rotateSprite, setGeneration, type SpriteCache } from "./sprite-cache.ts";
-import { drawCrossingTile, drawThreadTile, type Axis, type Piece } from "./thread-tiles.ts";
+import {
+  drawCrossingTile,
+  drawThreadTile,
+  dyeStraightTile,
+  type Axis,
+  type Piece,
+} from "./thread-tiles.ts";
 
 interface Crossing extends Point {
   readonly over: Thread;
@@ -171,15 +177,23 @@ function crossingSprite(
   palette: Palette,
 ): HTMLCanvasElement {
   const overTurns: number = crossing.axis === "across" ? 0 : 1;
-  const straight = (thread: Thread, turns: number): HTMLCanvasElement =>
-    threadSprite(sprites, { piece: "straight", turns }, palette.thread[thread.colour], cell);
+  const dye: string = palette.thread[mixOf(crossing.over.colour, crossing.under.colour)];
+  const straight = (colour: string): HTMLCanvasElement =>
+    threadSprite(sprites, { piece: "straight", turns: 0 }, colour, cell);
+  const dyed = (thread: Thread, turns: number): HTMLCanvasElement => {
+    const tile: HTMLCanvasElement = dyeStraightTile(
+      straight(palette.thread[thread.colour]),
+      straight(dye),
+    );
+    return turns === 0 ? tile : rotateSprite(tile, turns);
+  };
   return cachedSprite(
     sprites,
     `crossing ${crossing.over.colour} ${crossing.under.colour} ${crossing.axis}`,
     (): HTMLCanvasElement =>
       drawCrossingTile(
-        straight(crossing.under, 1 - overTurns),
-        straight(crossing.over, overTurns),
+        dyed(crossing.under, 1 - overTurns),
+        dyed(crossing.over, overTurns),
         crossing.axis,
         palette.weaveShadow,
         THREAD_WIDTH,

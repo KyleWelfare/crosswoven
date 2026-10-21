@@ -45,10 +45,38 @@ Every shipped puzzle has exactly one solution, and it can be reached by deductio
 
 ### Levels
 
-- About 12 hand-drawn picture puzzles, rising in difficulty, unlocked in order
+- Hand-drawn picture puzzles, rising in difficulty, unlocked in order. About 5 to start, down from 12 to make room for How It Works; more if time allows
 - Grid sizes from 5×5 to 15×15. Larger grids are possible with numbered pegs, but 15×15 is the most a phone screen holds for version one
 - Each level shows its difficulty: Easy, Medium or Hard, rated by the hardest deduction it needs
 - Progress (cleared or not) is saved in local storage. No accounts, scores or sound
+
+## Menu
+
+The game opens on a menu:
+
+- **Play**: the level list
+- **How to Play**: a simple modal with the rules, improved later if there's time
+- **How It Works**: a slideshow of how a level is made and proven
+
+## How It Works
+
+The validator is the heart of the project, but a player never sees it. How It Works is an animated slideshow that takes one real picture through the level pipeline, so a visitor sees that work first. It takes priority over level count.
+
+Draft slides:
+
+1. **The picture**: a pixel-art grid in pattern codes
+2. **Laying threads**: the generator covers each colour with short threads and puts numbered pegs at their ends
+3. **A second solution**: the search solver finds two, and the squares where they differ light up
+4. **Re-laying**: the generator splits threads there and tries again until only one solution is left. A counter shows the search proving it: "checked 48,000 combinations: exactly 1 solution"
+5. **Solving by deduction**: the logic solver steps through the puzzle. Candidate paths fade as they're ruled out, each step with its one-line reason
+6. **Certified**: one solution, no guessing, and a difficulty set by the hardest rule used. Two independent solvers agree
+
+Around the board:
+
+- **A checklist on the side** of the concrete steps: threads laid, solvable, unique, solvable without guessing, difficulty rated. Each ticks off as it passes. Unique fails first, shows a cross, and ticks once the re-lay fixes it, so the retry is visible. On a phone in portrait it becomes a compact row of ticks above the board
+- **A caption under the board** says what the pipeline is working through at that moment: "looking for a second way to weave this", "these two solutions differ in the top-left corner", "this 3 can only reach the other 3 by going down"
+
+The slideshow is drawn live on the canvas with the game's own board renderer, from a step-by-step record that `npm run levels` saves for the chosen picture. The browser doesn't run the generator or search solver, so the shipped game still includes only the logic solver, and the demo can't fail while someone is watching. The generator and both solvers therefore need to report their steps, not just their results.
 
 ## Pictures
 
@@ -188,5 +216,7 @@ Kept from the prototype and refined later:
 - Do level files store the solution, or is it always derived by the solver?
 - Should difficulty also count steps? A large puzzle that only needs Easy rules can still be a long solve. Revisit after playtesting
 - What a hint does when the player's board already has mistakes
-- Which 12 pictures make the level pack
+- Which pictures make the level pack
+- Which picture How It Works uses. It needs a second solution on the first try for slides 3 and 4, and a solve short enough to watch
+- Does How It Works play by itself or does the visitor step through it? Build both and choose by feel
 - Squares at 15×15 on a phone are about 24 px. Is that enough to drag accurately, or do large puzzles need zoom?

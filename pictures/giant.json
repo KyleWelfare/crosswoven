@@ -1,0 +1,24 @@
+{
+  "id": "giant",
+  "title": "Red Giant",
+  "lengths": [6, 10],
+  "sameNumbers": 1,
+  "seed": 65,
+  "pattern": [
+    "...............",
+    ".....RRRRR.....",
+    "...RRRRRRRRR...",
+    "..RRRRRRRRRRR..",
+    "..RRRRRRRRRRR..",
+    ".RRRRRRRRRRRRR.",
+    ".RRRRRRRRRRRRR.",
+    ".RRRRRRRRRRRRR.",
+    ".RRRRRRRRRRRRR.",
+    ".RRRRRRRRRRRRR.",
+    "..RRRRRRRRRRR..",
+    "..RRRRRRRRRRR..",
+    "...RRRRRRRRR...",
+    ".....RRRRR.....",
+    "..............."
+  ]
+}

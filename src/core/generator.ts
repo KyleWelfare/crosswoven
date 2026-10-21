@@ -151,7 +151,9 @@ export function generateLevel(picture: Picture, limits: Limits = DEFAULT_LIMITS)
   const attempts: Attempt[] = [];
   const unsettled: Point[] = [];
   let best: Settled | undefined;
-  for (let seed: number = 1; seed <= limits.seeds; seed++) {
+  const firstSeed: number = picture.seed ?? 1;
+  const lastSeed: number = picture.seed ?? limits.seeds;
+  for (let seed: number = firstSeed; seed <= lastSeed; seed++) {
     const laying: Laying = layThreads(picture, seed);
     if (!laying.ok) {
       return { ok: false, reason: "unweavable", badSquares: laying.badSquares, attempts };

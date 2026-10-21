@@ -337,6 +337,20 @@ describe("decodePicture", (): void => {
     });
   });
 
+  it("takes a pinned seed, a whole number from 1 up", (): void => {
+    const { id, title, pattern }: typeof examplePuzzle = examplePuzzle;
+    expect(decodePicture({ id, title, pattern, seed: 65 })).toMatchObject({
+      ok: true,
+      picture: { seed: 65 },
+    });
+    for (const seed of [0, 1.5, "65"]) {
+      expect(decodePicture({ id, title, pattern, seed })).toEqual({
+        ok: false,
+        errors: [`"seed" must be a whole number from 1 up`],
+      });
+    }
+  });
+
   it("rejects bad fields the way levels do", (): void => {
     expect(decodePicture({ id: "", pattern: ["...."] })).toEqual({
       ok: false,

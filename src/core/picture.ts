@@ -22,4 +22,6 @@ export type Picture = Omit<Puzzle, "pegs"> & {
    * closest to it; without one, it keeps the first seed the validator accepts.
    */
   readonly targetRounds?: number;
+  /** Lays with this one seed instead of trying them from 1, to keep a laying found by hand. */
+  readonly seed?: number;
 };

@@ -259,6 +259,11 @@ describe("generateLevel", (): void => {
     expect(attempts.map((attempt: Attempt): number => attempt.seed)).toEqual([1]);
   });
 
+  it("lays only a picture's pinned seed", (): void => {
+    const attempts: readonly Attempt[] = generated(generateLevel({ ...heart, seed: 7 })).attempts;
+    expect(attempts.map((attempt: Attempt): number => attempt.seed)).toEqual([7]);
+  });
+
   it("settles every seed and keeps the one nearest the target rounds", (): void => {
     const aimed = (targetRounds: number): GeneratedLevel =>
       generated(generateLevel({ ...field, sameNumbers: 1, targetRounds }));

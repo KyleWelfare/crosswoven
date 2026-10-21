@@ -56,7 +56,7 @@ export interface LevelFile {
 
 /**
  * A picture file holds a level's id, title and pattern, with no version or pegs. Optional fields
- * steer the generator: `lengths: [min, max]`, `sameNumbers` and `targetRounds` (see Picture).
+ * steer the generator: `lengths: [min, max]`, `sameNumbers`, `targetRounds` and `seed` (see Picture).
  */
 export function decodePicture(json: unknown): PictureResult {
   if (!isJsonObject(json)) return { ok: false, errors: ["the picture must be a JSON object"] };
@@ -71,6 +71,10 @@ export function decodePicture(json: unknown): PictureResult {
     !(typeof sameNumbers === "number" && sameNumbers >= 0 && sameNumbers <= 1)
   ) {
     errors.push(`"sameNumbers" must be a number from 0 to 1`);
+  }
+  const seed: unknown = json["seed"];
+  if (seed !== undefined && !(isWholeNumber(seed) && seed >= 1)) {
+    errors.push(`"seed" must be a whole number from 1 up`);
   }
   const targetRounds: unknown = json["targetRounds"];
   if (targetRounds !== undefined && !(isWholeNumber(targetRounds) && targetRounds >= 0)) {
@@ -91,6 +95,7 @@ export function decodePicture(json: unknown): PictureResult {
       lengths,
       ...(typeof sameNumbers === "number" ? { sameNumbers } : {}),
       ...(typeof targetRounds === "number" ? { targetRounds } : {}),
+      ...(typeof seed === "number" ? { seed } : {}),
     },
   };
 }

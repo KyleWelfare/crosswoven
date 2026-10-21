@@ -180,7 +180,7 @@ Claude draws each picture as a small text grid in the repo, using the pattern co
 1. The generator covers each colour's squares with short threads, running straight through two-colour squares, and puts numbered pegs at their ends. It's seeded, so the same picture and seed always give the same level
 2. The validator certifies the result. If the puzzle has more than one solution, the generator re-lays threads where the two solutions differ, usually by splitting them shorter, and tries again. If that doesn't converge, it tries another seed
 3. If no seed works, the script reports which squares are at fault, so the picture can be fixed. Some pictures can't be woven at all: for example, a purple square on the edge of the grid has no room to cross
-4. Certified levels are written to `src/levels/`
+4. Certified levels are written to `src/levels/`, with the play order from `pictures/order.json`, which must list every picture once
 
 Short threads keep candidate paths few and deductions local; long threads through open areas are what make puzzles ambiguous or slow to check.
 

@@ -11,7 +11,7 @@ The app uses a model-view-update architecture. State lives in one place, changes
 | `src/view/`   | Draws the model to canvas and DOM; turns input events into `Msg`s                          | `app/`, `core/` types   | Yes             |
 | `src/main.ts` | The runtime: holds the current model, dispatches messages, schedules renders, runs effects | everything              | Yes             |
 | `scripts/`    | The level pipeline (`npm run levels`): pictures in `pictures/`, certified levels out       | `core/`                 | No              |
-| `src/levels/` | Certified levels written by the pipeline, as JSON                                          | nothing: data only      | No              |
+| `src/levels/` | Certified levels written by the pipeline, as JSON, and `order.json`, their play order      | nothing: data only      | No              |
 
 `core/` and `app/` must run in Node with no browser, so they can be tested directly.
 

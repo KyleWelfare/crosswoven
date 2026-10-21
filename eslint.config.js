@@ -7,6 +7,8 @@ const app = "**/app/**";
 const view = "**/view/**";
 const levels = "**/levels/**";
 const main = "**/main.ts";
+const bench = "**/bench/**";
+const scripts = "**/scripts/**";
 
 export default tseslint.config(
   { ignores: ["dist"] },
@@ -64,11 +66,34 @@ export default tseslint.config(
   },
   { files: ["scripts/**/*.ts"], languageOptions: { globals: { ...globals.node } } },
   {
-    files: ["src/core/**/*.ts", "scripts/**/*.ts"],
+    files: ["src/core/**/*.ts"],
     rules: {
       "@typescript-eslint/no-restricted-imports": [
         "error",
-        { patterns: [{ group: [app, view, levels, main], message: layerMessage }] },
+        { patterns: [{ group: [app, view, levels, main, bench, scripts], message: layerMessage }] },
+      ],
+    },
+  },
+  {
+    files: ["scripts/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            { group: [app, view, levels, main], message: layerMessage },
+            { group: [bench], allowTypeImports: true, message: layerMessage },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["bench/**/*.ts"],
+    rules: {
+      "@typescript-eslint/no-restricted-imports": [
+        "error",
+        { patterns: [{ group: [levels, main, scripts], message: layerMessage }] },
       ],
     },
   },
@@ -77,7 +102,7 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/no-restricted-imports": [
         "error",
-        { patterns: [{ group: [view, levels, main], message: layerMessage }] },
+        { patterns: [{ group: [view, levels, main, bench, scripts], message: layerMessage }] },
       ],
     },
   },
@@ -88,7 +113,7 @@ export default tseslint.config(
         "error",
         {
           patterns: [
-            { group: [levels, main], message: layerMessage },
+            { group: [levels, main, bench, scripts], message: layerMessage },
             { group: ["**/core/**"], allowTypeImports: true, message: layerMessage },
           ],
         },

@@ -6,10 +6,10 @@ export interface Palette {
   readonly boardShadow: string;
   readonly pegShadow: string;
   readonly pegShine: string;
+  readonly pegRim: string;
   /** On a tied peg; an untied one shows its number in its thread's colour. */
   readonly pegNumber: string;
   readonly weaveShadow: string;
-  readonly shade: string;
   readonly font: string;
   /** Mixed colours dye both threads where they cross. */
   readonly thread: Readonly<Record<ThreadColour | MixedColour, string>>;
@@ -26,9 +26,9 @@ export function readPalette(element: Element): Palette {
     boardShadow: css("--board-shadow"),
     pegShadow: css("--peg-shadow"),
     pegShine: css("--peg-shine"),
+    pegRim: css("--peg-rim"),
     pegNumber: css("--peg-number"),
     weaveShadow: css("--weave-shadow"),
-    shade: css("--thread-shade"),
     font: css("--font-body"),
     thread: {
       red: css("--thread-red"),

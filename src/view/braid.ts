@@ -7,7 +7,7 @@ interface Crossing {
 
 const strandColours: readonly ThreadColour[] = ["red", "yellow", "blue"];
 
-/** SVG user units, which the stylesheet maps one to one onto CSS pixels. */
+// SVG user units, which the stylesheet maps one to one onto CSS pixels.
 const WIDTH: number = 96;
 const HEIGHT: number = 14;
 const END_PADDING: number = 2;

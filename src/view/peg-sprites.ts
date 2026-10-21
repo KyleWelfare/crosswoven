@@ -10,6 +10,8 @@ const PEG_SHADOW_OFFSET: number = 0.012;
 const NUMBER_SIZE: number = 0.36;
 /** A middle baseline centres the em box, which sits digits a little high. */
 const NUMBER_DROP: number = 0.02;
+/** A fraction of the peg's radius, up and to the left of its centre. */
+const GLINT_OFFSET: number = 0.35;
 
 /**
  * A tied peg is a glossy bead in its thread's colour; an untied one is a ring on its square.
@@ -66,7 +68,10 @@ function drawBead(
   context.fill();
   context.restore();
 
-  const glint: Point = { x: point.x - radius * 0.35, y: point.y - radius * 0.35 };
+  const glint: Point = {
+    x: point.x - radius * GLINT_OFFSET,
+    y: point.y - radius * GLINT_OFFSET,
+  };
   const sheen: CanvasGradient = context.createRadialGradient(
     glint.x,
     glint.y,
@@ -81,7 +86,7 @@ function drawBead(
   context.fill();
 
   circle(context, point, radius - ring / 4);
-  context.strokeStyle = palette.shade;
+  context.strokeStyle = palette.pegRim;
   context.lineWidth = ring / 2;
   context.stroke();
 }

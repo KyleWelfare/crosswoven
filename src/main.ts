@@ -65,6 +65,18 @@ function dispatch(msg: Msg): void {
   if (isFading(model)) startTicking();
 }
 
+/** Zooming or moving to another screen changes the pixel ratio without resizing the canvas. */
+function watchPixelRatio(): void {
+  matchMedia(`(resolution: ${String(window.devicePixelRatio)}dppx)`).addEventListener(
+    "change",
+    (): void => {
+      scheduleRender();
+      watchPixelRatio();
+    },
+    { once: true },
+  );
+}
+
 function scheduleRender(): void {
   if (renderPending || !stage) return;
   renderPending = true;
@@ -96,5 +108,6 @@ function nextLevel(): Puzzle | undefined {
 listenForDrags(stage, (): Puzzle => model.puzzle, dispatch);
 listenToPanels(panels, dispatch, nextLevel);
 new ResizeObserver(scheduleRender).observe(stage);
+watchPixelRatio();
 // The palette comes from CSS custom properties that switch with the colour scheme.
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", scheduleRender);

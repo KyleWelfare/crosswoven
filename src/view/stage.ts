@@ -51,9 +51,14 @@ export function drawStage(canvas: HTMLCanvasElement, model: Model, sprites: Spri
   fitBackingStore(canvas, layout.width, layout.height);
   context.setTransform(1, 0, 0, 1, 0, 0);
   context.clearRect(0, 0, layout.width, layout.height);
+  // A hidden or collapsed canvas has no room for a square, and sprites can't be drawn at size 0.
+  if (layout.cell < 1) return;
 
   const palette: Palette = readPalette(canvas);
-  setGeneration(sprites, `${String(layout.cell)} ${JSON.stringify(palette)}`);
+  setGeneration(
+    sprites,
+    `${String(layout.cell)} ${String(layout.ratio)} ${JSON.stringify(palette)}`,
+  );
 
   const board: HTMLCanvasElement = cachedSprite(
     sprites,

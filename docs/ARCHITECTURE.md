@@ -10,7 +10,7 @@ The app uses a model-view-update architecture. State lives in one place, changes
 | `src/app/`    | `Model`, `Msg`, `update`                                                                                                                                        | `core/`                  | No              |
 | `src/view/`   | Draws the model to canvas and DOM; turns input events into `Msg`s                                                                                               | `app/`, `core/` types    | Yes             |
 | `src/main.ts` | The runtime: holds the current model, dispatches messages, schedules renders, runs effects                                                                      | everything               | Yes             |
-| `scripts/`    | The level pipeline (`npm run levels`): pictures in `pictures/`, certified levels out. Also the render benchmark (`npm run bench`), which drives headless Chrome | `core/`                  | No              |
+| `scripts/`    | The level pipeline (`npm run levels`): pictures in `pictures/`, certified levels out. Also the render benchmark (`npm run bench`), which drives headless Chrome | `core/`, `bench/` types  | No              |
 | `bench/`      | The page the render benchmark loads: draws worst-case boards with the real view and times them                                                                  | `view/`, `app/`, `core/` | Yes             |
 | `src/levels/` | Certified levels written by the pipeline, as JSON, and `order.json`, their play order                                                                           | nothing: data only       | No              |
 

@@ -47,11 +47,11 @@
   --thread-purple: #7b4fc0;
   --thread-orange: #d4691f;
   --thread-green: #3a8f3a;
-  --thread-shade: rgb(0 0 0 / 0.2);
 
   --weave-shadow: rgb(0 0 0 / 0.28);
   --peg-shadow: rgb(50 35 10 / 0.35);
   --peg-shine: rgb(255 255 255 / 0.38);
+  --peg-rim: rgb(0 0 0 / 0.2);
   --peg-number: #fff;
 }
 
@@ -86,10 +86,10 @@
     --thread-purple: #ab86ec;
     --thread-orange: #f29a52;
     --thread-green: #70c86c;
-    --thread-shade: rgb(0 0 0 / 0.28);
 
     --weave-shadow: rgb(0 0 0 / 0.45);
     --peg-shadow: rgb(0 0 0 / 0.55);
     --peg-shine: rgb(255 255 255 / 0.3);
+    --peg-rim: rgb(0 0 0 / 0.28);
   }
 }

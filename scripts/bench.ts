@@ -82,9 +82,10 @@ async function main(): Promise<void> {
 }
 
 async function benchInChrome(url: string, raster: Raster): Promise<Run[]> {
+  const chrome: string = chromePath();
   const profile: string = mkdtempSync(join(tmpdir(), "crosswoven-bench-"));
-  const chrome: ChildProcess = spawn(
-    chromePath(),
+  const browser: ChildProcess = spawn(
+    chrome,
     [
       "--headless=new",
       "--remote-debugging-port=0",
@@ -110,11 +111,14 @@ async function benchInChrome(url: string, raster: Raster): Promise<Run[]> {
       devTools.close();
     }
   } finally {
-    const exited: Promise<unknown> = new Promise((resolve: (value: unknown) => void): void => {
-      chrome.once("exit", resolve);
-    });
-    chrome.kill();
-    await exited;
+    // If Chrome already died, its exit event has fired and won't come again.
+    if (browser.exitCode === null && browser.signalCode === null) {
+      const exited: Promise<unknown> = new Promise((resolve: (value: unknown) => void): void => {
+        browser.once("exit", resolve);
+      });
+      browser.kill();
+      await exited;
+    }
     // Chrome can hold its profile files for a moment after exiting on Windows.
     rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
   }
@@ -157,16 +161,21 @@ function chromePath(): string {
 async function connect(profile: string): Promise<DevTools> {
   const port: string = await waitFor((): string | undefined => {
     try {
-      return readFileSync(join(profile, "DevToolsActivePort"), "utf8").split("\n")[0];
+      // Chrome may not have finished writing the file yet.
+      return readFileSync(join(profile, "DevToolsActivePort"), "utf8").split("\n")[0] || undefined;
     } catch {
       return undefined;
     }
   });
   const target: string = await waitFor(async (): Promise<string | undefined> => {
-    const response: Response = await fetch(`http://127.0.0.1:${port}/json/list`);
-    const targets: Target[] = (await response.json()) as Target[];
-    return targets.find((candidate: Target): boolean => candidate.type === "page")
-      ?.webSocketDebuggerUrl;
+    try {
+      const response: Response = await fetch(`http://127.0.0.1:${port}/json/list`);
+      const targets: Target[] = (await response.json()) as Target[];
+      return targets.find((candidate: Target): boolean => candidate.type === "page")
+        ?.webSocketDebuggerUrl;
+    } catch {
+      return undefined;
+    }
   });
 
   const socket: WebSocket = new WebSocket(target);

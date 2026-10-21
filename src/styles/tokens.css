@@ -1,0 +1,72 @@
+/*
+ * src/view/stage.ts reads the board, thread, wash, peg and weave tokens by name to paint the
+ * canvas. Colours use a media query rather than light-dark(), because an unregistered custom
+ * property reads back unresolved and canvas can't parse light-dark().
+ */
+
+:root {
+  color-scheme: light dark;
+
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", var(--font-body);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --space-5: 40px;
+
+  --column-width: 640px;
+
+  --page: #f7f4ee;
+  --ink: #2a2723;
+  --ink-muted: #7a7266;
+
+  --board-frame: #e2dacb;
+  --board-shadow: rgb(70 50 20 / 0.18);
+
+  --wash-blank: #fcfaf5;
+  --wash-red: #f7dcd8;
+  --wash-blue: #dce5f7;
+  --wash-yellow: #f9eecb;
+  --wash-purple: #e8dcf2;
+  --wash-orange: #f9e3cc;
+  --wash-green: #d9eed8;
+
+  --thread-red: #d0443a;
+  --thread-blue: #3a6ad0;
+  --thread-yellow: #e2a81c;
+  --thread-shade: rgb(0 0 0 / 0.2);
+
+  --weave-shadow: rgb(0 0 0 / 0.28);
+  --peg-shadow: rgb(50 35 10 / 0.35);
+  --peg-shine: rgb(255 255 255 / 0.38);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #121110;
+    --ink: #ece7de;
+    --ink-muted: #948b7e;
+
+    --board-frame: #0c0b0a;
+    --board-shadow: rgb(0 0 0 / 0.6);
+
+    --wash-blank: #24221f;
+    --wash-red: #4a2a27;
+    --wash-blue: #263049;
+    --wash-yellow: #493f23;
+    --wash-purple: #3a2d48;
+    --wash-orange: #493424;
+    --wash-green: #29402c;
+
+    --thread-red: #e6645a;
+    --thread-blue: #6d95ea;
+    --thread-yellow: #f0c14b;
+    --thread-shade: rgb(0 0 0 / 0.28);
+
+    --weave-shadow: rgb(0 0 0 / 0.45);
+    --peg-shadow: rgb(0 0 0 / 0.55);
+    --peg-shine: rgb(255 255 255 / 0.3);
+  }
+}

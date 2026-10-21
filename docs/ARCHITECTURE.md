@@ -4,14 +4,15 @@ The app uses a model-view-update architecture. State lives in one place, changes
 
 ## Layers
 
-| Folder        | Role                                                                                       | May import              | Touches the DOM |
-| ------------- | ------------------------------------------------------------------------------------------ | ----------------------- | --------------- |
-| `src/core/`   | Domain logic: puzzle rules, decoding, solvers, validation, generation, RNG                 | nothing outside `core/` | No              |
-| `src/app/`    | `Model`, `Msg`, `update`                                                                   | `core/`                 | No              |
-| `src/view/`   | Draws the model to canvas and DOM; turns input events into `Msg`s                          | `app/`, `core/` types   | Yes             |
-| `src/main.ts` | The runtime: holds the current model, dispatches messages, schedules renders, runs effects | everything              | Yes             |
-| `scripts/`    | The level pipeline (`npm run levels`): pictures in `pictures/`, certified levels out       | `core/`                 | No              |
-| `src/levels/` | Certified levels written by the pipeline, as JSON                                          | nothing: data only      | No              |
+| Folder        | Role                                                                                                                                                            | May import               | Touches the DOM |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ | --------------- |
+| `src/core/`   | Domain logic: puzzle rules, decoding, solvers, validation, generation, RNG                                                                                      | nothing outside `core/`  | No              |
+| `src/app/`    | `Model`, `Msg`, `update`                                                                                                                                        | `core/`                  | No              |
+| `src/view/`   | Draws the model to canvas and DOM; turns input events into `Msg`s                                                                                               | `app/`, `core/` types    | Yes             |
+| `src/main.ts` | The runtime: holds the current model, dispatches messages, schedules renders, runs effects                                                                      | everything               | Yes             |
+| `scripts/`    | The level pipeline (`npm run levels`): pictures in `pictures/`, certified levels out. Also the render benchmark (`npm run bench`), which drives headless Chrome | `core/`                  | No              |
+| `bench/`      | The page the render benchmark loads: draws worst-case boards with the real view and times them                                                                  | `view/`, `app/`, `core/` | Yes             |
+| `src/levels/` | Certified levels written by the pipeline, as JSON                                                                                                               | nothing: data only       | No              |
 
 `core/` and `app/` must run in Node with no browser, so they can be tested directly.
 

@@ -11,6 +11,7 @@ Project docs live in `docs/`. Read the ones that apply before starting work. Whe
 | `docs/CODING_STANDARDS.md` | Every change                                                                                                          |
 | `docs/ARCHITECTURE.md`     | Adding, moving or wiring up code: which layer it belongs in, how state and messages flow, where effects go            |
 | `docs/DESIGN.md`           | Gameplay or API decisions: rules, the puzzle format, what makes a puzzle valid, hints, difficulty, the level pipeline |
+| `docs/PERFORMANCE.md`      | Changing anything that draws, or checking what a frame costs                                                          |
 | `docs/TESTING.md`          | Writing or changing tests, or any change to `src/core/` or `src/app/`                                                 |
 
 ## Commands
@@ -18,3 +19,4 @@ Project docs live in `docs/`. Read the ones that apply before starting work. Whe
 - `npm run dev`: local dev server
 - `npm run check`: format check, lint, typecheck, tests. Run before calling any change done
 - `npm run build`: production build in `dist/`
+- `npm run bench`: render benchmark in headless Chrome, printed as a markdown table. See `docs/PERFORMANCE.md`

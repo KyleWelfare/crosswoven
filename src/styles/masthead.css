@@ -1,0 +1,48 @@
+.masthead {
+  text-align: center;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 9vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+/* Sized to the viewBox in src/view/braid.ts, so stroke widths below are CSS pixels. */
+.braid {
+  display: block;
+  width: 96px;
+  height: 14px;
+  margin: var(--space-2) auto 0;
+  overflow: visible;
+  /* The strands start and stop mid-wave, so fade the cut ends out. */
+  mask-image: linear-gradient(90deg, transparent, black 15%, black 85%, transparent);
+}
+
+.braid-strand,
+.braid-gap {
+  fill: none;
+}
+
+.braid-strand {
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+
+.braid-gap {
+  stroke: var(--page);
+  stroke-width: 5;
+}
+
+.braid-red {
+  stroke: var(--thread-red);
+}
+
+.braid-yellow {
+  stroke: var(--thread-yellow);
+}
+
+.braid-blue {
+  stroke: var(--thread-blue);
+}

@@ -47,10 +47,10 @@ describe("solveLogically", (): void => {
       const puzzle: Puzzle = puzzleOf(
         ["..B..", "..B..", "RRPRR", "..B..", "..B.."],
         [
-          [2, 0],
-          [0, 2],
-          [4, 2],
-          [2, 4],
+          [2, 0, 5],
+          [0, 2, 5],
+          [4, 2, 5],
+          [2, 4, 5],
         ],
       );
       const result: LogicResult = solveLogically(puzzle, ["count"]);
@@ -97,8 +97,8 @@ describe("solveLogically", (): void => {
       const puzzle: Puzzle = puzzleOf(
         ["RRRR.", ".....", ".....", ".....", "....."],
         [
-          [0, 0],
-          [3, 0],
+          [0, 0, 4],
+          [3, 0, 4],
         ],
       );
       const result: LogicResult = solveLogically(puzzle, ["parity"]);

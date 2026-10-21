@@ -34,10 +34,10 @@ describe("validateLevel", (): void => {
   });
 
   it("passes on the decoder's errors for a malformed level", (): void => {
-    expect(validateLevel({ ...examplePuzzle, version: 2 })).toEqual({
+    expect(validateLevel({ ...examplePuzzle, version: 1 })).toEqual({
       ok: false,
       rejection: "invalid",
-      errors: ["unsupported version 2; expected 1"],
+      errors: ["unsupported version 1; expected 2"],
     });
   });
 

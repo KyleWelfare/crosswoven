@@ -1,7 +1,7 @@
 import fc from "fast-check";
 import { THREAD_COLOURS, type Point, type ThreadColour } from "../../src/core/puzzle.ts";
 import type { Solution, Thread } from "../../src/core/thread.ts";
-import type { LevelJson } from "./level-json.ts";
+import type { LevelJson, PegJson } from "./level-json.ts";
 
 export interface ThreadPlan {
   readonly colour: ThreadColour;
@@ -92,13 +92,13 @@ export function levelOf(width: number, height: number, threads: readonly Thread[
       .map((occupants: readonly Occupant[]): string => patternCode(occupants));
     pattern.push(row.join(""));
   }
-  const pegs: Point[] = threads.flatMap((thread: Thread): Point[] =>
-    [thread.squares[0], thread.squares.at(-1)].filter(
-      (point: Point | undefined): point is Point => point !== undefined,
-    ),
+  const pegs: PegJson[] = threads.flatMap((thread: Thread): PegJson[] =>
+    [thread.squares[0], thread.squares.at(-1)]
+      .filter((point: Point | undefined): point is Point => point !== undefined)
+      .map((point: Point): PegJson => ({ ...point, length: thread.squares.length })),
   );
-  pegs.sort((a: Point, b: Point): number => a.y * width + a.x - (b.y * width + b.x));
-  return { version: 1, id: "random", title: "Random", pattern, pegs };
+  pegs.sort((a: PegJson, b: PegJson): number => a.y * width + a.x - (b.y * width + b.x));
+  return { version: 2, id: "random", title: "Random", pattern, pegs };
 }
 
 /** Rules a set of threads breaks that `levelOf` can't show: bad steps and bent crossings. */

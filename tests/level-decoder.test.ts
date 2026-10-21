@@ -14,6 +14,13 @@ function withoutField(field: string): Record<string, unknown> {
   return level;
 }
 
+/** The example puzzle with `peg` inserted at `index`. */
+function withPeg(index: number, peg: object): Record<string, unknown> {
+  const pegs: object[] = [...examplePuzzle.pegs];
+  pegs.splice(index, 0, peg);
+  return withFields({ pegs });
+}
+
 function errorsFor(json: unknown): readonly string[] {
   const result: DecodeResult = decodeLevel(json);
   if (result.ok) throw new Error("expected the level to be rejected");
@@ -37,8 +44,8 @@ describe("decodeLevel", (): void => {
       expect(puzzle.width).toBe(5);
       expect(puzzle.height).toBe(5);
       expect(puzzle.pattern[1]).toEqual(["blue", "purple", "blue", "purple", "blue"]);
-      expect(puzzle.pegs[0]).toEqual({ x: 2, y: 0, colour: "red" });
-      expect(puzzle.pegs[2]).toEqual({ x: 4, y: 1, colour: "blue" });
+      expect(puzzle.pegs[0]).toEqual({ x: 2, y: 0, colour: "red", length: 6 });
+      expect(puzzle.pegs[2]).toEqual({ x: 4, y: 1, colour: "blue", length: 10 });
     });
 
     it("decodes every pattern code", (): void => {
@@ -46,12 +53,12 @@ describe("decodeLevel", (): void => {
         withFields({
           pattern: ["R.B.Y", "POG..", blankRow, blankRow, "R.B.Y"],
           pegs: [
-            { x: 0, y: 0 },
-            { x: 0, y: 4 },
-            { x: 2, y: 0 },
-            { x: 2, y: 4 },
-            { x: 4, y: 0 },
-            { x: 4, y: 4 },
+            { x: 0, y: 0, length: 5 },
+            { x: 0, y: 4, length: 5 },
+            { x: 2, y: 0, length: 5 },
+            { x: 2, y: 4, length: 5 },
+            { x: 4, y: 0, length: 5 },
+            { x: 4, y: 4, length: 5 },
           ],
         }),
       );
@@ -66,13 +73,20 @@ describe("decodeLevel", (): void => {
         withFields({
           pattern,
           pegs: [
-            { x: 0, y: 0 },
-            { x: 1, y: 0 },
+            { x: 0, y: 0, length: 2 },
+            { x: 1, y: 0, length: 2 },
           ],
         }),
       );
       expect(puzzle.width).toBe(5);
       expect(puzzle.height).toBe(15);
+    });
+
+    it("accepts a length-1 peg without a partner", (): void => {
+      const puzzle: Puzzle = decoded(
+        withFields({ pegs: [...examplePuzzle.pegs, { x: 1, y: 0, length: 1 }] }),
+      );
+      expect(puzzle.pegs[8]).toEqual({ x: 1, y: 0, colour: "red", length: 1 });
     });
   });
 
@@ -90,9 +104,9 @@ describe("decodeLevel", (): void => {
     );
 
     it("rejects an unsupported version", (): void => {
-      expect(errorsFor(withFields({ version: 2 }))).toEqual(["unsupported version 2; expected 1"]);
-      expect(errorsFor(withFields({ version: "1" }))).toEqual([
-        `unsupported version "1"; expected 1`,
+      expect(errorsFor(withFields({ version: 1 }))).toEqual(["unsupported version 1; expected 2"]);
+      expect(errorsFor(withFields({ version: "2" }))).toEqual([
+        `unsupported version "2"; expected 2`,
       ]);
     });
 
@@ -117,7 +131,7 @@ describe("decodeLevel", (): void => {
       expect(
         errorsFor(
           withFields({
-            pegs: [{ x: 1, y: 1 }, { x: 1.5, y: 0 }, { x: 2 }, "a"],
+            pegs: [{ x: 1, y: 1, length: 1 }, { x: 1.5, y: 0 }, { x: 2 }, "a"],
           }),
         ),
       ).toEqual([
@@ -127,8 +141,30 @@ describe("decodeLevel", (): void => {
       ]);
     });
 
+    it("rejects a missing or invalid length, naming the peg", (): void => {
+      expect(
+        errorsFor(
+          withFields({
+            pegs: [
+              { x: 2, y: 0 },
+              { x: 3, y: 0, length: 0 },
+              { x: 4, y: 1, length: 1.5 },
+              { x: 4, y: 2, length: "3" },
+              { x: 2, y: 3, length: -1 },
+            ],
+          }),
+        ),
+      ).toEqual([
+        `peg 0 at (2, 0) is missing "length"`,
+        "peg 1 at (3, 0) has length 0; it must be a whole number from 1 up",
+        "peg 2 at (4, 1) has length 1.5; it must be a whole number from 1 up",
+        `peg 3 at (4, 2) has length "3"; it must be a whole number from 1 up`,
+        "peg 4 at (2, 3) has length -1; it must be a whole number from 1 up",
+      ]);
+    });
+
     it("reports every field error at once", (): void => {
-      expect(errorsFor({ version: 1, id: "x" })).toEqual([
+      expect(errorsFor({ version: 2, id: "x" })).toEqual([
         `missing field "title"`,
         `missing field "pattern"`,
         `missing field "pegs"`,
@@ -173,35 +209,46 @@ describe("decodeLevel", (): void => {
 
   describe("pegs", (): void => {
     it("rejects a peg outside the grid", (): void => {
-      expect(errorsFor(withFields({ pegs: [...examplePuzzle.pegs, { x: 5, y: 2 }] }))).toEqual([
+      expect(errorsFor(withPeg(examplePuzzle.pegs.length, { x: 5, y: 2, length: 1 }))).toEqual([
         "peg 8 at (5, 2) is outside the grid",
       ]);
-      expect(errorsFor(withFields({ pegs: [{ x: -1, y: 0 }, ...examplePuzzle.pegs] }))).toEqual([
+      expect(errorsFor(withPeg(0, { x: -1, y: 0, length: 1 }))).toEqual([
         "peg 0 at (-1, 0) is outside the grid",
       ]);
     });
 
     it("rejects a peg on a blank square", (): void => {
-      expect(errorsFor(withFields({ pegs: [...examplePuzzle.pegs, { x: 0, y: 0 }] }))).toEqual([
+      expect(errorsFor(withPeg(examplePuzzle.pegs.length, { x: 0, y: 0, length: 1 }))).toEqual([
         "peg 8 at (0, 0) is on a blank square",
       ]);
     });
 
     it("rejects a peg on a purple square", (): void => {
-      expect(errorsFor(withFields({ pegs: [...examplePuzzle.pegs, { x: 1, y: 2 }] }))).toEqual([
+      expect(errorsFor(withPeg(examplePuzzle.pegs.length, { x: 1, y: 2, length: 1 }))).toEqual([
         "peg 8 at (1, 2) is on a purple square",
       ]);
     });
 
     it("rejects a duplicated peg, naming the first one", (): void => {
-      expect(errorsFor(withFields({ pegs: [...examplePuzzle.pegs, { x: 4, y: 1 }] }))).toEqual([
+      expect(errorsFor(withPeg(examplePuzzle.pegs.length, { x: 4, y: 1, length: 10 }))).toEqual([
         "peg 8 at (4, 1) is a duplicate of peg 2",
       ]);
     });
 
-    it("rejects an odd number of pegs of a colour", (): void => {
+    it("rejects an odd number of pegs of a colour and length", (): void => {
       expect(errorsFor(withFields({ pegs: examplePuzzle.pegs.slice(1) }))).toEqual([
-        "there are 3 red pegs; each colour needs an even number",
+        "red pegs of length 6 can't all pair up (found 1)",
+      ]);
+    });
+
+    it("pairs by length, not just colour", (): void => {
+      const pegs: object[] = [
+        { ...examplePuzzle.pegs[0], length: 5 },
+        ...examplePuzzle.pegs.slice(1),
+      ];
+      expect(errorsFor(withFields({ pegs }))).toEqual([
+        "red pegs of length 5 can't all pair up (found 1)",
+        "red pegs of length 6 can't all pair up (found 1)",
       ]);
     });
 
@@ -211,8 +258,8 @@ describe("decodeLevel", (): void => {
           withFields({
             pattern: ["RR...", blankRow, "..G..", blankRow, blankRow],
             pegs: [
-              { x: 0, y: 0 },
-              { x: 1, y: 0 },
+              { x: 0, y: 0, length: 2 },
+              { x: 1, y: 0, length: 2 },
             ],
           }),
         ),

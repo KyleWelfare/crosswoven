@@ -4,10 +4,10 @@ import { levelJson, type LevelJson } from "./level-json.ts";
 export const crossingLevel: LevelJson = levelJson(
   [".BRR.", "RPR..", "RPR..", ".B...", "....."],
   [
-    [1, 0],
-    [3, 0],
-    [2, 2],
-    [1, 3],
+    [1, 0, 4],
+    [3, 0, 8],
+    [2, 2, 8],
+    [1, 3, 4],
   ],
 );
 
@@ -15,8 +15,8 @@ export const crossingLevel: LevelJson = levelJson(
 export const loopLevel: LevelJson = levelJson(
   [".....", ".....", "..YYY", "..YYY", "....."],
   [
-    [2, 2],
-    [2, 3],
+    [2, 2, 6],
+    [2, 3, 6],
   ],
 );
 
@@ -24,8 +24,8 @@ export const loopLevel: LevelJson = levelJson(
 export const strandLevel: LevelJson = levelJson(
   [".RRRR", ".RRRR", ".RRRR", "..RR.", "....."],
   [
-    [2, 3],
-    [3, 3],
+    [2, 3, 14],
+    [3, 3, 14],
   ],
 );
 
@@ -33,21 +33,21 @@ export const strandLevel: LevelJson = levelJson(
 export const guessingLevel: LevelJson = levelJson(
   [".....", "RRRRR", "RR.RR", "RR.RR", "RRRRR"],
   [
-    [2, 1],
-    [4, 1],
-    [3, 3],
-    [2, 4],
+    [2, 1, 10],
+    [4, 1, 8],
+    [3, 3, 8],
+    [2, 4, 10],
   ],
 );
 
-/** No solution: both threads would have to turn at the crossing. */
+/** No solution: both threads would have to turn at the crossing. Lengths assume they do. */
 export const turningCrossingLevel: LevelJson = levelJson(
   [".....", "..B..", ".RPB.", "..R..", "....."],
   [
-    [2, 1],
-    [3, 2],
-    [1, 2],
-    [2, 3],
+    [2, 1, 3],
+    [3, 2, 3],
+    [1, 2, 3],
+    [2, 3, 3],
   ],
 );
 
@@ -55,9 +55,9 @@ export const turningCrossingLevel: LevelJson = levelJson(
 export const pairingLevel: LevelJson = levelJson(
   ["RR...", "RR...", ".....", ".....", "....."],
   [
-    [0, 0],
-    [1, 0],
-    [0, 1],
-    [1, 1],
+    [0, 0, 2],
+    [1, 0, 2],
+    [0, 1, 2],
+    [1, 1, 2],
   ],
 );

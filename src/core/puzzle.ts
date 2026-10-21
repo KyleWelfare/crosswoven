@@ -11,6 +11,8 @@ export interface Point {
 
 export interface Peg extends Point {
   readonly colour: ThreadColour;
+  /** Squares in the peg's thread, both pegs included. 1 is a thread on its own. */
+  readonly length: number;
 }
 
 export interface Puzzle {

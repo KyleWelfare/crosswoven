@@ -11,14 +11,14 @@ import type { Solution } from "./thread.ts";
 export type SearchResult = { readonly ok: true; readonly solutions: readonly Solution[] } | TooOpen;
 
 /**
- * Rows are candidate paths; columns are each peg and each colour each square asks for. Crossing
- * threads need no column to keep them perpendicular: candidates run straight through crossings,
- * so two running the same way would share every square to the edge of the grid.
+ * Rows are candidate paths. Crossing threads need no column to keep them perpendicular: candidates
+ * run straight through crossings, so two running the same way would share every square to the edge
+ * of the grid.
  */
 interface Cover {
   readonly columnsOf: readonly (readonly number[])[];
   readonly rowsIn: readonly (readonly number[])[];
-  /** Columns the pattern asks for, each to be covered exactly once. */
+  /** Columns covered exactly once: every peg, and each colour each square asks for. */
   readonly required: readonly number[];
   readonly covered: Uint8Array;
   /** Chosen rows that clash with each row. A row is still an option at 0. */
@@ -54,6 +54,7 @@ export function findSolutions(puzzle: Puzzle, limit: number): SearchResult {
       search();
       choose(cover, row, -1);
       chosen.pop();
+      if (solutions.length >= limit) return;
     }
   }
 

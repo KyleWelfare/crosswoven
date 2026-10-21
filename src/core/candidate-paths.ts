@@ -121,7 +121,7 @@ function pathsBetween(
       return paths.length <= max;
     }
     for (const next of neighbourSquares(grid.width, grid.height, current)) {
-      if (!canEnter(next)) continue;
+      if (!canEnter(path.at(-2), current, next)) continue;
       path.push(next);
       onPath[next] = 1;
       const withinMax: boolean = extend();
@@ -132,12 +132,10 @@ function pathsBetween(
     return true;
   }
 
-  function canEnter(next: number): boolean {
+  function canEnter(previous: number | undefined, current: number, next: number): boolean {
     if (onPath[next] === 1 || ((grid.masks[next] ?? 0) & bit) === 0) return false;
     if (grid.isPeg[next] === 1 && (next !== target || path.length + 1 < length)) return false;
     if (distance(grid, next, target) > length - path.length - 1) return false;
-    const current: number = path.at(-1) ?? start;
-    const previous: number | undefined = path.at(-2);
     return (
       previous === undefined || !isCrossing(grid, current) || next - current === current - previous
     );

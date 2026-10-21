@@ -1,5 +1,6 @@
 import {
   colourBit,
+  neighbourSquares,
   squareMask,
   type ColourMask,
   type Peg,
@@ -7,7 +8,7 @@ import {
   type Puzzle,
   type ThreadColour,
 } from "./puzzle.ts";
-import type { Solution, Thread } from "./thread.ts";
+import { toSolution, type Solution, type Thread } from "./thread.ts";
 
 /** Squares are numbered in reading order, `y * width + x`. */
 export interface Candidate {
@@ -119,7 +120,7 @@ function pathsBetween(
       if (current === target) paths.push([...path]);
       return paths.length <= max;
     }
-    for (const next of neighbours(grid, current)) {
+    for (const next of neighbourSquares(grid.width, grid.height, current)) {
       if (!canEnter(next)) continue;
       path.push(next);
       onPath[next] = 1;
@@ -145,17 +146,6 @@ function pathsBetween(
   return extend() ? paths : undefined;
 }
 
-function neighbours(grid: Grid, square: number): number[] {
-  const x: number = square % grid.width;
-  const y: number = Math.floor(square / grid.width);
-  const found: number[] = [];
-  if (x + 1 < grid.width) found.push(square + 1);
-  if (y + 1 < grid.height) found.push(square + grid.width);
-  if (x > 0) found.push(square - 1);
-  if (y > 0) found.push(square - grid.width);
-  return found;
-}
-
 function distance(grid: Grid, a: number, b: number): number {
   return (
     Math.abs((a % grid.width) - (b % grid.width)) +
@@ -168,17 +158,14 @@ function isCrossing(grid: Grid, square: number): boolean {
   return (mask & (mask - 1)) !== 0;
 }
 
-/** In the order `Solution` documents. */
 export function solutionOf(width: number, chosen: readonly Candidate[]): Solution {
-  const order = (thread: Thread): number => {
-    const start: Point | undefined = thread.squares[0];
-    return start ? start.y * width + start.x : 0;
-  };
-  return chosen
-    .map((candidate: Candidate): Thread => threadOf(width, candidate))
-    .sort((a: Thread, b: Thread): number => order(a) - order(b));
+  return toSolution(
+    chosen.map((candidate: Candidate): Thread => threadOf(width, candidate)),
+    width,
+  );
 }
 
+/** Starts from whichever peg comes first in reading order, as threads in a `Solution` do. */
 export function threadOf(width: number, candidate: Candidate): Thread {
   const squares: readonly number[] = candidate.squares;
   const forwards: boolean = (squares[0] ?? 0) <= (squares.at(-1) ?? 0);

@@ -29,3 +29,15 @@ export function sameSolution(a: Solution, b: Solution): boolean {
     })
   );
 }
+
+/** Puts threads in the order `Solution` documents. */
+export function toSolution(threads: readonly Thread[], width: number): Solution {
+  const order = (point: Point | undefined): number => (point ? point.y * width + point.x : 0);
+  return threads
+    .map((thread: Thread): Thread =>
+      order(thread.squares[0]) <= order(thread.squares.at(-1))
+        ? thread
+        : { colour: thread.colour, squares: [...thread.squares].reverse() },
+    )
+    .sort((a: Thread, b: Thread): number => order(a.squares[0]) - order(b.squares[0]));
+}

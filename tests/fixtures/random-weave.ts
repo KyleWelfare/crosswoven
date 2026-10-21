@@ -93,7 +93,7 @@ export function levelOf(width: number, height: number, threads: readonly Thread[
     pattern.push(row.join(""));
   }
   const pegs: PegJson[] = threads.flatMap((thread: Thread): PegJson[] =>
-    [thread.squares[0], thread.squares.at(-1)]
+    (thread.squares.length === 1 ? thread.squares : [thread.squares[0], thread.squares.at(-1)])
       .filter((point: Point | undefined): point is Point => point !== undefined)
       .map((point: Point): PegJson => ({ ...point, length: thread.squares.length })),
   );

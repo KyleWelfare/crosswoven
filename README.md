@@ -4,6 +4,8 @@ A logic puzzle in the browser. Lay coloured threads between pegs so the woven cl
 
 Every puzzle is generated from a picture and certified by a validator: exactly one solution, reachable by deduction alone.
 
+Crosswoven builds on number-link picture puzzles, known as Link-a-Pix or Paint by Pairs, where you join pairs of matching numbers with paths of that length to reveal a picture. Its twist is colour mixing where threads cross.
+
 ## How it's built
 
 - **Levels are generated, then proven.** I draw each picture as a small text grid. A seeded generator covers it with threads and puts numbered pegs at their ends. A search solver proves the puzzle has exactly one solution, and a logic solver proves a player can reach it by deduction alone, without guessing. Where two solutions differ, the generator splits threads there and tries again. CI regenerates every shipped level, so a solver change can't silently alter one.
@@ -25,7 +27,7 @@ The first pack of 16 levels played too easy, and got boring. So I set out to mea
 
 **Modelling an expert.** Rounds measure the solver's proof, and a player skips a proof whenever the obvious move is right. So I modelled what an experienced player sees without thinking: moves into traps, moves that leave no matching number in reach, squares that only one thread could fill. A property test checks the model is never wrong. By its rules, 20 of the 22 levels needed no real deduction at all. I could still generate a puzzle needing 9 rounds of real deduction, but it was a plain red disc with no colour mixing: hard, and dull.
 
-**The diagnosis.** The board shows every square's colour, and that pins each thread to its colour's region before the player starts. PathPix, the genre's best-known game, hides the picture: only the numbered pegs show, and the picture appears when solved. My colour mixing was meant to make the genre feel new, but showing the colours took away the space where the puzzle lives.
+**The diagnosis.** The board shows every square's colour, and that pins each thread to its colour's region before the player starts. The classic form of the puzzle hides the picture: only the numbered pegs show, and the picture appears when solved. My colour mixing was meant to make the genre feel new, but showing the colours took away the space where the puzzle lives.
 
 ## What I prototyped next
 
@@ -33,7 +35,7 @@ Hide the picture. Show only the pegs, plus a mark on each two-colour square sayi
 
 It's working on the `hidden-picture` branch, and the architecture took it with less change than I expected. The generator still lays threads over a picture, and the validator still proves uniqueness, now against only what the player sees. Both modes share one slot model: an unmarked hidden square is a single slot any colour can fill, and both solvers stay an exact-cover search. Every shipped level still regenerates byte for byte.
 
-The measurements say it fixes the core problem. With the colours shown, each colour is a separate puzzle and no deduction ever crosses between them. The three hidden 15×15 levels need 5, 11 and 13 rounds of it, and 4 to 16% of their deductions rule out a thread of another colour. The crossing marks matter less than I hoped, since a mark still fixes the threads through it, but a lone crossing no longer says which colour runs across.
+The measurements say it fixes the core problem. With the colours shown, each colour is a separate puzzle and no deduction ever crosses between them. The three hidden 15×15 levels need 5, 11 and 13 rounds of it, and 4 to 16% of their deductions rule out a thread of another colour. The crossing marks matter less than I hoped, since a mark still fixes the threads through it, but a lone crossing no longer says which colour runs across. That's the honest verdict: hidden mode makes a much better puzzle, but one that lands close to classic Link-a-Pix, because colour mixing is too small a rule to carry a game on its own. If I pursued it, I'd hide the peg colours too and let the crossing marks be the only colour information, so working out which colour each thread is becomes its own layer of logic.
 
 What it still needs before it ships: a playtest (peg colours may sketch the picture enough for players to guess regions, which my player model doesn't do), a gentle ramp of hidden levels to teach it, and a clearer crossing mark.
 

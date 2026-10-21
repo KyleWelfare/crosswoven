@@ -28,7 +28,7 @@ Crosswoven is a logic puzzle. A grid shows a coloured pattern and some numbered,
 - Pegs sit on single-colour squares
 - The puzzle is solved when every peg is tied and every square matches the pattern
 
-The numbers keep each thread within reach of its pegs, so deductions stay local and puzzles scale to large grids, as in PathPix. Without them, any two pegs of a colour could pair from anywhere on the board, and an experiment found no unique 15×15 puzzles at all; with them, most random 15×15 layouts were unique before any tuning.
+The numbers keep each thread within reach of its pegs, so deductions stay local and puzzles scale to large grids, as in Link-a-Pix. Without them, any two pegs of a colour could pair from anywhere on the board, and an experiment found no unique 15×15 puzzles at all; with them, most random 15×15 layouts were unique before any tuning.
 
 ### The guarantee
 

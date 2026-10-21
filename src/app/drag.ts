@@ -1,5 +1,6 @@
 import { pegAt, type Peg, type Point, type Puzzle } from "../core/puzzle.ts";
 import type { Thread } from "../core/thread.ts";
+import { cutThreads } from "./cut.ts";
 import { endsAt, isTied } from "./tie.ts";
 
 /**
@@ -73,9 +74,9 @@ export function draggedThread(puzzle: Puzzle, threads: readonly Thread[], drag: 
 }
 
 /**
- * The laid threads with the dragged thread in place of any it replaces: those at the pegs it
- * starts and ends on. Nothing is dropped until the pointer lets go, so dragging back off a peg
- * brings its thread back.
+ * The laid threads with the dragged thread in place of any it replaces, those at the pegs it
+ * starts and ends on, and cutting any it crowds out of a square. Nothing is dropped or cut until
+ * the pointer lets go, so dragging back brings those threads back.
  */
 export function shownThreads(
   puzzle: Puzzle,
@@ -89,7 +90,7 @@ export function shownThreads(
     (thread: Thread): boolean =>
       !pegs.some((peg: Point | undefined): boolean => peg !== undefined && endsAt(thread, peg)),
   );
-  return [...kept, dragged];
+  return [...cutThreads(puzzle, kept, dragged), dragged];
 }
 
 /**

@@ -4,7 +4,7 @@ import type { Msg } from "../src/app/messages.ts";
 import { startLevel, type Model } from "../src/app/model.ts";
 import { shownThreads } from "../src/app/drag.ts";
 import { update } from "../src/app/update.ts";
-import { pegAt, type Peg, type Point, type Puzzle } from "../src/core/puzzle.ts";
+import { pegAt, threadsThrough, type Peg, type Point, type Puzzle } from "../src/core/puzzle.ts";
 import type { Thread } from "../src/core/thread.ts";
 import { decoded, puzzleOf } from "./fixtures/puzzle-of.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
@@ -157,7 +157,10 @@ describe("update properties", (): void => {
   });
 });
 
-/** Each thread is well formed, no peg has two, and threads of one colour never share a square. */
+/**
+ * Each thread is well formed, no peg has two, threads of one colour never share a square, and no
+ * square holds more threads than it shows colours.
+ */
 function expectBoard(puzzle: Puzzle, threads: readonly Thread[]): void {
   for (const thread of threads) expectWellFormed(puzzle, thread);
   const ends: string[] = threads.flatMap((thread: Thread): string[] =>
@@ -173,4 +176,12 @@ function expectBoard(puzzle: Puzzle, threads: readonly Thread[]): void {
     thread.squares.map((square: Point): string => `${thread.colour} ${key(square)}`),
   );
   expect(new Set(used).size).toBe(used.length);
+  const held: Map<string, number> = new Map<string, number>();
+  for (const square of threads.flatMap((thread: Thread): readonly Point[] => thread.squares)) {
+    held.set(key(square), (held.get(key(square)) ?? 0) + 1);
+  }
+  for (const [at, count] of held) {
+    const [x = 0, y = 0]: number[] = at.split(",").map(Number);
+    expect(count).toBeLessThanOrEqual(threadsThrough(puzzle.pattern[y]?.[x] ?? "blank").length);
+  }
 }

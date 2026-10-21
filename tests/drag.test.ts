@@ -173,11 +173,21 @@ describe("shownThreads", (): void => {
   it("shows a joined thread in place of the thread it joined", (): void => {
     expect(shownThreads(lattice, [fromBelow, blueAcross], joining)).toEqual([blueAcross, tiedRed]);
   });
+
+  it("cuts a thread the drag crowds out of a square, and brings it back once the drag steps off", (): void => {
+    const drag: Thread = threadOf("red", [2, 0], [2, 1]);
+    expect(shownThreads(lattice, [blueAcross], drag)).toEqual([
+      threadOf("blue", [4, 1], [3, 1]),
+      drag,
+    ]);
+    const steppedBack: Thread = threadOf("red", [2, 0]);
+    expect(shownThreads(lattice, [blueAcross], steppedBack)).toEqual([blueAcross, steppedBack]);
+  });
 });
 
 describe("releasedThreads", (): void => {
   it("lays the drag, even short of a peg", (): void => {
-    const drag: Thread = threadOf("red", [2, 0], [2, 1]);
+    const drag: Thread = threadOf("red", [3, 0], [3, 1]);
     expect(releasedThreads(lattice, [blueAcross], drag)).toEqual([blueAcross, drag]);
   });
 

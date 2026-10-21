@@ -595,7 +595,175 @@ export const tourRecord: PipelineRecord = {
       trouble: [],
     },
   ],
-  paths: 20,
+  candidates: [
+    {
+      colour: "yellow",
+      squares: [
+        { x: 2, y: 1 },
+        { x: 3, y: 1 },
+        { x: 3, y: 2 },
+        { x: 4, y: 2 },
+        { x: 5, y: 2 },
+        { x: 5, y: 1 },
+        { x: 6, y: 1 },
+      ],
+    },
+    {
+      colour: "yellow",
+      squares: [
+        { x: 4, y: 3 },
+        { x: 4, y: 4 },
+        { x: 4, y: 5 },
+        { x: 4, y: 6 },
+        { x: 4, y: 7 },
+        { x: 4, y: 8 },
+      ],
+    },
+    { colour: "red", squares: [{ x: 1, y: 4 }] },
+    { colour: "red", squares: [{ x: 2, y: 4 }] },
+    {
+      colour: "red",
+      squares: [
+        { x: 3, y: 4 },
+        { x: 4, y: 4 },
+        { x: 5, y: 4 },
+        { x: 6, y: 4 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 6, y: 4 },
+        { x: 5, y: 4 },
+        { x: 5, y: 5 },
+        { x: 6, y: 5 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 7, y: 4 },
+        { x: 7, y: 5 },
+        { x: 7, y: 6 },
+        { x: 6, y: 6 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 7, y: 4 },
+        { x: 7, y: 5 },
+        { x: 7, y: 6 },
+        { x: 7, y: 7 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 1, y: 5 },
+        { x: 2, y: 5 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 3, y: 5 },
+        { x: 4, y: 5 },
+        { x: 5, y: 5 },
+        { x: 6, y: 5 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 6, y: 5 },
+        { x: 7, y: 5 },
+        { x: 7, y: 6 },
+        { x: 6, y: 6 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 6, y: 5 },
+        { x: 5, y: 5 },
+        { x: 5, y: 6 },
+        { x: 6, y: 6 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 6, y: 5 },
+        { x: 7, y: 5 },
+        { x: 7, y: 6 },
+        { x: 7, y: 7 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 1, y: 6 },
+        { x: 2, y: 6 },
+        { x: 2, y: 7 },
+        { x: 1, y: 7 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 1, y: 6 },
+        { x: 2, y: 6 },
+        { x: 2, y: 7 },
+        { x: 3, y: 7 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 3, y: 6 },
+        { x: 4, y: 6 },
+        { x: 5, y: 6 },
+        { x: 6, y: 6 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 3, y: 6 },
+        { x: 2, y: 6 },
+        { x: 2, y: 7 },
+        { x: 1, y: 7 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 3, y: 6 },
+        { x: 2, y: 6 },
+        { x: 2, y: 7 },
+        { x: 3, y: 7 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 6, y: 6 },
+        { x: 5, y: 6 },
+        { x: 5, y: 7 },
+        { x: 6, y: 7 },
+      ],
+    },
+    {
+      colour: "red",
+      squares: [
+        { x: 3, y: 7 },
+        { x: 4, y: 7 },
+        { x: 5, y: 7 },
+        { x: 6, y: 7 },
+      ],
+    },
+  ],
   tried: 11,
   given: [
     {
@@ -634,6 +802,44 @@ export const tourRecord: PipelineRecord = {
   rounds: [
     {
       rules: ["partner", "only-path"],
+      ruledOut: [
+        {
+          colour: "red",
+          squares: [
+            { x: 6, y: 4 },
+            { x: 5, y: 4 },
+            { x: 5, y: 5 },
+            { x: 6, y: 5 },
+          ],
+        },
+        {
+          colour: "red",
+          squares: [
+            { x: 6, y: 5 },
+            { x: 7, y: 5 },
+            { x: 7, y: 6 },
+            { x: 6, y: 6 },
+          ],
+        },
+        {
+          colour: "red",
+          squares: [
+            { x: 6, y: 5 },
+            { x: 5, y: 5 },
+            { x: 5, y: 6 },
+            { x: 6, y: 6 },
+          ],
+        },
+        {
+          colour: "red",
+          squares: [
+            { x: 6, y: 5 },
+            { x: 7, y: 5 },
+            { x: 7, y: 6 },
+            { x: 7, y: 7 },
+          ],
+        },
+      ],
       settled: [
         {
           colour: "red",
@@ -657,6 +863,17 @@ export const tourRecord: PipelineRecord = {
     },
     {
       rules: ["partner", "only-path"],
+      ruledOut: [
+        {
+          colour: "red",
+          squares: [
+            { x: 7, y: 4 },
+            { x: 7, y: 5 },
+            { x: 7, y: 6 },
+            { x: 6, y: 6 },
+          ],
+        },
+      ],
       settled: [
         {
           colour: "red",
@@ -671,6 +888,35 @@ export const tourRecord: PipelineRecord = {
     },
     {
       rules: ["shared", "only-reach"],
+      ruledOut: [
+        {
+          colour: "red",
+          squares: [
+            { x: 3, y: 6 },
+            { x: 2, y: 6 },
+            { x: 2, y: 7 },
+            { x: 1, y: 7 },
+          ],
+        },
+        {
+          colour: "red",
+          squares: [
+            { x: 3, y: 6 },
+            { x: 2, y: 6 },
+            { x: 2, y: 7 },
+            { x: 3, y: 7 },
+          ],
+        },
+        {
+          colour: "red",
+          squares: [
+            { x: 1, y: 6 },
+            { x: 2, y: 6 },
+            { x: 2, y: 7 },
+            { x: 3, y: 7 },
+          ],
+        },
+      ],
       settled: [
         {
           colour: "red",
@@ -685,6 +931,17 @@ export const tourRecord: PipelineRecord = {
     },
     {
       rules: ["partner", "only-path"],
+      ruledOut: [
+        {
+          colour: "red",
+          squares: [
+            { x: 6, y: 6 },
+            { x: 5, y: 6 },
+            { x: 5, y: 7 },
+            { x: 6, y: 7 },
+          ],
+        },
+      ],
       settled: [
         {
           colour: "red",

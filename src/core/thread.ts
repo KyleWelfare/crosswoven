@@ -30,6 +30,11 @@ export function sameSolution(a: Solution, b: Solution): boolean {
   );
 }
 
+/** The same for a thread whichever of its pegs it's read from. */
+export function threadKey(thread: Thread, width: number): string {
+  return JSON.stringify(toSolution([thread], width)[0]);
+}
+
 /** Puts threads in the order `Solution` documents. */
 export function toSolution(threads: readonly Thread[], width: number): Solution {
   const order = (point: Point | undefined): number => (point ? point.y * width + point.x : 0);

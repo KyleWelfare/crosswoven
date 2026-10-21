@@ -51,16 +51,22 @@
           <button class="button button-back" type="button" data-back>Menu</button>
           <h1 id="tour-title" class="screen-title" tabindex="-1" data-focus>How It Works</h1>
         </header>
-        <ol id="tour-checks" class="tour-checks" aria-label="The level's checks"></ol>
-        <canvas id="tour-stage" class="stage tour-stage" aria-hidden="true"></canvas>
-        <div class="tour-text" aria-live="polite">
-          <h2 id="tour-step-title" class="tour-step-title"></h2>
-          <p id="tour-caption" class="tour-caption"></p>
-        </div>
-        <div class="tour-nav">
-          <button id="tour-previous" class="button" type="button">Back</button>
-          <span id="tour-count" class="tour-count"></span>
-          <button id="tour-next" class="button button-primary" type="button">Next</button>
+        <div class="tour-body">
+          <ol id="tour-timeline" class="tour-timeline" aria-label="Steps"></ol>
+          <div class="tour-show">
+            <p id="tour-badge" class="tour-badge" aria-hidden="true"></p>
+            <canvas id="tour-stage" class="stage tour-stage" aria-hidden="true"></canvas>
+            <div class="tour-text" aria-live="polite">
+              <p id="tour-actor" class="tour-actor"></p>
+              <h2 id="tour-heading" class="tour-heading"></h2>
+              <p id="tour-caption" class="tour-caption"></p>
+            </div>
+            <div class="tour-nav">
+              <button id="tour-previous" class="button" type="button">Back</button>
+              <span id="tour-count" class="tour-count"></span>
+              <button id="tour-next" class="button button-primary" type="button">Next</button>
+            </div>
+          </div>
         </div>
       </section>
     </main>

@@ -32,6 +32,8 @@ export interface Tour {
   readonly screen: "tour";
   readonly step: number;
   readonly steps: number;
+  /** Milliseconds on this step, which drives its looping animation. */
+  readonly elapsed: number;
 }
 
 export const menu: Menu = { screen: "menu", rulesOpen: false };

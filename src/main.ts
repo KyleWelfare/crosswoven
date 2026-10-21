@@ -25,7 +25,7 @@ import { requiredElement } from "./view/required-element.ts";
 import { findScreens, listenForBack, renderScreens, type Screens } from "./view/screens.ts";
 import { drawStage } from "./view/stage.ts";
 import { createSpriteCache, type SpriteCache } from "./view/sprite-cache.ts";
-import { findTour, listenToTour, renderTour, type TourView } from "./view/tour.ts";
+import { buildTimeline, findTour, listenToTour, renderTour, type TourView } from "./view/tour.ts";
 
 const levelFiles: Readonly<Record<string, unknown>> = import.meta.glob(
   ["./levels/*.json", "!./levels/order.json"],
@@ -70,7 +70,7 @@ function dispatch(msg: Msg): void {
   if (next === model) return;
   model = next;
   scheduleRender();
-  if (winFading()) startTicking();
+  if (animating()) startTicking();
 }
 
 /** Zooming or moving to another screen changes the pixel ratio without resizing the canvas. */
@@ -93,18 +93,19 @@ function scheduleRender(): void {
     // Screens first, so a canvas that has just appeared has a size to draw at.
     renderScreens(screens, model);
     renderMenu(menuControls, model);
-    if (model.screen === "tour") renderTour(tour, frames, model.step, tourSprites);
+    if (model.screen === "tour") renderTour(tour, frames, model.step, model.elapsed, tourSprites);
     if (model.screen !== "game") return;
     drawStage(stage, model, sprites);
     renderPanels(panels, model, levels);
   });
 }
 
-function winFading(): boolean {
-  return model.screen === "game" && isFading(model);
+/** The win fades in, and How It Works loops its scenes for as long as it's open. */
+function animating(): boolean {
+  return (model.screen === "game" && isFading(model)) || model.screen === "tour";
 }
 
-/** Sends a Tick each animation frame for as long as the win animation runs. */
+/** Sends a Tick each animation frame for as long as something animates. */
 function startTicking(): void {
   if (ticking) return;
   ticking = true;
@@ -112,7 +113,7 @@ function startTicking(): void {
   const frame = (time: number): void => {
     if (last !== undefined) dispatch({ type: "Tick", dt: time - last });
     last = time;
-    if (winFading()) requestAnimationFrame(frame);
+    if (animating()) requestAnimationFrame(frame);
     else ticking = false;
   };
   requestAnimationFrame(frame);
@@ -124,6 +125,7 @@ function nextLevel(): Puzzle | undefined {
 
 buildLevelList(requiredElement(document, "#level-list", HTMLElement), levels, dispatch);
 listenToMenu(menuControls, dispatch, frames.length);
+buildTimeline(tour, frames);
 listenToTour(tour, dispatch);
 listenForBack(document, dispatch);
 listenForDrags(

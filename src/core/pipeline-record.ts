@@ -16,7 +16,7 @@ import {
 import type { Picture } from "./picture.ts";
 import type { Point, Puzzle } from "./puzzle.ts";
 import { findSolutions, type SearchResult } from "./search-solver.ts";
-import { sameSolution, toSolution, type Solution, type Thread } from "./thread.ts";
+import { sameSolution, threadKey, type Solution, type Thread } from "./thread.ts";
 
 /** One laying the generator tried, with what the validator's checks found. */
 export interface RecordedLaying {
@@ -29,9 +29,10 @@ export interface RecordedLaying {
   readonly trouble: readonly Point[];
 }
 
-/** A round of the logic solver, and the threads it left with only one path. */
+/** A round of the logic solver: the paths it ruled out, and the threads left with only one. */
 export interface RecordedRound {
   readonly rules: readonly Rule[];
+  readonly ruledOut: readonly Thread[];
   readonly settled: readonly Thread[];
 }
 
@@ -42,8 +43,8 @@ export interface RecordedRound {
  */
 export interface PipelineRecord {
   readonly layings: readonly RecordedLaying[];
-  /** Candidate paths listed for the accepted level. */
-  readonly paths: number;
+  /** Every path a pair of the accepted level's pegs could be joined by. */
+  readonly candidates: readonly Thread[];
   /** Paths the search solver tried proving the accepted level has one solution. */
   readonly tried: number;
   /** Threads with only one possible path before any deduction. */
@@ -73,11 +74,17 @@ export function recordPipeline(picture: Picture): PipelineRecord | undefined {
     layings: generation.attempts.map((attempt: Attempt): RecordedLaying =>
       recordLaying(picture, attempt),
     ),
-    paths: list.candidates.length,
+    candidates: list.candidates.map((candidate: Candidate): Thread =>
+      threadOf(puzzle.width, candidate),
+    ),
     tried: search.tried,
     given: settledAfter[0] ?? [],
     rounds: solved.rounds.map((round: readonly Step[], i: number): RecordedRound => ({
       rules: [...new Set<Rule>(round.map((step: Step): Rule => step.rule))],
+      ruledOut: uniqueThreads(
+        round.flatMap((step: Step): readonly Thread[] => step.ruledOut),
+        puzzle.width,
+      ),
       settled: settledAfter[i + 1] ?? [],
     })),
     difficulty: solved.result.difficulty,
@@ -117,7 +124,7 @@ function settledByRound(
 ): readonly (readonly Thread[])[] {
   const keyed: readonly { readonly key: string; readonly candidate: Candidate }[] = candidates.map(
     (candidate: Candidate): { key: string; candidate: Candidate } => ({
-      key: keyOf(threadOf(puzzle.width, candidate), puzzle.width),
+      key: threadKey(threadOf(puzzle.width, candidate), puzzle.width),
       candidate,
     }),
   );
@@ -132,7 +139,7 @@ function settledByRound(
   const settled: Set<string> = new Set<string>();
   const newlySettled = (): readonly Thread[] =>
     solution.filter((thread: Thread): boolean => {
-      const key: string = keyOf(thread, puzzle.width);
+      const key: string = threadKey(thread, puzzle.width);
       const ends: readonly number[] = [
         pegIndex(thread.squares[0]),
         pegIndex(thread.squares.at(-1)),
@@ -146,14 +153,17 @@ function settledByRound(
   const byRound: (readonly Thread[])[] = [newlySettled()];
   for (const round of rounds) {
     for (const step of round) {
-      for (const thread of step.ruledOut) alive.delete(keyOf(thread, puzzle.width));
+      for (const thread of step.ruledOut) alive.delete(threadKey(thread, puzzle.width));
     }
     byRound.push(newlySettled());
   }
   return byRound;
 }
 
-/** The same for a thread whichever peg it starts from. */
-function keyOf(thread: Thread, width: number): string {
-  return JSON.stringify(toSolution([thread], width)[0]);
+/** A round's steps can rule out the same path twice. */
+function uniqueThreads(threads: readonly Thread[], width: number): readonly Thread[] {
+  const byKey: Map<string, Thread> = new Map<string, Thread>(
+    threads.map((thread: Thread): [string, Thread] => [threadKey(thread, width), thread]),
+  );
+  return [...byKey.values()];
 }

@@ -9,7 +9,7 @@ What the game supports for screen reader and keyboard users today, and what's st
 - Each screen has its own `h1`. As a screen appears, focus moves to its heading (Play on the menu), so focus never stays on a button that just vanished (`src/view/screens.ts`)
 - How to Play is a native modal `<dialog>`: it traps focus, closes on Escape, and returns focus to the button that opened it
 - The win message sits in an `aria-live="polite"` region, so screen readers announce a solved level
-- How It Works steps with Back and Next or the arrow keys. Its step title and caption sit in an `aria-live="polite"` region, and each check reads its state ("Unique: failed") rather than relying on the tick, cross and colour. The board itself is hidden from screen readers, since the caption describes it
+- How It Works steps with Back and Next or the arrow keys. Its actor, heading and caption sit in an `aria-live="polite"` region, and the timeline marks the current step with `aria-current="step"`. The board and the badge that counts along with each animation are hidden from screen readers, since the caption describes the step. With reduced motion set, every animation shows its final frame, still
 - The masthead braid is decorative and hidden from screen readers
 - The page declares its language
 

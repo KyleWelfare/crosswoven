@@ -1,32 +1,117 @@
-.tour-checks {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-1) var(--space-3);
-  flex: none;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 0.875rem;
+/* How It Works wants more room than a level, for the timeline beside the board. */
+.page:has(> .tour:not([hidden])) {
+  width: min(100%, 1040px);
 }
 
-.tour-check {
+.tour-body {
   display: flex;
-  align-items: center;
-  gap: var(--space-1);
+  flex-direction: column;
+  gap: var(--space-3);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* A strip that scrolls sideways on a phone; a rail beside the board on a wide screen. */
+.tour-timeline {
+  display: flex;
+  gap: var(--space-2);
+  flex: none;
+  margin: 0;
+  padding: var(--space-1) 0 var(--space-2);
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+  counter-reset: step;
+}
+
+.tour-entry {
+  --actor: var(--ink-muted);
+  display: grid;
+  flex: none;
+  gap: 2px;
+  width: 9.5rem;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+  border-left: 3px solid var(--actor);
+  border-radius: 4px 10px 10px 4px;
+  background: var(--control);
+  opacity: 0.4;
+  counter-increment: step;
+  transition:
+    opacity 300ms ease,
+    background 300ms ease,
+    transform 300ms ease;
+}
+
+.tour-entry[data-actor="generator"] {
+  --actor: var(--thread-yellow);
+}
+
+.tour-entry[data-actor="search"] {
+  --actor: var(--thread-blue);
+}
+
+.tour-entry[data-actor="logic"] {
+  --actor: var(--thread-red);
+}
+
+.tour-entry[data-actor="validator"] {
+  --actor: var(--thread-green);
+}
+
+.tour-entry.is-seen {
+  opacity: 0.72;
+}
+
+.tour-entry.is-current {
+  opacity: 1;
+  background: var(--surface);
+  box-shadow: 0 4px 14px var(--board-shadow);
+}
+
+.tour-entry-actor {
+  color: var(--actor);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tour-entry-actor::before {
+  content: counter(step) " · ";
   color: var(--ink-muted);
 }
 
-.tour-check.is-passed {
-  color: var(--ink);
-}
-
-.tour-check.is-failed {
-  color: var(--thread-red);
-}
-
-.tour-check-mark {
+.tour-entry-heading {
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
   font-weight: 800;
+  line-height: 1.25;
+}
+
+.tour-show {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.tour-badge {
+  min-height: 1.5em;
+  margin: 0;
+  padding: 2px var(--space-3);
+  border-radius: 999px;
+  background: var(--control);
+  color: var(--ink);
+  font-size: 0.875rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tour-show .stage {
+  flex: 0 1 auto;
+  max-width: 560px;
 }
 
 .tour-text {
@@ -34,10 +119,19 @@
   text-align: center;
 }
 
-.tour-step-title {
+.tour-actor {
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tour-heading {
   margin: 0 0 var(--space-1);
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.375rem;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
@@ -63,11 +157,42 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Shares the space with the text below it, so it shrinks before they do. */
-.tour .stage {
-  margin-top: auto;
+@media (min-width: 900px) {
+  .tour-body {
+    display: grid;
+    grid-template-columns: 15rem 1fr;
+    gap: var(--space-5);
+  }
+
+  .tour-timeline {
+    flex-direction: column;
+    gap: 6px;
+    overflow: auto;
+    padding: 0 var(--space-1) 0 0;
+  }
+
+  /* Compact enough that all the steps fit beside the board on a laptop screen. */
+  .tour-entry {
+    gap: 0;
+    width: auto;
+    padding: 6px var(--space-2) 6px var(--space-3);
+  }
+
+  .tour-entry-actor {
+    font-size: 0.6875rem;
+  }
+
+  .tour-entry-heading {
+    font-size: 0.875rem;
+  }
+
+  .tour-entry.is-current {
+    transform: translateX(6px);
+  }
 }
 
-.tour .tour-nav {
-  margin-bottom: auto;
+@media (prefers-reduced-motion: reduce) {
+  .tour-entry {
+    transition: none;
+  }
 }

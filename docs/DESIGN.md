@@ -30,7 +30,7 @@ Crosswoven is a logic puzzle. A grid shows a coloured pattern and some numbered,
 
 A level can instead hide its picture (see Hidden pictures): the player sees only the pegs, walls, and which two colours cross at each two-colour square, and every other square takes one thread of any colour.
 
-The numbers keep each thread within reach of its pegs, so deductions stay local and puzzles scale to large grids, as in PathPix. Without them, any two pegs of a colour could pair from anywhere on the board, and an experiment found no unique 15×15 puzzles at all; with them, most random 15×15 layouts were unique before any tuning.
+The numbers keep each thread within reach of its pegs, so deductions stay local and puzzles scale to large grids, as in Link-a-Pix. Without them, any two pegs of a colour could pair from anywhere on the board, and an experiment found no unique 15×15 puzzles at all; with them, most random 15×15 layouts were unique before any tuning.
 
 ### The guarantee
 
@@ -99,7 +99,7 @@ A two-colour square fixes both of its threads, so crossings tend to give their t
 
 ### Hidden pictures
 
-An experiment, on the `hidden-picture` branch. Showing every square's colour pins each thread's colour region, so most shown levels are read rather than solved: a model of an expert player (`solveAsPlayer`, below) needs no deduction at all on 20 of the 23. PathPix hides its picture, so a level can too, with `hidden: true` in its picture and level files:
+An experiment, on the `hidden-picture` branch. Showing every square's colour pins each thread's colour region, so most shown levels are read rather than solved: a model of an expert player (`solveAsPlayer`, below) needs no deduction at all on 20 of the 23. Classic Link-a-Pix hides its picture, so a level can too, with `hidden: true` in its picture and level files:
 
 - The player sees the pegs, blank squares as walls no thread may enter, and on each two-colour square a pale wash of its mixed colour, which says which two colours cross there but not which runs across
 - Every other square is open field: exactly one thread of any colour covers it. Threads still cross only on two-colour squares, straight over each other, in those two colours

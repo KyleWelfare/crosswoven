@@ -1,18 +1,30 @@
+/* One screen tall, so the board and its controls are always in view together. */
 .page {
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: var(--space-4);
   width: min(100%, var(--column-width));
-  min-height: 100dvh;
+  height: 100dvh;
   margin: 0 auto;
   padding: var(--space-4) var(--space-3);
 }
 
+/*
+ * Shaped like the level (src/view/stage.ts sets the ratio), and allowed to shrink below that on a
+ * short screen: the board is drawn to fit whatever size the canvas ends up.
+ */
 .stage {
   display: block;
+  flex: 0 1 auto;
   width: 100%;
+  min-height: 0;
   aspect-ratio: 1;
   /* The board is dragged on, so touches mustn't scroll or zoom the page. */
   touch-action: none;
+}
+
+.masthead,
+.dock {
+  flex: none;
 }

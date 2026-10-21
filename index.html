@@ -13,6 +13,16 @@
         <svg id="braid" class="braid" aria-hidden="true"></svg>
       </header>
       <canvas id="stage" class="stage"></canvas>
+      <div class="dock">
+        <div id="controls" class="controls">
+          <button id="undo" class="button" type="button">Undo</button>
+          <button id="clear" class="button" type="button">Clear</button>
+        </div>
+        <section id="win" class="win is-hidden" aria-live="polite">
+          <p id="win-title" class="win-title"></p>
+          <button id="next" class="button button-primary" type="button">Next level</button>
+        </section>
+      </div>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>

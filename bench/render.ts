@@ -79,6 +79,9 @@ function worstCase(size: number): Model {
   return {
     puzzle: { id: "worst-case", title: "Worst case", width: size, height: size, pattern, pegs },
     threads,
+    drag: undefined,
+    history: [],
+    solvedFor: undefined,
   };
 }
 

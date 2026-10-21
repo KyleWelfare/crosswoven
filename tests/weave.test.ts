@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { wovenSquares } from "../src/app/weave.ts";
-import type { Point, Puzzle, ThreadColour } from "../src/core/puzzle.ts";
+import type { Puzzle } from "../src/core/puzzle.ts";
 import type { Thread } from "../src/core/thread.ts";
 import { puzzleOf } from "./fixtures/puzzle-of.ts";
+import { threadOf } from "./fixtures/thread-of.ts";
 
 const cross: Puzzle = puzzleOf(
   ["..B..", "..B..", "RRPRR", "..B..", "..B.."],
@@ -15,16 +16,6 @@ const cross: Puzzle = puzzleOf(
 );
 const across: Thread = threadOf("red", [0, 2], [1, 2], [2, 2], [3, 2], [4, 2]);
 const down: Thread = threadOf("blue", [2, 0], [2, 1], [2, 2], [2, 3], [2, 4]);
-
-function threadOf(
-  colour: ThreadColour,
-  ...squares: readonly (readonly [number, number])[]
-): Thread {
-  return {
-    colour,
-    squares: squares.map(([x, y]: readonly [number, number]): Point => ({ x, y })),
-  };
-}
 
 /** The woven squares as "x,y", which reads better in a failing assertion than 25 booleans. */
 function wovenAt(puzzle: Puzzle, threads: readonly Thread[]): string[] {

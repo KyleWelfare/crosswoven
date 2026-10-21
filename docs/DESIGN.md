@@ -36,12 +36,13 @@ Every shipped puzzle has exactly one solution, and it can be reached by deductio
 
 ## Play
 
-- Drag from a peg to lay a thread. Drag back along it to take steps off. Drag from any square of an existing thread to reroute it from there. Dragging from a peg that already has a thread starts that thread again
+- Drag from a peg to lay a thread. Drag back along it to take steps off. Drag from any square of an existing thread to reroute it from there; where two threads cross, that picks up the one laid last. Dragging from a peg that already has a thread starts that thread again, and tapping it clears the thread
+- A thread is a string cut to its peg's number: it can't grow longer, and it ties only at a peg of its colour and number once all of its length is used. Any other peg blocks it, and so do blank squares. It can cross squares of other colours, so the board doesn't steer the player towards the solution. Reaching a peg that already had a thread replaces that thread
 - While drawing, the thread shows how many squares it has, so the player can match it to the peg's number
-- Nothing stops a move that breaks a rule. The board is checked once every peg is tied
+- Nothing else stops a move that breaks a rule. The board is checked once every peg is tied
 - **Hint mode** is a toggle. While it's on, squares that break a rule are flagged live, and a Hint button highlights one forced move with a one-line reason ("this 3 can only reach the other 3 by going down")
-- Undo and Clear
-- On a win, the threads fade back and the cloth fills in with the finished picture
+- Undo and Clear. Clear can be undone too
+- The puzzle is solved when every peg is tied, every square has exactly its colours, and threads run straight through two-colour squares. The board then locks, the threads and pegs fade back to leave the finished picture, and the level's title and a Next button appear
 
 ### Levels
 

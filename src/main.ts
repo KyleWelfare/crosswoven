@@ -2,12 +2,18 @@ import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/layout.css";
 import "./styles/masthead.css";
-import type { Model } from "./app/model.ts";
+import "./styles/dock.css";
+import type { Msg } from "./app/messages.ts";
+import { startLevel, type Model } from "./app/model.ts";
+import { update } from "./app/update.ts";
+import { isFading } from "./app/win.ts";
 import { decodeLevel, type DecodeResult } from "./core/level-decoder.ts";
 import { decodeOrder, type OrderResult } from "./core/level-order.ts";
 import type { Puzzle } from "./core/puzzle.ts";
 import order from "./levels/order.json";
+import { listenForDrags } from "./view/board-input.ts";
 import { drawBraid } from "./view/braid.ts";
+import { findPanels, listenToPanels, renderPanels, type Panels } from "./view/panels.ts";
 import { drawStage } from "./view/stage.ts";
 import { createSpriteCache, type SpriteCache } from "./view/sprite-cache.ts";
 
@@ -39,12 +45,25 @@ const braid: SVGSVGElement | null = document.querySelector<SVGSVGElement>("#brai
 if (!braid) throw new Error("SVG #braid not found");
 drawBraid(braid);
 const levels: readonly Puzzle[] = shippedLevels();
-const first: Puzzle | undefined = levels[0];
+// TODO: drop ?level= once the level list can open any level.
+const requested: string | null = new URLSearchParams(location.search).get("level");
+const first: Puzzle | undefined =
+  levels.find((puzzle: Puzzle): boolean => puzzle.id === requested) ?? levels[0];
 if (!first) throw new Error("No levels shipped");
-const model: Model = { puzzle: first, threads: [] };
+let model: Model = startLevel(first);
 const sprites: SpriteCache = createSpriteCache();
+const panels: Panels = findPanels(document);
 
 let renderPending: boolean = false;
+let ticking: boolean = false;
+
+function dispatch(msg: Msg): void {
+  const next: Model = update(model, msg);
+  if (next === model) return;
+  model = next;
+  scheduleRender();
+  if (isFading(model)) startTicking();
+}
 
 function scheduleRender(): void {
   if (renderPending || !stage) return;
@@ -52,9 +71,30 @@ function scheduleRender(): void {
   requestAnimationFrame((): void => {
     renderPending = false;
     drawStage(stage, model, sprites);
+    renderPanels(panels, model, nextLevel() !== undefined);
   });
 }
 
+/** Sends a Tick each animation frame for as long as the win animation runs. */
+function startTicking(): void {
+  if (ticking) return;
+  ticking = true;
+  let last: number | undefined;
+  const frame = (time: number): void => {
+    if (last !== undefined) dispatch({ type: "Tick", dt: time - last });
+    last = time;
+    if (isFading(model)) requestAnimationFrame(frame);
+    else ticking = false;
+  };
+  requestAnimationFrame(frame);
+}
+
+function nextLevel(): Puzzle | undefined {
+  return levels[levels.indexOf(model.puzzle) + 1];
+}
+
+listenForDrags(stage, (): Puzzle => model.puzzle, dispatch);
+listenToPanels(panels, dispatch, nextLevel);
 new ResizeObserver(scheduleRender).observe(stage);
 // The palette comes from CSS custom properties that switch with the colour scheme.
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", scheduleRender);

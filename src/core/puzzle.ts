@@ -62,6 +62,10 @@ export function squareMask(square: SquareColour): ColourMask {
   );
 }
 
+export function pegAt(puzzle: Puzzle, square: Point): Peg | undefined {
+  return puzzle.pegs.find((peg: Peg): boolean => peg.x === square.x && peg.y === square.y);
+}
+
 export function formatPoint(point: Point): string {
   return `(${String(point.x)}, ${String(point.y)})`;
 }

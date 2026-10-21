@@ -21,6 +21,7 @@
   --page: #f7f4ee;
   --ink: #2a2723;
   --ink-muted: #7a7266;
+  --control: #e9e2d4;
 
   --board-frame: #e2dacb;
   --board-shadow: rgb(70 50 20 / 0.18);
@@ -56,6 +57,7 @@
     --page: #121110;
     --ink: #ece7de;
     --ink-muted: #948b7e;
+    --control: #262421;
 
     --board-frame: #0c0b0a;
     --board-shadow: rgb(0 0 0 / 0.6);

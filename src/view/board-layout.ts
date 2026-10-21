@@ -34,6 +34,25 @@ export function layoutBoard(
   };
 }
 
+/** The layout for the canvas at its current CSS size, so drawing and input agree on the squares. */
+export function canvasLayout(canvas: HTMLCanvasElement, puzzle: Puzzle): BoardLayout {
+  const ratio: number = window.devicePixelRatio;
+  return layoutBoard(
+    puzzle,
+    Math.round(canvas.clientWidth * ratio),
+    Math.round(canvas.clientHeight * ratio),
+    ratio,
+  );
+}
+
 export function squareOrigin(layout: BoardLayout, square: Point): Point {
   return { x: layout.left + square.x * layout.cell, y: layout.top + square.y * layout.cell };
+}
+
+/** The square under a point in device pixels, which may be off the board. */
+export function squareAt(layout: BoardLayout, point: Point): Point {
+  return {
+    x: Math.floor((point.x - layout.left) / layout.cell),
+    y: Math.floor((point.y - layout.top) / layout.cell),
+  };
 }

@@ -136,7 +136,7 @@ export function generateLevel(picture: Picture): Generation {
 /** The validator's checks, but saying where the trouble is so the generator knows what to split. */
 function checkLaying(puzzle: Puzzle): Check {
   const search: SearchResult = findSolutions(puzzle, 2);
-  if (!search.ok) return { outcome: "too-open", trouble: search.pegs.map(pointOf) };
+  if (!search.ok) return { outcome: "too-open", trouble: search.pegs.map(positionOf) };
   const [first, second]: readonly (Solution | undefined)[] = search.solutions;
   if (!first) throw new Error(`the generator's own threads don't solve "${puzzle.id}"`);
   if (second) return { outcome: "not-unique", trouble: differingSquares(first, second) };
@@ -249,8 +249,8 @@ function squareOf(grid: Grid, point: Point): number {
   return point.y * grid.width + point.x;
 }
 
-function pointOf(point: Point): Point {
-  return { x: point.x, y: point.y };
+function positionOf(peg: Peg): Point {
+  return { x: peg.x, y: peg.y };
 }
 
 /**

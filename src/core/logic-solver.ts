@@ -80,7 +80,7 @@ const applyRule: Readonly<Record<Rule, (board: Board) => boolean>> = {
   "only-reach": applyOnlyReach,
 };
 
-/** Solves by deduction alone, recording each step. `rules` limits which rules it may use. */
+/** `rules` limits which rules it may use. */
 export function solveLogically(puzzle: Puzzle, rules: readonly Rule[] = RULES): LogicResult {
   const list: CandidateList = listCandidates(puzzle);
   if (!list.ok) return { status: "too-open", pegs: list.pegs };
@@ -149,7 +149,7 @@ function applyPartner(board: Board): boolean {
     const elsewhere: readonly number[] = liveIn(board, board.byPeg[partner]).filter(
       (row: number): boolean => partnerOf(board, row, partner) !== index,
     );
-    return ruleOut(board, "partner", peg.colour, pointOf(peg), elsewhere);
+    return ruleOut(board, "partner", peg.colour, positionOf(peg), elsewhere);
   });
 }
 
@@ -168,7 +168,7 @@ function applyOnlyPath(board: Board): boolean {
         (square: number): readonly number[] => board.bySlot[slotOf(square, candidate.colour)] ?? [],
       ),
     ]).filter((row: number): boolean => row !== only);
-    return ruleOut(board, "only-path", peg.colour, pointOf(peg), clashes);
+    return ruleOut(board, "only-path", peg.colour, positionOf(peg), clashes);
   });
 }
 
@@ -189,7 +189,7 @@ function applyShared(board: Board): boolean {
         (square: number): readonly number[] => board.bySlot[slotOf(square, peg.colour)] ?? [],
       ),
     ).filter((row: number): boolean => !candidateAt(board, row).pegs.includes(index));
-    return ruleOut(board, "shared", peg.colour, pointOf(peg), others);
+    return ruleOut(board, "shared", peg.colour, positionOf(peg), others);
   });
 }
 
@@ -219,7 +219,7 @@ function applyOnlyReach(board: Board): boolean {
   });
 }
 
-/** Rules out `rows` as one step. False if there's nothing to rule out. */
+/** False if there's nothing to rule out. */
 function ruleOut(
   board: Board,
   rule: Rule,
@@ -250,7 +250,7 @@ function hasContradiction(board: Board): boolean {
   );
 }
 
-/** Each peg and slot down to one path; that each slot has exactly one rules out leftover clashes. */
+/** One live path per slot also means no two live paths clash. */
 function isSolved(board: Board): boolean {
   return (
     board.byPeg.every((rows: readonly number[]): boolean => liveIn(board, rows).length === 1) &&
@@ -281,12 +281,12 @@ function pointAt(board: Board, square: number): Point {
   return { x: square % board.puzzle.width, y: Math.floor(square / board.puzzle.width) };
 }
 
-function pointOf(point: Point): Point {
-  return { x: point.x, y: point.y };
+function positionOf(peg: Peg): Point {
+  return { x: peg.x, y: peg.y };
 }
 
 function unsettledPegs(board: Board): readonly Point[] {
   return board.puzzle.pegs.flatMap((peg: Peg, index: number): Point[] =>
-    liveIn(board, board.byPeg[index]).length > 1 ? [pointOf(peg)] : [],
+    liveIn(board, board.byPeg[index]).length > 1 ? [positionOf(peg)] : [],
   );
 }

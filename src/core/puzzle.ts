@@ -11,6 +11,8 @@ export interface Point {
 
 export interface Peg extends Point {
   readonly colour: ThreadColour;
+  /** Squares in the peg's thread, both pegs included. 1 is a thread on its own. */
+  readonly length: number;
 }
 
 export interface Puzzle {
@@ -58,4 +60,20 @@ export function squareMask(square: SquareColour): ColourMask {
     (mask: ColourMask, colour: ThreadColour): ColourMask => mask | colourBit(colour),
     0,
   );
+}
+
+export function formatPoint(point: Point): string {
+  return `(${String(point.x)}, ${String(point.y)})`;
+}
+
+/** Squares are numbered in reading order, `y * width + x`. */
+export function neighbourSquares(width: number, height: number, square: number): number[] {
+  const x: number = square % width;
+  const y: number = Math.floor(square / width);
+  const found: number[] = [];
+  if (x + 1 < width) found.push(square + 1);
+  if (y + 1 < height) found.push(square + width);
+  if (x > 0) found.push(square - 1);
+  if (y > 0) found.push(square - width);
+  return found;
 }

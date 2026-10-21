@@ -14,7 +14,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "bench": "node scripts/bench.ts",
-    "check": "npm run format:check && npm run lint && npm run typecheck && npm test"
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm test",
+    "levels": "node scripts/levels.ts && prettier --write src/levels"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

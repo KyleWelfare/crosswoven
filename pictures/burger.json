@@ -1,0 +1,16 @@
+{
+  "id": "burger",
+  "title": "Burger",
+  "lengths": [5, 10],
+  "pattern": [
+    ".....B.....",
+    "..YYYGYYY..",
+    ".YYYYGYYYY.",
+    ".RRRRPRRRR.",
+    ".YYYYGYYYY.",
+    ".RRRRPRRRR.",
+    ".YYYYGYYYY.",
+    "..YYYGYYY..",
+    ".....B....."
+  ]
+}

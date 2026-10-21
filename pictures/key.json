@@ -1,0 +1,5 @@
+{
+  "id": "key",
+  "title": "Key",
+  "pattern": [".YYY.....", "Y...Y....", "Y...YYYYY", "Y...Y..YY", ".YYY....."]
+}

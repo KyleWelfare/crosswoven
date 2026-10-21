@@ -1,16 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import type * as LogicSolver from "../src/core/logic-solver.ts";
 import { solveLogically } from "../src/core/logic-solver.ts";
-import { findSolutions } from "../src/core/search-solver.ts";
+import type { Peg } from "../src/core/puzzle.ts";
 import { validateLevel } from "../src/core/validator.ts";
+import { allSolutions } from "./fixtures/all-solutions.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
 import { decoded } from "./fixtures/puzzle-of.ts";
 import {
-  crossingLevel,
   guessingLevel,
-  loopLevel,
+  openLevel,
   pairingLevel,
-  strandLevel,
+  partnerLevel,
+  sharedLevel,
   turningCrossingLevel,
 } from "./fixtures/reference-puzzles.ts";
 
@@ -29,15 +30,23 @@ describe("validateLevel", (): void => {
       ok: true,
       puzzle: decoded(examplePuzzle),
       difficulty: "easy",
-      solution: findSolutions(decoded(examplePuzzle), 2)[0],
+      solution: allSolutions(decoded(examplePuzzle), 2)[0],
     });
   });
 
   it("passes on the decoder's errors for a malformed level", (): void => {
-    expect(validateLevel({ ...examplePuzzle, version: 2 })).toEqual({
+    expect(validateLevel({ ...examplePuzzle, version: 1 })).toEqual({
       ok: false,
       rejection: "invalid",
-      errors: ["unsupported version 2; expected 1"],
+      errors: ["unsupported version 1; expected 2"],
+    });
+  });
+
+  it("rejects a puzzle too open to check, naming the pegs", (): void => {
+    expect(validateLevel(openLevel)).toEqual({
+      ok: false,
+      rejection: "too-open",
+      errors: ["the red pegs at (0, 0) and (14, 14) have more than 100000 possible paths"],
     });
   });
 
@@ -60,14 +69,19 @@ describe("validateLevel", (): void => {
   });
 
   it("rates a puzzle by the hardest rule it needs", (): void => {
-    expect(validateLevel(crossingLevel)).toMatchObject({ ok: true, difficulty: "easy" });
-    expect(validateLevel(loopLevel)).toMatchObject({ ok: true, difficulty: "medium" });
-    expect(validateLevel(strandLevel)).toMatchObject({ ok: true, difficulty: "medium" });
+    expect(validateLevel(partnerLevel)).toMatchObject({ ok: true, difficulty: "easy" });
+    expect(validateLevel(sharedLevel)).toMatchObject({ ok: true, difficulty: "medium" });
   });
 
   it("throws when the logic solver finds a contradiction in a solvable puzzle", (): void => {
     vi.mocked(solveLogically).mockReturnValueOnce({ status: "contradiction", steps: [] });
-    expect((): unknown => validateLevel(crossingLevel)).toThrow("found a contradiction");
+    expect((): unknown => validateLevel(partnerLevel)).toThrow("found a contradiction");
+  });
+
+  it("throws when only the logic solver finds a puzzle too open", (): void => {
+    const peg: Peg = { x: 1, y: 0, colour: "blue", length: 2 };
+    vi.mocked(solveLogically).mockReturnValueOnce({ status: "too-open", pegs: [peg, peg] });
+    expect((): unknown => validateLevel(partnerLevel)).toThrow("too open");
   });
 
   it("throws when the solvers reach different solutions", (): void => {
@@ -77,6 +91,6 @@ describe("validateLevel", (): void => {
       difficulty: "easy",
       solution: [],
     });
-    expect((): unknown => validateLevel(crossingLevel)).toThrow("solvers disagree");
+    expect((): unknown => validateLevel(partnerLevel)).toThrow("solvers disagree");
   });
 });

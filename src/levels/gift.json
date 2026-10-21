@@ -1,0 +1,40 @@
+{
+  "version": 2,
+  "id": "gift",
+  "title": "Gift",
+  "pattern": [
+    "...BBB...",
+    ".RRRPRRR.",
+    ".RRRPRRR.",
+    ".RRRPRRR.",
+    ".RRRPRRR.",
+    ".RRRPRRR.",
+    ".RRRPRRR.",
+    ".RRRPRRR.",
+    "....B...."
+  ],
+  "pegs": [
+    { "x": 3, "y": 0, "length": 1 },
+    { "x": 4, "y": 0, "length": 9 },
+    { "x": 5, "y": 0, "length": 1 },
+    { "x": 3, "y": 1, "length": 7 },
+    { "x": 5, "y": 2, "length": 8 },
+    { "x": 6, "y": 2, "length": 7 },
+    { "x": 1, "y": 3, "length": 8 },
+    { "x": 2, "y": 3, "length": 5 },
+    { "x": 3, "y": 3, "length": 7 },
+    { "x": 1, "y": 4, "length": 6 },
+    { "x": 5, "y": 4, "length": 5 },
+    { "x": 6, "y": 4, "length": 7 },
+    { "x": 3, "y": 5, "length": 4 },
+    { "x": 6, "y": 5, "length": 4 },
+    { "x": 7, "y": 5, "length": 2 },
+    { "x": 3, "y": 6, "length": 6 },
+    { "x": 7, "y": 6, "length": 2 },
+    { "x": 1, "y": 7, "length": 6 },
+    { "x": 2, "y": 7, "length": 4 },
+    { "x": 5, "y": 7, "length": 4 },
+    { "x": 7, "y": 7, "length": 6 },
+    { "x": 4, "y": 8, "length": 9 }
+  ]
+}

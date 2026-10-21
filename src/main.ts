@@ -12,19 +12,19 @@ import { createSpriteCache, type SpriteCache } from "./view/sprite-cache.ts";
 
 // TODO: replace the demo with the level list once the pipeline ships levels to src/levels/.
 const demoLevel: unknown = {
-  version: 1,
+  version: 2,
   id: "lattice",
   title: "Lattice",
   pattern: [".RRR.", "BPBPB", "BPBPB", "BPBRR", "BR.RR"],
   pegs: [
-    { x: 2, y: 0 },
-    { x: 3, y: 0 },
-    { x: 4, y: 1 },
-    { x: 4, y: 2 },
-    { x: 2, y: 3 },
-    { x: 0, y: 4 },
-    { x: 1, y: 4 },
-    { x: 3, y: 4 },
+    { x: 2, y: 0, length: 6 },
+    { x: 3, y: 0, length: 7 },
+    { x: 4, y: 1, length: 10 },
+    { x: 4, y: 2, length: 10 },
+    { x: 2, y: 3, length: 4 },
+    { x: 0, y: 4, length: 4 },
+    { x: 1, y: 4, length: 6 },
+    { x: 3, y: 4, length: 7 },
   ],
 };
 

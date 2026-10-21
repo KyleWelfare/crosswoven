@@ -1,0 +1,18 @@
+{
+  "id": "fish",
+  "title": "Fish",
+  "lengths": [4, 8],
+  "pattern": [
+    ".............",
+    "......YY.....",
+    ".....BBBB....",
+    "Y...BBBBBBB..",
+    "YY.BBBBBBB.B.",
+    "YYYGGGGGGGYB.",
+    "YY.BBBBBBBBB.",
+    "Y...BBBBBBB..",
+    ".....BBBB....",
+    "......YY.....",
+    "............."
+  ]
+}

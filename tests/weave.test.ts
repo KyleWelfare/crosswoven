@@ -7,10 +7,10 @@ import { puzzleOf } from "./fixtures/puzzle-of.ts";
 const cross: Puzzle = puzzleOf(
   ["..B..", "..B..", "RRPRR", "..B..", "..B.."],
   [
-    [2, 0],
-    [2, 4],
-    [0, 2],
-    [4, 2],
+    [2, 0, 5],
+    [2, 4, 5],
+    [0, 2, 5],
+    [4, 2, 5],
   ],
 );
 const across: Thread = threadOf("red", [0, 2], [1, 2], [2, 2], [3, 2], [4, 2]);

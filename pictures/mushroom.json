@@ -1,0 +1,18 @@
+{
+  "id": "mushroom",
+  "title": "Mushroom",
+  "lengths": [3, 6],
+  "pattern": [
+    "...........",
+    "...RRRRR...",
+    "..RR.RRRR..",
+    ".RRRRRR.RR.",
+    ".R.RRRRRRR.",
+    "RRRRRR.RRRR",
+    "....YYY....",
+    "...ROOOR...",
+    "....YYY....",
+    "....YYY....",
+    "...YYYYY..."
+  ]
+}

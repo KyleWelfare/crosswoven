@@ -1,0 +1,22 @@
+{
+  "id": "sailboat",
+  "title": "Sailboat",
+  "lengths": [5, 10],
+  "pattern": [
+    "...............",
+    ".YY....R.......",
+    ".YY...YOY......",
+    ".....YYOYY.....",
+    "....YYYOYYY....",
+    "...YYYYOYYYY...",
+    "..YYYYYOYYYYY..",
+    ".......R.......",
+    ".RRRRRRRRRRRRR.",
+    "..RRRRRRRRRRR..",
+    "...RRRRRRRRR...",
+    "BBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBB"
+  ]
+}

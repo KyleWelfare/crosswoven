@@ -1,0 +1,5 @@
+{
+  "id": "heart",
+  "title": "Heart",
+  "pattern": [".......", ".RR.RR.", "RRRRRRR", "RRRRRRR", ".RRRRR.", "..RRR..", "...R..."]
+}

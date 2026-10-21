@@ -1,7 +1,9 @@
+import { DEFAULT_LENGTHS, type Picture, type ThreadLengths } from "./picture.ts";
 import {
   MAX_SIZE,
   MIN_SIZE,
   THREAD_COLOURS,
+  formatPoint,
   isThreadColour,
   threadsThrough,
   type Peg,
@@ -19,7 +21,9 @@ type Pattern = readonly (readonly SquareColour[])[];
 
 type JsonObject = Readonly<Record<string, unknown>>;
 
-const SUPPORTED_VERSION: number = 1;
+export type PegEntry = Omit<Peg, "colour">;
+
+const SUPPORTED_VERSION: number = 2;
 
 const squareCodes: ReadonlyMap<string, SquareColour> = new Map<string, SquareColour>([
   [".", "blank"],
@@ -31,6 +35,72 @@ const squareCodes: ReadonlyMap<string, SquareColour> = new Map<string, SquareCol
   ["G", "green"],
 ]);
 
+export type PictureResult =
+  | { readonly ok: true; readonly picture: Picture }
+  | { readonly ok: false; readonly errors: readonly string[] };
+
+/** The JSON a level is saved as. */
+export interface LevelFile {
+  readonly version: number;
+  readonly id: string;
+  readonly title: string;
+  readonly pattern: readonly string[];
+  readonly pegs: readonly PegEntry[];
+}
+
+const codesBySquare: ReadonlyMap<SquareColour, string> = new Map<SquareColour, string>(
+  [...squareCodes].map(([code, square]: [string, SquareColour]): [SquareColour, string] => [
+    square,
+    code,
+  ]),
+);
+
+/**
+ * A picture file holds a level's id, title and pattern, with no version or pegs. An optional
+ * `lengths: [min, max]` sets how long the generator lays its threads.
+ */
+export function decodePicture(json: unknown): PictureResult {
+  if (!isJsonObject(json)) return { ok: false, errors: ["the picture must be a JSON object"] };
+  const errors: string[] = [];
+  const id: string | undefined = decodeText(json, "id", errors);
+  const title: string | undefined = decodeText(json, "title", errors);
+  const pattern: Pattern | undefined = decodePattern(json["pattern"], errors);
+  const lengths: ThreadLengths | undefined = decodeLengths(json["lengths"], errors);
+  if (errors.length > 0 || id === undefined || title === undefined || !pattern || !lengths) {
+    return { ok: false, errors };
+  }
+  const width: number = pattern[0]?.length ?? 0;
+  return { ok: true, picture: { id, title, width, height: pattern.length, pattern, lengths } };
+}
+
+function decodeLengths(value: unknown, errors: string[]): ThreadLengths | undefined {
+  if (value === undefined) return DEFAULT_LENGTHS;
+  if (Array.isArray(value) && value.length === 2) {
+    const pair: readonly unknown[] = value;
+    const min: unknown = pair[0];
+    const max: unknown = pair[1];
+    if (isWholeNumber(min) && isWholeNumber(max) && min >= 1 && max >= min) return { min, max };
+  }
+  errors.push(`"lengths" must be [min, max], whole numbers with 1 <= min <= max`);
+  return undefined;
+}
+
+function isWholeNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isInteger(value);
+}
+
+export function encodeLevel(puzzle: Puzzle): LevelFile {
+  return {
+    version: SUPPORTED_VERSION,
+    id: puzzle.id,
+    title: puzzle.title,
+    pattern: puzzle.pattern.map((row: readonly SquareColour[]): string =>
+      row.map((square: SquareColour): string => codesBySquare.get(square) ?? ".").join(""),
+    ),
+    pegs: puzzle.pegs.map(({ x, y, length }: Peg): PegEntry => ({ x, y, length })),
+  };
+}
+
 /** Checks shape only: whether the pattern can be woven is the validator's job. */
 export function decodeLevel(json: unknown): DecodeResult {
   if (!isJsonObject(json)) return { ok: false, errors: ["the level must be a JSON object"] };
@@ -40,10 +110,10 @@ export function decodeLevel(json: unknown): DecodeResult {
   const id: string | undefined = decodeText(json, "id", errors);
   const title: string | undefined = decodeText(json, "title", errors);
   const pattern: Pattern | undefined = decodePattern(json["pattern"], errors);
-  const points: readonly Point[] | undefined = decodePoints(json["pegs"], errors);
+  const entries: readonly PegEntry[] | undefined = decodePegEntries(json["pegs"], errors);
   // Placement and counts only mean something once the pattern and every peg are well formed.
   const pegs: readonly Peg[] | undefined =
-    pattern && points ? placePegs(points, pattern, errors) : undefined;
+    pattern && entries ? placePegs(entries, pattern, errors) : undefined;
   if (pattern && pegs) checkPegCounts(pegs, pattern, errors);
 
   if (errors.length > 0 || id === undefined || title === undefined || !pattern || !pegs) {
@@ -122,7 +192,7 @@ function decodeSquare(code: string, x: number, y: number, errors: string[]): Squ
   return "blank";
 }
 
-function decodePoints(value: unknown, errors: string[]): readonly Point[] | undefined {
+function decodePegEntries(value: unknown, errors: string[]): readonly PegEntry[] | undefined {
   if (value === undefined) {
     errors.push(`missing field "pegs"`);
     return undefined;
@@ -132,20 +202,36 @@ function decodePoints(value: unknown, errors: string[]): readonly Point[] | unde
     return undefined;
   }
 
-  const points: Point[] = [];
-  (value as readonly unknown[]).forEach((entry: unknown, index: number): void => {
-    if (isPoint(entry)) points.push({ x: entry.x, y: entry.y });
-    else errors.push(`peg ${String(index)} must be an object with integer "x" and "y"`);
+  const entries: PegEntry[] = [];
+  (value as readonly unknown[]).forEach((json: unknown, index: number): void => {
+    const entry: PegEntry | undefined = decodePegEntry(json, index, errors);
+    if (entry) entries.push(entry);
   });
-  return points.length === value.length ? points : undefined;
+  return entries.length === value.length ? entries : undefined;
 }
 
-function isPoint(value: unknown): value is Point {
+function decodePegEntry(json: unknown, index: number, errors: string[]): PegEntry | undefined {
+  if (!isPoint(json)) {
+    errors.push(`peg ${String(index)} must be an object with integer "x" and "y"`);
+    return undefined;
+  }
+  const label: string = `peg ${String(index)} at ${formatPoint(json)}`;
+  const length: unknown = json["length"];
+  if (length === undefined) errors.push(`${label} is missing "length"`);
+  else if (typeof length !== "number" || !Number.isInteger(length) || length < 1) {
+    errors.push(
+      `${label} has length ${JSON.stringify(length)}; it must be a whole number from 1 up`,
+    );
+  } else return { x: json.x, y: json.y, length };
+  return undefined;
+}
+
+function isPoint(value: unknown): value is JsonObject & Point {
   return isJsonObject(value) && Number.isInteger(value["x"]) && Number.isInteger(value["y"]);
 }
 
 function placePegs(
-  points: readonly Point[],
+  entries: readonly PegEntry[],
   pattern: Pattern,
   errors: string[],
 ): readonly Peg[] | undefined {
@@ -153,21 +239,21 @@ function placePegs(
   const pegs: Peg[] = [];
   const firstIndexAt: Map<string, number> = new Map<string, number>();
 
-  points.forEach((point: Point, index: number): void => {
-    const label: string = `peg ${String(index)} at ${formatPoint(point)}`;
-    const square: SquareColour | undefined = pattern[point.y]?.[point.x];
+  entries.forEach((entry: PegEntry, index: number): void => {
+    const label: string = `peg ${String(index)} at ${formatPoint(entry)}`;
+    const square: SquareColour | undefined = pattern[entry.y]?.[entry.x];
     if (square === undefined) {
       errors.push(`${label} is outside the grid`);
       return;
     }
-    const key: string = formatPoint(point);
+    const key: string = formatPoint(entry);
     const firstIndex: number | undefined = firstIndexAt.get(key);
     if (firstIndex !== undefined) {
       errors.push(`${label} is a duplicate of peg ${String(firstIndex)}`);
       return;
     }
     firstIndexAt.set(key, index);
-    if (isThreadColour(square)) pegs.push({ ...point, colour: square });
+    if (isThreadColour(square)) pegs.push({ ...entry, colour: square });
     else errors.push(`${label} is on a ${square} square`);
   });
   return errors.length === countBefore ? pegs : undefined;
@@ -180,17 +266,27 @@ function checkPegCounts(pegs: readonly Peg[], pattern: Pattern, errors: string[]
       .flatMap((square: SquareColour): readonly ThreadColour[] => threadsThrough(square)),
   );
   for (const colour of THREAD_COLOURS) {
-    const count: number = pegs.filter((peg: Peg): boolean => peg.colour === colour).length;
-    if (count === 0 && used.has(colour)) {
+    const ofColour: readonly Peg[] = pegs.filter((peg: Peg): boolean => peg.colour === colour);
+    if (ofColour.length === 0 && used.has(colour)) {
       errors.push(`the pattern uses ${colour} but there are no ${colour} pegs`);
-    } else if (count % 2 === 1) {
-      errors.push(`there are ${String(count)} ${colour} pegs; each colour needs an even number`);
     }
+    checkPairs(colour, ofColour, errors);
   }
 }
 
-function formatPoint(point: Point): string {
-  return `(${String(point.x)}, ${String(point.y)})`;
+/** A length-1 peg is a whole thread; longer ones pair with a peg of the same colour and length. */
+function checkPairs(colour: ThreadColour, pegs: readonly Peg[], errors: string[]): void {
+  const lengths: readonly number[] = [...new Set(pegs.map((peg: Peg): number => peg.length))]
+    .filter((length: number): boolean => length > 1)
+    .sort((a: number, b: number): number => a - b);
+  for (const length of lengths) {
+    const count: number = pegs.filter((peg: Peg): boolean => peg.length === length).length;
+    if (count % 2 === 1) {
+      errors.push(
+        `${colour} pegs of length ${String(length)} can't all pair up (found ${String(count)})`,
+      );
+    }
+  }
 }
 
 function isJsonObject(value: unknown): value is JsonObject {

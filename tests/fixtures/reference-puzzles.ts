@@ -1,53 +1,68 @@
 import { levelJson, type LevelJson } from "./level-json.ts";
 
-/** Easy: needs the Crossing rule on top of Count. */
-export const crossingLevel: LevelJson = levelJson(
-  [".BRR.", "RPR..", "RPR..", ".B...", "....."],
+/** Easy: (2,0) can only reach (1,0), which frees (1,1) to pair with (1,2). */
+export const partnerLevel: LevelJson = levelJson(
+  [".BB..", ".B...", ".B...", ".....", "....."],
   [
-    [1, 0],
-    [3, 0],
-    [2, 2],
-    [1, 3],
+    [1, 0, 2],
+    [2, 0, 2],
+    [1, 1, 2],
+    [1, 2, 2],
   ],
 );
 
-/** Medium: (3,2) can't link down to (3,3), the other end of its own piece. */
-export const loopLevel: LevelJson = levelJson(
-  [".....", ".....", "..YYY", "..YYY", "....."],
+/** Easy: (3,0)'s one path runs through (1,1), so (1,0) can't. */
+export const onlyPathLevel: LevelJson = levelJson(
+  ["BB.B.", "BBBB.", ".B...", ".....", "....."],
   [
-    [2, 2],
-    [2, 3],
+    [1, 0, 3],
+    [3, 0, 5],
+    [0, 1, 3],
+    [1, 2, 5],
   ],
 );
 
-/** Medium: the only two pegs sit side by side, but joining them directly would strand the rest. */
-export const strandLevel: LevelJson = levelJson(
-  [".RRRR", ".RRRR", ".RRRR", "..RR.", "....."],
+/** Medium: every path from (1,0) runs through (1,1), so no other thread may. */
+export const sharedLevel: LevelJson = levelJson(
+  [".Y...", "YYY..", "YYY..", ".Y...", "....."],
   [
-    [2, 3],
-    [3, 3],
+    [1, 0, 4],
+    [2, 1, 4],
+    [0, 2, 4],
+    [1, 3, 4],
   ],
 );
 
-/** Unique, but settling which way the left side runs takes a two-step "what if". */
+/** Medium: only (1,5)'s paths reach (1,6), so its paths that miss it go. */
+export const onlyReachLevel: LevelJson = levelJson(
+  [".....", ".....", "..YYY", "..YYY", "..YYY", ".YYYY", ".YYYY"],
+  [
+    [2, 2, 8],
+    [3, 3, 9],
+    [1, 5, 9],
+    [3, 6, 8],
+  ],
+);
+
+/** Unique, but no rule applies from the start. */
 export const guessingLevel: LevelJson = levelJson(
-  [".....", "RRRRR", "RR.RR", "RR.RR", "RRRRR"],
+  [".....", "YYYYY", "Y.YYY", "YYYYY", "YYYY."],
   [
-    [2, 1],
-    [4, 1],
-    [3, 3],
-    [2, 4],
+    [4, 1, 8],
+    [1, 3, 10],
+    [4, 3, 10],
+    [0, 4, 8],
   ],
 );
 
-/** No solution: both threads would have to turn at the crossing. */
+/** No solution: both threads would have to turn at the crossing. Lengths assume they do. */
 export const turningCrossingLevel: LevelJson = levelJson(
   [".....", "..B..", ".RPB.", "..R..", "....."],
   [
-    [2, 1],
-    [3, 2],
-    [1, 2],
-    [2, 3],
+    [2, 1, 3],
+    [3, 2, 3],
+    [1, 2, 3],
+    [2, 3, 3],
   ],
 );
 
@@ -55,9 +70,18 @@ export const turningCrossingLevel: LevelJson = levelJson(
 export const pairingLevel: LevelJson = levelJson(
   ["RR...", "RR...", ".....", ".....", "....."],
   [
-    [0, 0],
-    [1, 0],
-    [0, 1],
-    [1, 1],
+    [0, 0, 2],
+    [1, 0, 2],
+    [0, 1, 2],
+    [1, 1, 2],
+  ],
+);
+
+/** Too open to check: tens of millions of paths join the two corners. */
+export const openLevel: LevelJson = levelJson(
+  Array.from({ length: 15 }, (): string => "R".repeat(15)),
+  [
+    [0, 0, 29],
+    [14, 14, 29],
   ],
 );

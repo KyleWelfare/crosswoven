@@ -1,0 +1,16 @@
+{
+  "id": "gift",
+  "title": "Gift",
+  "lengths": [4, 8],
+  "pattern": [
+    "...BBB...",
+    ".RRRPRRR.",
+    ".RRRPRRR.",
+    ".RRRPRRR.",
+    ".RRRPRRR.",
+    ".RRRPRRR.",
+    ".RRRPRRR.",
+    ".RRRPRRR.",
+    "....B...."
+  ]
+}

@@ -64,8 +64,14 @@ function worstCase(size: number): Model {
   for (let i: number = 0; i < size; i++) {
     threads.push({ colour: "red", squares: line((x: number): Point => ({ x, y: i })) });
     threads.push({ colour: "blue", squares: line((y: number): Point => ({ x: i, y })) });
-    pegs.push({ x: 0, y: i, colour: "red" }, { x: size - 1, y: i, colour: "red" });
-    pegs.push({ x: i, y: 0, colour: "blue" }, { x: i, y: size - 1, colour: "blue" });
+    pegs.push(
+      { x: 0, y: i, colour: "red", length: size },
+      { x: size - 1, y: i, colour: "red", length: size },
+    );
+    pegs.push(
+      { x: i, y: 0, colour: "blue", length: size },
+      { x: i, y: size - 1, colour: "blue", length: size },
+    );
   }
   const pattern: SquareColour[][] = Array.from({ length: size }, (): SquareColour[] =>
     Array.from({ length: size }, (): SquareColour => "purple"),

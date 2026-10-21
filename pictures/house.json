@@ -1,0 +1,18 @@
+{
+  "id": "house",
+  "title": "House",
+  "lengths": [4, 8],
+  "pattern": [
+    ".....R.....",
+    "....RRR....",
+    "...RRRRR...",
+    "..RRRRRRR..",
+    ".RRRRRRRRR.",
+    "..BBBBBBB..",
+    "..BYGYBBB..",
+    "..BYGYBYB..",
+    "..BBBBBYB..",
+    "..BBBBBYB..",
+    "..BBBBBYB.."
+  ]
+}

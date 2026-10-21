@@ -9,6 +9,7 @@ Project docs live in `docs/`. Read the ones that apply before starting work. Whe
 | Doc                        | Read when                                                                                                             |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | `docs/CODING_STANDARDS.md` | Every change                                                                                                          |
+| `docs/ACCESSIBILITY.md`    | Changing the page's markup or input, or anything a screen reader or keyboard user meets                               |
 | `docs/ARCHITECTURE.md`     | Adding, moving or wiring up code: which layer it belongs in, how state and messages flow, where effects go            |
 | `docs/DESIGN.md`           | Gameplay or API decisions: rules, the puzzle format, what makes a puzzle valid, hints, difficulty, the level pipeline |
 | `docs/PERFORMANCE.md`      | Changing anything that draws, or checking what a frame costs                                                          |

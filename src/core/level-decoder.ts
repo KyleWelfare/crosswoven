@@ -212,7 +212,9 @@ function decodePegEntries(value: unknown, errors: string[]): readonly PegEntry[]
 
 function decodePegEntry(json: unknown, index: number, errors: string[]): PegEntry | undefined {
   if (!isPoint(json)) {
-    errors.push(`peg ${String(index)} must be an object with integer "x" and "y"`);
+    errors.push(
+      `peg ${String(index)} must be an object with integer "x" and "y" and a whole-number "length" from 1 up`,
+    );
     return undefined;
   }
   const label: string = `peg ${String(index)} at ${formatPoint(json)}`;

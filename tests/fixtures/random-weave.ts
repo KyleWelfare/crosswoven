@@ -1,7 +1,7 @@
 import fc from "fast-check";
+import type { LevelFile, PegEntry } from "../../src/core/level-decoder.ts";
 import { THREAD_COLOURS, type Point, type ThreadColour } from "../../src/core/puzzle.ts";
 import type { Solution, Thread } from "../../src/core/thread.ts";
-import type { LevelJson, PegJson } from "./level-json.ts";
 
 export interface ThreadPlan {
   readonly colour: ThreadColour;
@@ -13,7 +13,7 @@ export interface ThreadPlan {
 export interface Weave {
   readonly width: number;
   readonly height: number;
-  readonly level: LevelJson;
+  readonly level: LevelFile;
   /** In the same canonical order as the search solver's solutions. */
   readonly threads: Solution;
 }
@@ -83,7 +83,7 @@ export const randomWeaves: fc.Arbitrary<Weave> = fc
  * The level these threads weave. Written independently of the search solver so the two can check
  * each other.
  */
-export function levelOf(width: number, height: number, threads: readonly Thread[]): LevelJson {
+export function levelOf(width: number, height: number, threads: readonly Thread[]): LevelFile {
   const board: readonly (readonly Occupant[])[] = boardOf(width, height, threads);
   const pattern: string[] = [];
   for (let y: number = 0; y < height; y++) {
@@ -92,12 +92,12 @@ export function levelOf(width: number, height: number, threads: readonly Thread[
       .map((occupants: readonly Occupant[]): string => patternCode(occupants));
     pattern.push(row.join(""));
   }
-  const pegs: PegJson[] = threads.flatMap((thread: Thread): PegJson[] =>
+  const pegs: PegEntry[] = threads.flatMap((thread: Thread): PegEntry[] =>
     (thread.squares.length === 1 ? thread.squares : [thread.squares[0], thread.squares.at(-1)])
       .filter((point: Point | undefined): point is Point => point !== undefined)
-      .map((point: Point): PegJson => ({ ...point, length: thread.squares.length })),
+      .map((point: Point): PegEntry => ({ ...point, length: thread.squares.length })),
   );
-  pegs.sort((a: PegJson, b: PegJson): number => a.y * width + a.x - (b.y * width + b.x));
+  pegs.sort((a: PegEntry, b: PegEntry): number => a.y * width + a.x - (b.y * width + b.x));
   return { version: 2, id: "random", title: "Random", pattern, pegs };
 }
 
@@ -191,7 +191,7 @@ function layThread(
   }
   // A thread can't end on a crossing: pegs sit on single-colour squares.
   while (path.length > 0 && occupantsAt(path.at(-1) ?? start).length > 0) path.pop();
-  return path.length >= 2 ? path : undefined;
+  return path;
 }
 
 function patternCode(occupants: readonly Occupant[]): string {

@@ -20,7 +20,6 @@ function withoutField(field: string): Record<string, unknown> {
   return level;
 }
 
-/** The example puzzle with `peg` inserted at `index`. */
 function withPeg(index: number, peg: object): Record<string, unknown> {
   const pegs: object[] = [...examplePuzzle.pegs];
   pegs.splice(index, 0, peg);
@@ -132,7 +131,7 @@ describe("decodeLevel", (): void => {
       ]);
     });
 
-    it("rejects pegs that aren't an array of integer points", (): void => {
+    it("rejects pegs that aren't an array of objects with x, y and length", (): void => {
       expect(errorsFor(withFields({ pegs: {} }))).toEqual([`"pegs" must be an array`]);
       expect(
         errorsFor(
@@ -141,9 +140,9 @@ describe("decodeLevel", (): void => {
           }),
         ),
       ).toEqual([
-        `peg 1 must be an object with integer "x" and "y"`,
-        `peg 2 must be an object with integer "x" and "y"`,
-        `peg 3 must be an object with integer "x" and "y"`,
+        `peg 1 must be an object with integer "x" and "y" and a whole-number "length" from 1 up`,
+        `peg 2 must be an object with integer "x" and "y" and a whole-number "length" from 1 up`,
+        `peg 3 must be an object with integer "x" and "y" and a whole-number "length" from 1 up`,
       ]);
     });
 

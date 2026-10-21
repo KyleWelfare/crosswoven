@@ -7,12 +7,11 @@ import {
   type Generation,
   type Laying,
 } from "../src/core/generator.ts";
-import { encodeLevel } from "../src/core/level-decoder.ts";
+import { encodeLevel, type LevelFile, type PegEntry } from "../src/core/level-decoder.ts";
 import { DEFAULT_LENGTHS, type Picture, type ThreadLengths } from "../src/core/picture.ts";
 import type { Peg, Point, Puzzle, SquareColour } from "../src/core/puzzle.ts";
 import type { Thread } from "../src/core/thread.ts";
 import { validateLevel } from "../src/core/validator.ts";
-import type { LevelJson, PegJson } from "./fixtures/level-json.ts";
 import { decoded } from "./fixtures/puzzle-of.ts";
 import { levelOf, randomWeaves, ruleBreaks, type Weave } from "./fixtures/random-weave.ts";
 
@@ -52,10 +51,10 @@ function laid(laying: Laying): Extract<Laying, { ok: true }> {
 /** Checked by code written independently of the generator, as for the search solver. */
 function expectWeaves(rows: readonly string[], laying: Laying): void {
   const { puzzle, threads }: Extract<Laying, { ok: true }> = laid(laying);
-  const rewoven: LevelJson = levelOf(puzzle.width, puzzle.height, threads);
+  const rewoven: LevelFile = levelOf(puzzle.width, puzzle.height, threads);
   expect(rewoven.pattern).toEqual(rows);
   expect(rewoven.pegs).toEqual(
-    puzzle.pegs.map(({ x, y, length }: Peg): PegJson => ({ x, y, length })),
+    puzzle.pegs.map(({ x, y, length }: Peg): PegEntry => ({ x, y, length })),
   );
   expect(ruleBreaks(puzzle.width, puzzle.height, threads)).toEqual([]);
 }

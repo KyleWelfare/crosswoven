@@ -1,6 +1,6 @@
 /*
- * src/view/stage.ts reads the board, thread, wash, woven, peg and weave tokens by name to paint the
- * canvas. Colours use a media query rather than light-dark(), because an unregistered custom
+ * src/view/palette.ts reads the board, thread, wash, woven, peg and weave tokens and the body font
+ * by name to paint the canvas. Colours use a media query rather than light-dark(), because an unregistered custom
  * property reads back unresolved and canvas can't parse light-dark().
  */
 
@@ -48,6 +48,7 @@
   --weave-shadow: rgb(0 0 0 / 0.28);
   --peg-shadow: rgb(50 35 10 / 0.35);
   --peg-shine: rgb(255 255 255 / 0.38);
+  --peg-number: #fff;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -30,8 +30,7 @@ const THREAD_WIDTH: number = 0.28;
  * per thread square, crossing and peg. Sprites are redrawn only when the square size or palette
  * changes, because unaccelerated canvas pays for every resampled or blurred pixel.
  */
-// TODO: peg numbers inside the pegs once Peg carries its thread length, hint flags and the win
-// animation.
+// TODO: hint flags and the win animation.
 export function drawStage(canvas: HTMLCanvasElement, model: Model, sprites: SpriteCache): void {
   const context: CanvasRenderingContext2D | null = canvas.getContext("2d");
   if (!context) throw new Error("Canvas 2D context unavailable");
@@ -170,12 +169,13 @@ function pegSprite(
 ): HTMLCanvasElement {
   return cachedSprite(
     sprites,
-    `peg ${peg.colour} ${tied ? "tied" : "loose"}`,
+    `peg ${peg.colour} ${tied ? "tied" : "loose"} ${String(peg.length)}`,
     (): HTMLCanvasElement =>
       drawPegSprite(
         palette.thread[peg.colour],
         palette.wash[peg.colour],
         tied,
+        peg.length,
         layout.cell,
         palette,
       ),

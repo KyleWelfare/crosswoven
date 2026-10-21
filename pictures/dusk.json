@@ -1,0 +1,24 @@
+{
+  "id": "dusk",
+  "title": "Dusk",
+  "hidden": true,
+  "lengths": [6, 14],
+  "seed": 6,
+  "pattern": [
+    "YYYYYYYYYYYYYYY",
+    "YYYYYYYYYYYYYYY",
+    "YYYYYYYYYYYYYYY",
+    "YYYYYYRRRYYYYYY",
+    "YYYYYRRRRRYYYYY",
+    "YYYYRRRRRRRYYYY",
+    "YYYRRRRRRRRRYYY",
+    "YYYRRRRRRRRRYYY",
+    "BBBBBBBBBBBBBBB",
+    "BBBBBRPPPRBBBBB",
+    "BBBBBBBBBBBBBBB",
+    "BBBBBBRPRBBBBBB",
+    "BBBBBBBBBBBBBBB",
+    "BBBBRPRBBRPRBBB",
+    "BBBBBBBBBBBBBBB"
+  ]
+}

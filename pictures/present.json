@@ -1,0 +1,24 @@
+{
+  "id": "present",
+  "title": "Present",
+  "hidden": true,
+  "lengths": [7, 16],
+  "seed": 157,
+  "pattern": [
+    "YYYYYYYYYYYYYYY",
+    "YYYYRRYYYRRYYYY",
+    "YYYYRYRYRYRYYYY",
+    "YYYYYRRRRRYYYYY",
+    "YBBBBBBPBBBBBBY",
+    "YBBBBBBPBBBBBBY",
+    "YBBBBBBRBBBBBBY",
+    "YBBBBBBPBBBBBBY",
+    "YBBBBBBRBBBBBBY",
+    "YBBBBBBPBBBBBBY",
+    "YBBBBBBPBBBBBBY",
+    "YBBBBBBRBBBBBBY",
+    "YBBBBBBPBBBBBBY",
+    "YBBBBBBPBBBBBBY",
+    "YYYYYYYRYYYYYYY"
+  ]
+}

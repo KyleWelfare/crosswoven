@@ -1,0 +1,25 @@
+{
+  "id": "arrow",
+  "title": "Arrow Through the Heart",
+  "hidden": true,
+  "lengths": [7, 16],
+  "sameNumbers": 0.3,
+  "seed": 146,
+  "pattern": [
+    "BBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBB",
+    "BBBRRRBBBRRRBBB",
+    "BBRRRRRBRRRRRBB",
+    "BRRRRRRRRRRRRRB",
+    "BRRRRRRRRRRRRRB",
+    "BRRRRRRRRRRRRYB",
+    "YYYOYYOYYOYYOYY",
+    "BRRRRRRRRRRRRYB",
+    "BBRRRRRRRRRRRBB",
+    "BBBRRRRRRRRRBBB",
+    "BBBBRRRRRRRBBBB",
+    "BBBBBRRRRRBBBBB",
+    "BBBBBBRRRBBBBBB",
+    "BBBBBBBRBBBBBBB"
+  ]
+}

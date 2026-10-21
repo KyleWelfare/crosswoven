@@ -1,10 +1,12 @@
 /**
  * Prints how each shipped level plays, in play order, as a markdown table. See SolveProfile in
- * src/core/solve-profile.ts for what each column counts.
+ * src/core/solve-profile.ts for what most columns count. Thinking rounds are the rounds of
+ * deduction a player needs beyond the moves they see (solveAsPlayer).
  */
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { decodeLevel, type DecodeResult } from "../src/core/level-decoder.ts";
+import { solveAsPlayer } from "../src/core/logic-solver.ts";
 import type { Puzzle } from "../src/core/puzzle.ts";
 import { profileSolve, type SolveProfile } from "../src/core/solve-profile.ts";
 
@@ -13,12 +15,14 @@ const LEVELS: string = join("src", "levels");
 const HEADER: readonly string[] = [
   "#",
   "Level",
+  "Picture",
   "Size",
   "Pegs",
   "Given",
   "With rivals",
   "Paths per peg",
   "Rounds",
+  "Thinking rounds",
   "Medium rounds",
   "Steps per round",
   "Obvious threads",
@@ -38,12 +42,14 @@ function row(id: string, index: number): readonly string[] {
   return [
     String(index + 1),
     puzzle.title,
+    puzzle.hidden === true ? "hidden" : "shown",
     `${String(puzzle.width)}×${String(puzzle.height)}`,
     String(profile.pegs),
     percentOf(profile.givenPegs, profile.pegs),
     percentOf(profile.pegsWithRivals, profile.pegs),
     profile.pathsPerPeg.toFixed(1),
     String(profile.rounds),
+    String(solveAsPlayer(puzzle).thinking.length),
     String(profile.mediumRounds),
     profile.stepsPerRound.toFixed(1),
     percentOf(profile.obviousThreads, profile.threads),

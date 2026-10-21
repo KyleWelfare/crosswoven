@@ -1,4 +1,4 @@
-import type { Puzzle, SquareColour, ThreadColour } from "../core/puzzle.ts";
+import type { Point, Puzzle, SquareColour, ThreadColour } from "../core/puzzle.ts";
 import { squareOrigin, type BoardLayout } from "./board-layout.ts";
 import type { Palette } from "./palette.ts";
 import { createSprite, type Sprite } from "./sprite-cache.ts";
@@ -31,8 +31,7 @@ export function drawBoardLayer(
 ): HTMLCanvasElement {
   const { canvas, context }: Sprite = createSprite(layout.width, layout.height);
   const cell: number = layout.cell;
-  const gap: number = Math.max(layout.ratio, TILE_GAP * cell);
-  const radius: number = TILE_RADIUS * cell;
+  const gap: number = tileGap(layout);
 
   context.save();
   context.shadowColor = palette.boardShadow;
@@ -45,26 +44,72 @@ export function drawBoardLayer(
     layout.top - gap / 2,
     puzzle.width * cell + gap,
     puzzle.height * cell + gap,
-    radius + gap / 2,
+    TILE_RADIUS * cell + gap / 2,
   );
   context.fill();
   context.restore();
 
   puzzle.pattern.forEach((row: readonly SquareColour[], y: number): void => {
     row.forEach((square: SquareColour, x: number): void => {
-      const { x: left, y: top }: { x: number; y: number } = squareOrigin(layout, { x, y });
-      context.fillStyle = palette.wash[square];
-      context.beginPath();
-      context.roundRect(left + gap / 2, top + gap / 2, cell - gap, cell - gap, radius);
-      context.fill();
-      pips[square].forEach((colour: ThreadColour, i: number): void => {
-        const inset: number = i === 0 ? PIP_INSET : 1 - PIP_INSET;
-        context.fillStyle = palette.thread[colour];
-        context.beginPath();
-        context.arc(left + inset * cell, top + PIP_INSET * cell, PIP_RADIUS * cell, 0, 2 * Math.PI);
-        context.fill();
-      });
+      paintSquare(
+        context,
+        squareOrigin(layout, { x, y }),
+        square,
+        palette.wash[square],
+        layout,
+        palette,
+      );
     });
   });
   return canvas;
+}
+
+/** A square's tile in its stronger colour, copied over the board once its threads match. */
+export function drawWovenSquare(
+  square: SquareColour,
+  layout: BoardLayout,
+  palette: Palette,
+): HTMLCanvasElement {
+  const { canvas, context }: Sprite = createSprite(layout.cell, layout.cell);
+  paintSquare(context, { x: 0, y: 0 }, square, palette.woven[square], layout, palette);
+  return canvas;
+}
+
+function paintSquare(
+  context: CanvasRenderingContext2D,
+  origin: Point,
+  square: SquareColour,
+  fill: string,
+  layout: BoardLayout,
+  palette: Palette,
+): void {
+  const cell: number = layout.cell;
+  const gap: number = tileGap(layout);
+  context.fillStyle = fill;
+  context.beginPath();
+  context.roundRect(
+    origin.x + gap / 2,
+    origin.y + gap / 2,
+    cell - gap,
+    cell - gap,
+    TILE_RADIUS * cell,
+  );
+  context.fill();
+  pips[square].forEach((colour: ThreadColour, i: number): void => {
+    const inset: number = i === 0 ? PIP_INSET : 1 - PIP_INSET;
+    context.fillStyle = palette.thread[colour];
+    context.beginPath();
+    context.arc(
+      origin.x + inset * cell,
+      origin.y + PIP_INSET * cell,
+      PIP_RADIUS * cell,
+      0,
+      2 * Math.PI,
+    );
+    context.fill();
+  });
+}
+
+function tileGap(layout: BoardLayout): number {
+  return Math.max(layout.ratio, TILE_GAP * layout.cell);
 }

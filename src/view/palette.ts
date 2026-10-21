@@ -10,6 +10,8 @@ export interface Palette {
   readonly shade: string;
   readonly thread: Readonly<Record<ThreadColour, string>>;
   readonly wash: Readonly<Record<SquareColour, string>>;
+  /** Squares whose threads already match the pattern. */
+  readonly woven: Readonly<Record<SquareColour, string>>;
 }
 
 export function readPalette(element: Element): Palette {
@@ -35,6 +37,15 @@ export function readPalette(element: Element): Palette {
       purple: css("--wash-purple"),
       orange: css("--wash-orange"),
       green: css("--wash-green"),
+    },
+    woven: {
+      blank: css("--wash-blank"),
+      red: css("--woven-red"),
+      blue: css("--woven-blue"),
+      yellow: css("--woven-yellow"),
+      purple: css("--woven-purple"),
+      orange: css("--woven-orange"),
+      green: css("--woven-green"),
     },
   };
 }

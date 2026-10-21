@@ -1,5 +1,5 @@
 /*
- * src/view/stage.ts reads the board, thread, wash, peg and weave tokens by name to paint the
+ * src/view/stage.ts reads the board, thread, wash, woven, peg and weave tokens by name to paint the
  * canvas. Colours use a media query rather than light-dark(), because an unregistered custom
  * property reads back unresolved and canvas can't parse light-dark().
  */
@@ -33,6 +33,13 @@
   --wash-orange: #f9e3cc;
   --wash-green: #d9eed8;
 
+  --woven-red: #dd6a5d;
+  --woven-blue: #6c8fe2;
+  --woven-yellow: #e8b52a;
+  --woven-purple: #a57bd5;
+  --woven-orange: #e88f45;
+  --woven-green: #6ab366;
+
   --thread-red: #d0443a;
   --thread-blue: #3a6ad0;
   --thread-yellow: #e2a81c;
@@ -59,6 +66,13 @@
     --wash-purple: #3a2d48;
     --wash-orange: #493424;
     --wash-green: #29402c;
+
+    --woven-red: #a8473c;
+    --woven-blue: #3f63b8;
+    --woven-yellow: #a88a24;
+    --woven-purple: #7a58b0;
+    --woven-orange: #a8652c;
+    --woven-green: #3f8a4a;
 
     --thread-red: #e6645a;
     --thread-blue: #6d95ea;

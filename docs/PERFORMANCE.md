@@ -67,6 +67,23 @@ Every case now holds 60 fps, including CPU-only raster at 4× throttling, which 
 
 The cost moved to the first frame, which now builds the board image, the rotated tiles, the crossing tiles and the peg sprites: up to about 80 ms on a throttled CPU-only device. That is a single dropped frame or two on load, rotation or a theme change. The GPU 5×5 first frame of 73.7 ms is the first run of the whole benchmark and includes cold start.
 
+### Woven squares
+
+Squares whose threads match the pattern switch to a stronger colour, so the picture fills in as the player weaves. Each frame works out which squares are woven (`wovenSquares` in `src/app/weave.ts`) and copies a cached stronger tile over each one. The worst case weaves every square, adding 225 copies to a 15×15 frame.
+
+| Raster   | Board | CPU | Canvas calls / frame | Issue commands (ms) | First frame, building tiles (ms) | Frame interval median / p90 / max (ms) |
+| -------- | ----- | --- | -------------------: | ------------------: | -------------------------------: | -------------------------------------: |
+| GPU      | 5×5   | 1×  |                   89 |                0.17 |                             79.2 |                     16.7 / 16.8 / 17.0 |
+| GPU      | 15×15 | 1×  |                  569 |                0.49 |                             10.7 |                     16.7 / 16.9 / 17.0 |
+| GPU      | 5×5   | 4×  |                   89 |                0.58 |                             47.9 |                     16.7 / 16.8 / 17.1 |
+| GPU      | 15×15 | 4×  |                  569 |                3.07 |                             31.6 |                     16.7 / 16.9 / 17.0 |
+| CPU only | 5×5   | 1×  |                   89 |                0.11 |                             22.1 |                     16.7 / 16.7 / 16.8 |
+| CPU only | 15×15 | 1×  |                  569 |                0.54 |                             11.9 |                     16.7 / 16.7 / 16.8 |
+| CPU only | 5×5   | 4×  |                   89 |                0.70 |                             89.3 |                     16.7 / 16.7 / 16.8 |
+| CPU only | 15×15 | 4×  |                  569 |                3.33 |                             66.4 |                     16.7 / 16.7 / 16.8 |
+
+Every case still holds 60 fps. Issuing a throttled 15×15 frame now takes about 3.3 ms of the 16.7 ms budget, almost all of it the extra copies: counting threads per square in flat typed arrays instead of a map per square made no measurable difference.
+
 ## Open
 
 - [ ] Check frame rate on a real low-end phone or Chromebook once one is available

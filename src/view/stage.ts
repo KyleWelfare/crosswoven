@@ -1,7 +1,8 @@
 import type { Model } from "../app/model.ts";
-import type { Peg, Point, Puzzle } from "../core/puzzle.ts";
+import { wovenSquares } from "../app/weave.ts";
+import type { Peg, Point, Puzzle, SquareColour } from "../core/puzzle.ts";
 import type { Thread } from "../core/thread.ts";
-import { drawBoardLayer } from "./board-layer.ts";
+import { drawBoardLayer, drawWovenSquare } from "./board-layer.ts";
 import { layoutBoard, squareOrigin, type BoardLayout } from "./board-layout.ts";
 import { readPalette, type Palette } from "./palette.ts";
 import { drawPegSprite } from "./peg-sprites.ts";
@@ -29,8 +30,8 @@ const THREAD_WIDTH: number = 0.28;
  * per thread square, crossing and peg. Sprites are redrawn only when the square size or palette
  * changes, because unaccelerated canvas pays for every resampled or blurred pixel.
  */
-// TODO: peg numbers once Peg carries its thread length, a deeper wash on squares whose threads
-// match, hint flags and the win animation.
+// TODO: peg numbers inside the pegs once Peg carries its thread length, hint flags and the win
+// animation.
 export function drawStage(canvas: HTMLCanvasElement, model: Model, sprites: SpriteCache): void {
   const context: CanvasRenderingContext2D | null = canvas.getContext("2d");
   if (!context) throw new Error("Canvas 2D context unavailable");
@@ -51,6 +52,7 @@ export function drawStage(canvas: HTMLCanvasElement, model: Model, sprites: Spri
     (): HTMLCanvasElement => drawBoardLayer(model.puzzle, layout, palette),
   );
   context.drawImage(board, 0, 0);
+  drawWovenSquares(context, model, layout, palette, sprites);
 
   const crossingsAt: Map<number, Crossing> = crossings(model.puzzle, model.threads);
   for (const thread of model.threads) {
@@ -78,6 +80,27 @@ export function drawStage(canvas: HTMLCanvasElement, model: Model, sprites: Spri
       pegSprite(sprites, peg, isTied(peg, model.threads), layout, palette),
     );
   }
+}
+
+function drawWovenSquares(
+  context: CanvasRenderingContext2D,
+  model: Model,
+  layout: BoardLayout,
+  palette: Palette,
+  sprites: SpriteCache,
+): void {
+  const woven: readonly boolean[] = wovenSquares(model.puzzle, model.threads);
+  model.puzzle.pattern.forEach((row: readonly SquareColour[], y: number): void => {
+    row.forEach((square: SquareColour, x: number): void => {
+      if (!woven[squareIndex(model.puzzle, { x, y })]) return;
+      const sprite: HTMLCanvasElement = cachedSprite(
+        sprites,
+        `woven ${square}`,
+        (): HTMLCanvasElement => drawWovenSquare(square, layout, palette),
+      );
+      blit(context, layout, { x, y }, sprite);
+    });
+  });
 }
 
 function fitBackingStore(canvas: HTMLCanvasElement, width: number, height: number): void {

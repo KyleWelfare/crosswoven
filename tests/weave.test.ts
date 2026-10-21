@@ -52,6 +52,25 @@ describe("wovenSquares", (): void => {
     const overBlank: Thread = threadOf("red", [0, 1], [1, 1]);
     expect(wovenAt(cross, [overBlank])).toEqual([]);
   });
+
+  describe("in a hidden level", (): void => {
+    const hiddenCross: Puzzle = { ...cross, hidden: true };
+
+    it("marks a one-colour square that one thread of any colour passes through", (): void => {
+      const stray: Thread = threadOf("blue", [0, 1], [0, 2], [0, 3]);
+      expect(wovenAt(hiddenCross, [stray])).toEqual(["0,2"]);
+    });
+
+    it("leaves a one-colour square unmarked with two threads through it", (): void => {
+      const stray: Thread = threadOf("blue", [0, 1], [0, 2], [0, 3]);
+      expect(wovenAt(hiddenCross, [across, stray])).not.toContain("0,2");
+    });
+
+    it("still marks a two-colour square only once both of its colours cross it", (): void => {
+      expect(wovenAt(hiddenCross, [across, down])).toContain("2,2");
+      expect(wovenAt(hiddenCross, [down])).not.toContain("2,2");
+    });
+  });
 });
 
 describe("mixOf", (): void => {

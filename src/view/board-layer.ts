@@ -1,3 +1,4 @@
+import { faceOf } from "../app/square-face.ts";
 import type { Point, Puzzle, SquareColour } from "../core/puzzle.ts";
 import { squareOrigin, type BoardLayout } from "./board-layout.ts";
 import type { Palette } from "./palette.ts";
@@ -39,7 +40,8 @@ export function drawBoardLayer(
 
   puzzle.pattern.forEach((row: readonly SquareColour[], y: number): void => {
     row.forEach((square: SquareColour, x: number): void => {
-      paintSquare(context, squareOrigin(layout, { x, y }), palette.wash[square], layout);
+      const fill: string = palette.wash[faceOf(puzzle, square)];
+      paintSquare(context, squareOrigin(layout, { x, y }), fill, layout);
     });
   });
   return canvas;

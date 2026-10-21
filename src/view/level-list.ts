@@ -1,4 +1,5 @@
 import type { Msg } from "../app/messages.ts";
+import { faceOf, type SquareFace } from "../app/square-face.ts";
 import type { Puzzle, SquareColour } from "../core/puzzle.ts";
 
 /** Fraction of a square left between neighbours, as on the board. */
@@ -32,7 +33,7 @@ function levelItem(puzzle: Puzzle, number: number, dispatch: (msg: Msg) => void)
   return item;
 }
 
-/** The pattern in the same pale washes the board starts with. */
+/** The board as it starts, in the same pale washes, so a hidden level keeps its picture back. */
 function thumbnail(puzzle: Puzzle): SVGSVGElement {
   const svg: SVGSVGElement = svgElement("svg");
   svg.setAttribute("viewBox", `0 0 ${String(puzzle.width)} ${String(puzzle.height)}`);
@@ -47,11 +48,17 @@ function thumbnail(puzzle: Puzzle): SVGSVGElement {
       rect.setAttribute("height", String(1 - SQUARE_GAP));
       rect.setAttribute("rx", String(SQUARE_GAP));
       // A fill attribute can't read a custom property; a style can.
-      rect.style.fill = `var(--wash-${square})`;
+      rect.style.fill = washOf(faceOf(puzzle, square));
       svg.append(rect);
     });
   });
   return svg;
+}
+
+function washOf(face: SquareFace): string {
+  return face === "wall"
+    ? "var(--board-frame)"
+    : `var(--wash-${face === "field" ? "blank" : face})`;
 }
 
 function text(className: string, content: string): HTMLSpanElement {

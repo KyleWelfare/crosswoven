@@ -63,10 +63,17 @@ export function drawStage(canvas: HTMLCanvasElement, game: Game, sprites: Sprite
   );
   context.drawImage(board, 0, 0);
   const threads: readonly Thread[] = shownThreads(game.puzzle, game.threads, game.drag);
-  drawWovenSquares(context, game.puzzle, threads, layout, palette, sprites);
-
-  // Once solved, the threads and pegs fade back to leave the picture.
+  // Once solved, the threads and pegs fade back to leave the picture. A hidden level's picture
+  // fades in then too: before, a square deepening as its threads match would give it away.
   const fade: number = winProgress(game);
+  if (game.puzzle.hidden !== true) {
+    drawWovenSquares(context, game.puzzle, threads, layout, palette, sprites);
+  } else if (fade > 0) {
+    context.globalAlpha = fade;
+    drawWovenSquares(context, game.puzzle, threads, layout, palette, sprites);
+    context.globalAlpha = 1;
+  }
+
   if (fade < 1) {
     context.globalAlpha = 1 - fade;
     drawThreads(context, game.puzzle, threads, layout, palette, sprites);

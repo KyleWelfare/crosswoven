@@ -78,4 +78,19 @@ describe("cutThreads", (): void => {
       threadOf("blue", [4, 2], [3, 2]),
     ]);
   });
+
+  describe("in a hidden level", (): void => {
+    it("holds one thread of any colour in a one-colour square", (): void => {
+      const hidden: Puzzle = { ...onBlue, hidden: true };
+      expect(cutThreads(hidden, [blueTied], redDown)).toEqual([
+        threadOf("blue", [0, 2], [1, 2]),
+        threadOf("blue", [4, 2], [3, 2]),
+      ]);
+    });
+
+    it("holds the two colours a crossing is marked with", (): void => {
+      const hidden: Puzzle = { ...onPurple, hidden: true };
+      expect(cutThreads(hidden, [blueTied], redDown)).toEqual([blueTied]);
+    });
+  });
 });

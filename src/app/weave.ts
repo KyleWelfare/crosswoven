@@ -1,5 +1,6 @@
 import {
   THREAD_COLOURS,
+  isThreadColour,
   threadsThrough,
   type MixedColour,
   type Puzzle,
@@ -25,8 +26,9 @@ export function mixOf(a: ThreadColour, b: ThreadColour): MixedColour {
 
 /**
  * Which squares, numbered `y * width + x`, have exactly the threads their colour asks for: one of
- * each colour the square shows and none of any other. Blank squares never count, so only the
- * picture fills in as the player weaves.
+ * each colour the square shows and none of any other. In a hidden level a one-colour square asks
+ * only for one thread, of any colour. Blank squares never count, so only the picture fills in as
+ * the player weaves.
  */
 export function wovenSquares(puzzle: Puzzle, threads: readonly Thread[]): readonly boolean[] {
   const size: number = puzzle.width * puzzle.height;
@@ -45,7 +47,9 @@ export function wovenSquares(puzzle: Puzzle, threads: readonly Thread[]): readon
   }
   return puzzle.pattern.flatMap((row: readonly SquareColour[], y: number): boolean[] =>
     row.map((square: SquareColour, x: number): boolean =>
-      isWoven(square, counts, y * puzzle.width + x),
+      puzzle.hidden === true && isThreadColour(square)
+        ? isCovered(counts, y * puzzle.width + x)
+        : isWoven(square, counts, y * puzzle.width + x),
     ),
   );
 }
@@ -58,5 +62,14 @@ function isWoven(square: SquareColour, counts: Counts, index: number): boolean {
       (colour: ThreadColour): boolean =>
         counts[colour][index] === (wanted.includes(colour) ? 1 : 0),
     )
+  );
+}
+
+function isCovered(counts: Counts, index: number): boolean {
+  return (
+    THREAD_COLOURS.reduce(
+      (total: number, colour: ThreadColour): number => total + (counts[colour][index] ?? 0),
+      0,
+    ) === 1
   );
 }

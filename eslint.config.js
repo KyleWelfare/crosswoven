@@ -20,7 +20,11 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/explicit-function-return-type": [
         "error",
-        { allowTypedFunctionExpressions: false },
+        {
+          allowTypedFunctionExpressions: false,
+          allowHigherOrderFunctions: false,
+          allowDirectConstAssertionInArrowFunctions: false,
+        },
       ],
       "@typescript-eslint/typedef": [
         "error",
@@ -39,6 +43,13 @@ export default tseslint.config(
       "@typescript-eslint/naming-convention": [
         "error",
         { selector: "default", format: ["camelCase"] },
+        // noUnusedParameters only accepts an unused parameter whose name starts with "_".
+        {
+          selector: "parameter",
+          modifiers: ["unused"],
+          format: ["camelCase"],
+          leadingUnderscore: "allow",
+        },
         { selector: "typeLike", format: ["PascalCase"] },
         {
           selector: "variable",

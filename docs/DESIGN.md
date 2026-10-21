@@ -28,6 +28,8 @@ Crosswoven is a logic puzzle. A grid shows a coloured pattern and some numbered,
 - Pegs sit on single-colour squares
 - The puzzle is solved when every peg is tied and every square matches the pattern
 
+A level can instead hide its picture (see Hidden pictures): the player sees only the pegs, walls, and which two colours cross at each two-colour square, and every other square takes one thread of any colour.
+
 The numbers keep each thread within reach of its pegs, so deductions stay local and puzzles scale to large grids, as in PathPix. Without them, any two pegs of a colour could pair from anywhere on the board, and an experiment found no unique 15×15 puzzles at all; with them, most random 15×15 layouts were unique before any tuning.
 
 ### The guarantee
@@ -38,16 +40,16 @@ Every shipped puzzle has exactly one solution, and it can be reached by deductio
 
 - Drag from a peg to lay a thread. Drag back along it to take steps off. Drag from any square of an existing thread to reroute it from there; where two threads cross, that picks up the one laid last. Dragging from a peg that already has a thread starts that thread again, and tapping it clears the thread
 - A thread is a string cut to its peg's number: it can't grow longer, and it ties only at a peg of its colour and number once all of its length is used. Any other peg blocks it, and so do blank squares. It can cross squares of other colours, so the board doesn't steer the player towards the solution. Reaching a peg that already had a thread replaces that thread
-- A square holds as many threads as it shows colours: one, or two crossing. Laying a thread into a full square cuts a thread already there, as in Flow, shown live while drawing. A thread whose colour the square doesn't show is cut first, then the one laid last. Each half stays at its peg and can be joined up again; a half with no peg is dropped
+- A square holds as many threads as it shows colours: one, or two crossing. In a hidden level the count is the same, but any colour may fill a one-thread square. Laying a thread into a full square cuts a thread already there, as in Flow, shown live while drawing. A thread whose colour the square doesn't show is cut first, then the one laid last. Each half stays at its peg and can be joined up again; a half with no peg is dropped
 - A thread being drawn shows no running count of its squares. The peg numbers are enough, and the board stays calmer
 - Nothing else stops a move that breaks a rule. The board is checked once every peg is tied
 - **Hint mode** is a toggle. While it's on, squares that break a rule are flagged live, and a Hint button highlights one forced move with a one-line reason ("this 3 can only reach the other 3 by going down")
 - Undo and Clear. Clear can be undone too
-- The puzzle is solved when every peg is tied, every square has exactly its colours, and threads run straight through two-colour squares. The board then locks, the threads and pegs fade back to leave the finished picture, and the level's title and a Next button appear
+- The puzzle is solved when every peg is tied, every square has exactly its colours, and threads run straight through two-colour squares. In a hidden level, every other square has one thread of any colour; the solution is unique, so its colours are the picture's. The board then locks, the threads and pegs fade back to leave the finished picture, and the level's title and a Next button appear
 
 ### Levels
 
-- Hand-drawn picture puzzles, rising in difficulty, unlocked in order. 23 so far, listed in `pictures/`: small openers that give most threads away, pictures that show off crossings, then broad pictures with longer, repeating numbers that take long chains of deduction. Each picture sets a target number of rounds (see Level pipeline), and the targets rise along the play order. `pictures/backlog/` holds pictures that don't ship, kept as development material
+- Hand-drawn picture puzzles, rising in difficulty, unlocked in order. 26 so far, listed in `pictures/`: small openers that give most threads away, pictures that show off crossings, then broad pictures with longer, repeating numbers that take long chains of deduction, and last three that hide their picture (Present, Dusk, Arrow Through the Heart). Each picture sets a target number of rounds (see Level pipeline), and the targets rise along the play order. `pictures/backlog/` holds pictures that don't ship, kept as development material
 - Grid sizes from 5×5 to 15×15. Larger grids are possible with numbered pegs, but 15×15 is the most a phone screen holds for version one
 - Each level shows its difficulty, Easy or Medium, rated by the hardest deduction it needs. A Hard tier waits on playtesting
 - Progress (cleared or not) is saved in local storage. No accounts, scores or sound
@@ -56,7 +58,7 @@ Every shipped puzzle has exactly one solution, and it can be reached by deductio
 
 The game opens on a menu:
 
-- **Play**: the level list. Each level is a numbered tile showing its pattern in the board's pale washes and its grid size. The title stays hidden, since it names the picture that solving reveals. Every level is open until progress is saved; then cleared levels are marked and the rest unlock in order
+- **Play**: the level list. Each level is a numbered tile showing its board as it starts, in the board's pale washes, and its grid size; a hidden level shows only its walls and crossings. The title stays hidden, since it names the picture that solving reveals. Every level is open until progress is saved; then cleared levels are marked and the rest unlock in order
 - **How to Play**: a simple modal with the rules, improved later if there's time
 - Each screen past the menu has a back button: a level goes back to the list, the list to the menu
 - **How It Works**: a slideshow of how a level is made and proven
@@ -95,6 +97,31 @@ A picture that wants a mixed colour as a freeform area (a purple grape, a green 
 
 A two-colour square fixes both of its threads, so crossings tend to give their threads away: a band of them is read, not solved. They add to the puzzle only when many threads cross a thin band and carry on into open areas on both sides, where the band fixes the middle of each thread but not where it ends or which peg it pairs with: a ribbon down a box (Parcel), posts standing in the sea (Pier), a broken reflection in the water (Sunset). Thick bands, and bands whose threads run along them rather than across, stay inert (Bridge, in `pictures/backlog/`). Nor should the crossings sit in consecutive rows: threads crossing a band row after row stack like the rungs of a ladder and run straight, so a player reads them off. Break the band up with single-colour squares between its crossings, as in Sunset's reflection, so the threads around it have to bend.
 
+### Hidden pictures
+
+An experiment, on the `hidden-picture` branch. Showing every square's colour pins each thread's colour region, so most shown levels are read rather than solved: a model of an expert player (`solveAsPlayer`, below) needs no deduction at all on 20 of the 23. PathPix hides its picture, so a level can too, with `hidden: true` in its picture and level files:
+
+- The player sees the pegs, blank squares as walls no thread may enter, and on each two-colour square a pale wash of its mixed colour, which says which two colours cross there but not which runs across
+- Every other square is open field: exactly one thread of any colour covers it. Threads still cross only on two-colour squares, straight over each other, in those two colours
+- Squares don't deepen as their threads match, which would give the picture away. Solving fades the picture in as the threads fade out. The solution is unique, so its colours are the picture's
+
+Both solvers stay an exact cover. A slot is room for one thread in one square (`src/core/slot.ts`): a shown square has a slot per colour it shows, and a hidden one-colour square has one slot every colour shares, so every solver, the generator and `sight.ts` run on both kinds of level with the same code.
+
+Hidden pictures are full rectangles: a background is a colour like any other. Two crossing ribbons can't be woven with straight bands: around the knot, the box colour's threads are forced into a ring with no ends. Present has one ribbon and a bow.
+
+Measured against the shown pack (`npm run difficulty`, and a count of each deduction's paths):
+
+| Levels                       | Rounds   | Thinking rounds   | Given pegs | Deductions ruling out another colour's thread   |
+| ---------------------------- | -------- | ----------------- | ---------- | ----------------------------------------------- |
+| Shown pack, 23 levels        | 0 to 21  | 0, except 1, 1, 9 | 18 to 100% | none, ever                                      |
+| Present, Dusk, Arrow (15×15) | 21 to 25 | 11, 13, 5         | 19 to 27%  | 16%, 4%, 16% (6, 6 and 4 of the thinking steps) |
+
+- Hiding makes colours interact. In a shown level each colour is its own puzzle; in a hidden one a thread of one colour rules out another colour's paths through the field, and Present, Dusk and Arrow each need 5 to 13 rounds of deduction a player can't see, against 0 for all but three shown levels
+- Crossings matter less than hoped. A mark still fixes its band's threads, so most deductions happen in the open field: 8 to 37% of all steps, and 1 to 6 thinking steps per level, involve a crossing. A lone crossing does gain something: its mark no longer says which colour runs across
+- Peg colours still sketch the picture: blue pegs gather in the sky, red in the heart. A player may guess regions from them, which the player model doesn't, so thinking rounds may overstate difficulty
+- Uniqueness costs pegs. With threads of 6 to 16 the generator splits until about 60 pegs on 15×15, against 36 to 57 for the hardest shown levels. Hidden levels settle fast, well under a second per 15×15 seed, with threads up to about 7 to 16. Past that, pairs start passing the 100,000-path cap and a seed takes up to half a minute, while difficulty stops rising
+- Rounds and thinking rounds come apart: across seeds the most rounds rarely means the most thinking, so the hidden levels pin seeds chosen for thinking rounds among those with at least Red Giant's 21 rounds, which the ramp needs at the end of the play order
+
 ## Puzzle format
 
 A level is versioned JSON. The pattern is one string per row; pegs are coordinates with the length of their thread, and each peg takes the colour of its square.
@@ -123,6 +150,7 @@ This example has exactly one solution. It uses only red and blue.
 - **Pattern codes:** `.` blank, `R` red, `B` blue, `Y` yellow, `P` purple, `O` orange, `G` green
 - **Coordinates:** squares, with `x` to the right and `y` down from the top-left
 - **Length:** squares in the thread, both pegs included. A peg with length 1 is a thread on its own
+- **Hidden:** `"hidden": true` hides the picture until it's solved (see Hidden pictures). Left out, the level shows it
 
 ### Decoder rules
 
@@ -133,6 +161,7 @@ The decoder turns unknown JSON into a `Puzzle` or a list of readable errors. It 
 - Unknown pattern codes
 - Pegs outside the grid, on blank or two-colour squares, or duplicated
 - A length that isn't a whole number from 1 up
+- A `hidden` field that isn't `true`
 - An odd number of pegs of any colour and length above 1, since those pair up, or a colour in the pattern with no pegs
 
 Errors name the problem and the place: "peg 4 at (2, 7) is on a purple square".
@@ -163,22 +192,22 @@ Each solver is checked against the other, so a bug in one shows up as a disagree
 
 Each rule rules out candidate paths. On 71,421 random unique puzzles they finished all but 15. There is no Hard tier yet; whether there should be one is settled after playtesting the level pack.
 
-| Rule       | Difficulty | Statement                                                                                                                         |
-| ---------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------- |
-| Partner    | Easy       | A peg can only pair with a peg of its colour and number that its thread could reach. If only one can, they pair                   |
-| Only path  | Easy       | When a pair has one path left, that is its thread                                                                                 |
-| Shared     | Medium     | Squares that every remaining path of a peg passes through belong to that peg's thread; no other thread of its colour may use them |
-| Only reach | Medium     | A square that only one peg's paths can reach must be on that peg's thread, so its paths that miss the square are ruled out        |
+| Rule       | Difficulty | Statement                                                                                                                      |
+| ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| Partner    | Easy       | A peg can only pair with a peg of its colour and number that its thread could reach. If only one can, they pair                |
+| Only path  | Easy       | When a pair has one path left, that is its thread                                                                              |
+| Shared     | Medium     | Squares that every remaining path of a peg passes through belong to that peg's thread; no other thread may take its slot there |
+| Only reach | Medium     | A square that only one peg's paths can reach must be on that peg's thread, so its paths that miss the square are ruled out     |
 
 Crossings need no rule of their own. Candidate paths only run straight through two-colour squares, and two colours can never both cross a square the same way: they would share every square onward to the edge of the grid. So once paths are listed, every crossing is already perpendicular.
 
 A puzzle's difficulty is the hardest rule its solve needs. Trial and error ("assume this, follow it, hit a contradiction") is not a rule: a puzzle that needs it counts as needing guessing and is rejected.
 
-The rating alone can't say how a level feels. `npm run difficulty` (`src/core/solve-profile.ts`) also counts how many pegs the board gives away (one possible path before any deduction), how many could pair more than one way, and how many rounds the solve takes when each round makes every deduction open at its start. Rounds are the longest chain of reasoning; many steps per round means the player never has to search. Playtesting found the first pack too easy, and the profile shows why: most pegs are given and most levels solve in one round or none.
+The rating alone can't say how a level feels. `npm run difficulty` (`src/core/solve-profile.ts`) also counts how many pegs the board gives away (one possible path before any deduction), how many could pair more than one way, and how many rounds the solve takes when each round makes every deduction open at its start. Rounds are the longest chain of reasoning; many steps per round means the player never has to search. Playtesting found the first pack too easy, and the profile shows why: most pegs are given and most levels solve in one round or none. It also shows thinking rounds: the rounds of deduction left once a model of an expert player (`src/core/sight.ts`, `solveAsPlayer`) has made every move they can see, so a long chain of forced moves costs nothing.
 
 A hint shows the next square or link the player can draw and the rule that forced it.
 
-`Puzzle` stores squares as readable colour names. The solvers convert the pattern once to bitmasks of thread colours (red 1, blue 2, yellow 4, so purple is 3), because their work is set operations: what a square still needs, whether a colour may enter, whether a square is satisfied.
+`Puzzle` stores squares as readable colour names. The solvers convert the pattern once to bitmasks of thread colours (red 1, blue 2, yellow 4, so purple is 3), because their work is set operations: what a square still needs, whether a colour may enter, whether a square is satisfied. Each square's room is a set of slots (see Hidden pictures), and every slot needs exactly one thread.
 
 ## Level pipeline
 
@@ -202,6 +231,7 @@ Kept from the prototype and refined later:
 - A weave theme. Crossings alternate over and under on a checkerboard, like plain-weave cloth
 - Where two threads cross, both are dyed their mixed colour through the middle of the square, blending back to their own colours at its edges. The mixing shows in the threads, not only the squares. Wrong crossings mix too, which shows the mismatch
 - Squares show a pale wash of their target colour, deeper once the threads there match. The colour alone names a two-colour square's threads, with no other mark, to keep the board calm
+- A hidden level shows open field in the blank wash, walls in the frame colour, and only its two-colour squares washed. Its picture fades in on solving
 - Pegs show their number, and are hollow until tied
 - Light and dark themes
 

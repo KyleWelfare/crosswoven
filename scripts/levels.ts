@@ -1,6 +1,7 @@
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
-import { generateLevel, type Generation } from "../src/core/generator.ts";
+import { format, resolveConfig, type Options } from "prettier";
+import { generateLevel, type GeneratedLevel, type Generation } from "../src/core/generator.ts";
 import { decodePicture, encodeLevel, type PictureResult } from "../src/core/level-decoder.ts";
 import { decodeOrder, type OrderResult } from "../src/core/level-order.ts";
 import { formatPoint } from "../src/core/puzzle.ts";
@@ -9,11 +10,14 @@ const PICTURES: string = "pictures";
 const LEVELS: string = join("src", "levels");
 /** The play order, as a list of picture ids. */
 const ORDER: string = "order.json";
+const BOM: string = String.fromCharCode(0xfeff);
 
-function makeLevel(file: string): boolean {
-  const decoded: PictureResult = decodePicture(
-    JSON.parse(readFileSync(join(PICTURES, file), "utf8")),
-  );
+type JsonFile = { readonly ok: true; readonly json: unknown } | { readonly ok: false };
+
+async function makeLevel(file: string): Promise<boolean> {
+  const read: JsonFile = readPictureFile(file);
+  if (!read.ok) return false;
+  const decoded: PictureResult = decodePicture(read.json);
   if (!decoded.ok) {
     console.error(`${file}: ${decoded.errors.join("; ")}`);
     return false;
@@ -24,12 +28,15 @@ function makeLevel(file: string): boolean {
   }
   const generation: Generation = generateLevel(decoded.picture);
   if (!generation.ok) {
+    const squares: string = generation.badSquares.map(formatPoint).join(" ");
     console.error(
-      `${file}: can't be woven; check ${generation.badSquares.map(formatPoint).join(" ")}`,
+      generation.reason === "unweavable"
+        ? `${file}: can't be woven; check ${squares}`
+        : `${file}: never settled into a puzzle the validator accepts; trouble at ${squares}`,
     );
     return false;
   }
-  writeFileSync(join(LEVELS, file), `${levelJson(generation)}\n`);
+  await writeFormatted(join(LEVELS, file), levelJson(generation));
   console.log(
     `${file}: ${generation.difficulty}, ${String(generation.puzzle.pegs.length)} pegs, ` +
       `${String(generation.attempts.length)} attempts`,
@@ -37,22 +44,45 @@ function makeLevel(file: string): boolean {
   return true;
 }
 
+/** Reports why, by file name, if the file can't be read or isn't JSON. */
+function readPictureFile(file: string): JsonFile {
+  try {
+    const text: string = readFileSync(join(PICTURES, file), "utf8");
+    // Windows editors may save a byte order mark, which JSON.parse rejects.
+    const json: unknown = JSON.parse(text.startsWith(BOM) ? text.slice(1) : text);
+    return { ok: true, json };
+  } catch (error) {
+    console.error(`${file}: ${error instanceof Error ? error.message : String(error)}`);
+    return { ok: false };
+  }
+}
+
 /** One peg per line, which Prettier then leaves alone. */
-function levelJson(generation: Extract<Generation, { ok: true }>): string {
+function levelJson(generation: GeneratedLevel): string {
   return JSON.stringify(encodeLevel(generation.puzzle), null, 2).replace(
     /\{\s+"x": (\d+),\s+"y": (\d+),\s+"length": (\d+)\s+\}/g,
     '{ "x": $1, "y": $2, "length": $3 }',
   );
 }
 
+/** Formats here, not after the script, so one failing picture leaves the others formatted. */
+async function writeFormatted(path: string, json: string): Promise<void> {
+  const options: Options | null = await resolveConfig(path);
+  writeFileSync(path, await format(json, { ...options, filepath: path }));
+}
+
 const files: readonly string[] = readdirSync(PICTURES)
   .filter((file: string): boolean => file.endsWith(".json") && file !== ORDER)
   .sort();
-const order: OrderResult = decodeOrder(
-  JSON.parse(readFileSync(join(PICTURES, ORDER), "utf8")),
-  files.map((file: string): string => basename(file, ".json")),
-);
-if (order.ok) writeFileSync(join(LEVELS, ORDER), `${JSON.stringify(order.order, null, 2)}\n`);
-else console.error(`${ORDER}: ${order.errors.join("; ")}`);
-const made: readonly boolean[] = files.map(makeLevel);
-if (!order.ok || made.includes(false)) process.exitCode = 1;
+const orderFile: JsonFile = readPictureFile(ORDER);
+const order: OrderResult | undefined = orderFile.ok
+  ? decodeOrder(
+      orderFile.json,
+      files.map((file: string): string => basename(file, ".json")),
+    )
+  : undefined;
+if (order?.ok) await writeFormatted(join(LEVELS, ORDER), JSON.stringify(order.order, null, 2));
+else if (order) console.error(`${ORDER}: ${order.errors.join("; ")}`);
+const made: boolean[] = [];
+for (const file of files) made.push(await makeLevel(file));
+if (!order?.ok || made.includes(false)) process.exitCode = 1;

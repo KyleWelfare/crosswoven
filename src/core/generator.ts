@@ -4,6 +4,7 @@ import {
   THREAD_COLOURS,
   formatPoint,
   neighbourSquares,
+  positionOf,
   threadsThrough,
   type Peg,
   type Point,
@@ -81,9 +82,13 @@ export function layThreads(picture: Picture, seed: number): Laying {
   return { ok: true, puzzle: puzzleOf(picture, threads), threads };
 }
 
-/** Rounds of splitting per seed, and seeds, before the generator gives up on a picture. */
-export const ROUNDS_PER_SEED: number = 50;
-export const SEEDS: number = 10;
+/** Seeds, and rounds of splitting per seed, before the generator gives up on a picture. */
+export interface Limits {
+  readonly seeds: number;
+  readonly roundsPerSeed: number;
+}
+
+export const DEFAULT_LIMITS: Limits = { seeds: 10, roundsPerSeed: 50 };
 
 export type Outcome = "accepted" | "too-open" | "not-unique" | "needs-guessing";
 
@@ -96,16 +101,22 @@ export interface Attempt {
   readonly trouble: readonly Point[];
 }
 
+export interface GeneratedLevel {
+  readonly ok: true;
+  readonly puzzle: Puzzle;
+  readonly difficulty: Difficulty;
+  readonly attempts: readonly Attempt[];
+}
+
 export type Generation =
-  | {
-      readonly ok: true;
-      readonly puzzle: Puzzle;
-      readonly difficulty: Difficulty;
-      readonly attempts: readonly Attempt[];
-    }
-  /** The picture can't be woven, or never settled: these squares are why. */
+  | GeneratedLevel
+  /**
+   * `unweavable`: these squares can't be woven. `unsettled`: no seed ended in a puzzle the
+   * validator accepts, and these squares were the last trouble each seed hit.
+   */
   | {
       readonly ok: false;
+      readonly reason: "unweavable" | "unsettled";
       readonly badSquares: readonly Point[];
       readonly attempts: readonly Attempt[];
     };
@@ -117,19 +128,21 @@ interface Check {
 
 /**
  * Lays threads, then splits a thread where the puzzle goes wrong until the validator accepts it.
- * Each split adds two pegs, which can only narrow the solutions. Seeds are tried from 1 up, so a
- * picture always gives the same level.
+ * Splitting keeps the laid threads a solution and usually narrows the others. Seeds are tried
+ * from 1 up, so a picture always gives the same level.
  */
-export function generateLevel(picture: Picture): Generation {
+export function generateLevel(picture: Picture, limits: Limits = DEFAULT_LIMITS): Generation {
   const grid: Grid = gridOf(picture);
   const attempts: Attempt[] = [];
   const unsettled: Point[] = [];
-  for (let seed: number = 1; seed <= SEEDS; seed++) {
+  for (let seed: number = 1; seed <= limits.seeds; seed++) {
     const laying: Laying = layThreads(picture, seed);
-    if (!laying.ok) return { ok: false, badSquares: laying.badSquares, attempts };
+    if (!laying.ok) {
+      return { ok: false, reason: "unweavable", badSquares: laying.badSquares, attempts };
+    }
     let threads: Solution | undefined = laying.threads;
     let trouble: readonly Point[] = [];
-    for (let round: number = 0; threads && round < ROUNDS_PER_SEED; round++) {
+    for (let round: number = 0; threads && round < limits.roundsPerSeed; round++) {
       const puzzle: Puzzle = puzzleOf(picture, threads);
       const check: Check = checkLaying(puzzle);
       attempts.push({ seed, threads, ...check });
@@ -139,7 +152,7 @@ export function generateLevel(picture: Picture): Generation {
     }
     unsettled.push(...trouble);
   }
-  return { ok: false, badSquares: uniquePoints(unsettled), attempts };
+  return { ok: false, reason: "unsettled", badSquares: uniquePoints(unsettled), attempts };
 }
 
 /** The validator's checks, but saying where the trouble is so the generator knows what to split. */
@@ -154,7 +167,7 @@ function checkLaying(puzzle: Puzzle): Check {
   return { outcome: "accepted", trouble: [] };
 }
 
-function accepted(puzzle: Puzzle, attempts: readonly Attempt[]): Generation {
+function accepted(puzzle: Puzzle, attempts: readonly Attempt[]): GeneratedLevel {
   const verdict: Verdict = validatePuzzle(puzzle);
   if (!verdict.ok) {
     throw new Error(`the validator rejected "${puzzle.id}" after the generator's checks passed`);
@@ -256,10 +269,6 @@ function uniquePoints(points: readonly Point[]): readonly Point[] {
 
 function squareOf(grid: Grid, point: Point): number {
   return point.y * grid.width + point.x;
-}
-
-function positionOf(peg: Peg): Point {
-  return { x: peg.x, y: peg.y };
 }
 
 /**

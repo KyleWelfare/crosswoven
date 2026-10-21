@@ -66,6 +66,11 @@ export function pegAt(puzzle: Puzzle, square: Point): Peg | undefined {
   return puzzle.pegs.find((peg: Peg): boolean => peg.x === square.x && peg.y === square.y);
 }
 
+/** Drops a peg's colour and length, so it compares equal to a plain point. */
+export function positionOf(peg: Peg): Point {
+  return { x: peg.x, y: peg.y };
+}
+
 export function formatPoint(point: Point): string {
   return `(${String(point.x)}, ${String(point.y)})`;
 }

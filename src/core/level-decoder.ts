@@ -25,15 +25,21 @@ export type PegEntry = Omit<Peg, "colour">;
 
 const SUPPORTED_VERSION: number = 2;
 
-const squareCodes: ReadonlyMap<string, SquareColour> = new Map<string, SquareColour>([
-  [".", "blank"],
-  ["R", "red"],
-  ["B", "blue"],
-  ["Y", "yellow"],
-  ["P", "purple"],
-  ["O", "orange"],
-  ["G", "green"],
-]);
+const patternCodes: Readonly<Record<SquareColour, string>> = {
+  blank: ".",
+  red: "R",
+  blue: "B",
+  yellow: "Y",
+  purple: "P",
+  orange: "O",
+  green: "G",
+};
+
+const squareCodes: ReadonlyMap<string, SquareColour> = new Map<string, SquareColour>(
+  Object.keys(patternCodes)
+    .filter(isSquareColour)
+    .map((square: SquareColour): [string, SquareColour] => [patternCodes[square], square]),
+);
 
 export type PictureResult =
   | { readonly ok: true; readonly picture: Picture }
@@ -47,13 +53,6 @@ export interface LevelFile {
   readonly pattern: readonly string[];
   readonly pegs: readonly PegEntry[];
 }
-
-const codesBySquare: ReadonlyMap<SquareColour, string> = new Map<SquareColour, string>(
-  [...squareCodes].map(([code, square]: [string, SquareColour]): [SquareColour, string] => [
-    square,
-    code,
-  ]),
-);
 
 /**
  * A picture file holds a level's id, title and pattern, with no version or pegs. An optional
@@ -95,10 +94,14 @@ export function encodeLevel(puzzle: Puzzle): LevelFile {
     id: puzzle.id,
     title: puzzle.title,
     pattern: puzzle.pattern.map((row: readonly SquareColour[]): string =>
-      row.map((square: SquareColour): string => codesBySquare.get(square) ?? ".").join(""),
+      row.map((square: SquareColour): string => patternCodes[square]).join(""),
     ),
     pegs: puzzle.pegs.map(({ x, y, length }: Peg): PegEntry => ({ x, y, length })),
   };
+}
+
+function isSquareColour(name: string): name is SquareColour {
+  return Object.hasOwn(patternCodes, name);
 }
 
 /** Checks shape only: whether the pattern can be woven is the validator's job. */

@@ -4,6 +4,7 @@ import {
   generateLevel,
   layThreads,
   type Attempt,
+  type GeneratedLevel,
   type Generation,
   type Laying,
 } from "../src/core/generator.ts";
@@ -193,7 +194,7 @@ describe("layThreads", (): void => {
   });
 });
 
-function generated(generation: Generation): Extract<Generation, { ok: true }> {
+function generated(generation: Generation): GeneratedLevel {
   if (!generation.ok) throw new Error("expected a level, got bad squares");
   return generation;
 }
@@ -206,7 +207,7 @@ describe("generateLevel", (): void => {
   it("always ends in a level the validator accepts", (): void => {
     fc.assert(
       fc.property(randomWeaves, (weave: Weave): void => {
-        const { puzzle }: Extract<Generation, { ok: true }> = generated(
+        const { puzzle }: GeneratedLevel = generated(
           generateLevel(pictureOf(decoded(weave.level))),
         );
         expect(validateLevel(encodeLevel(puzzle))).toMatchObject({ ok: true });
@@ -231,9 +232,25 @@ describe("generateLevel", (): void => {
     expect(attempts[1]?.threads.length).toBe((attempts[0]?.threads.length ?? 0) + 1);
   });
 
+  it("gives up once every seed runs out of rounds, naming the squares still in trouble", (): void => {
+    const rows: readonly string[] = [
+      "..........",
+      "........BB",
+      "....YYY.B.",
+      "...YYY....",
+      "..........",
+    ];
+    const generation: Generation = generateLevel(picture(rows), { seeds: 1, roundsPerSeed: 1 });
+    expect(generation).toMatchObject({ ok: false, reason: "unsettled" });
+    if (generation.ok) return;
+    expect(generation.badSquares).toEqual(generation.attempts[0]?.trouble);
+    expect(generation.badSquares).not.toEqual([]);
+  });
+
   it("reports a picture that can't be woven", (): void => {
     expect(generateLevel(picture(["RPR..", ".B...", ".....", ".....", "....."]))).toEqual({
       ok: false,
+      reason: "unweavable",
       badSquares: [{ x: 1, y: 0 }],
       attempts: [],
     });

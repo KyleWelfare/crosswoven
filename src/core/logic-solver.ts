@@ -7,6 +7,7 @@ import {
 } from "./candidate-paths.ts";
 import {
   THREAD_COLOURS,
+  positionOf,
   threadsThrough,
   type Peg,
   type Point,
@@ -279,10 +280,6 @@ function slotOf(square: number, colour: ThreadColour): number {
 
 function pointAt(board: Board, square: number): Point {
   return { x: square % board.puzzle.width, y: Math.floor(square / board.puzzle.width) };
-}
-
-function positionOf(peg: Peg): Point {
-  return { x: peg.x, y: peg.y };
 }
 
 function unsettledPegs(board: Board): readonly Point[] {

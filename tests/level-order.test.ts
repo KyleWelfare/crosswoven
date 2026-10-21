@@ -24,7 +24,7 @@ describe("decodeOrder", (): void => {
       ok: false,
       errors: [
         `"key" is listed more than once`,
-        `"kite" has no level`,
+        `"kite" is not a known level`,
         `"heart" is missing from the order`,
       ],
     });

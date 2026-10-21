@@ -12,7 +12,7 @@ export function decodeOrder(json: unknown, ids: readonly string[]): OrderResult 
   const errors: string[] = [];
   order.forEach((id: string, index: number): void => {
     if (order.indexOf(id) !== index) errors.push(`"${id}" is listed more than once`);
-    else if (!known.has(id)) errors.push(`"${id}" has no level`);
+    else if (!known.has(id)) errors.push(`"${id}" is not a known level`);
   });
   for (const id of ids) {
     if (!order.includes(id)) errors.push(`"${id}" is missing from the order`);

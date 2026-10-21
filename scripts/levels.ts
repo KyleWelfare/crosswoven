@@ -8,8 +8,8 @@ import { formatPoint } from "../src/core/puzzle.ts";
 
 const PICTURES: string = "pictures";
 const LEVELS: string = join("src", "levels");
-/** The play order, as a list of picture ids. */
-const ORDER: string = "order.json";
+/** Lists the picture ids in play order. */
+const ORDER_FILE: string = "order.json";
 const BOM: string = String.fromCharCode(0xfeff);
 
 type JsonFile = { readonly ok: true; readonly json: unknown } | { readonly ok: false };
@@ -72,17 +72,17 @@ async function writeFormatted(path: string, json: string): Promise<void> {
 }
 
 const files: readonly string[] = readdirSync(PICTURES)
-  .filter((file: string): boolean => file.endsWith(".json") && file !== ORDER)
+  .filter((file: string): boolean => file.endsWith(".json") && file !== ORDER_FILE)
   .sort();
-const orderFile: JsonFile = readPictureFile(ORDER);
-const order: OrderResult | undefined = orderFile.ok
+const orderRead: JsonFile = readPictureFile(ORDER_FILE);
+const order: OrderResult | undefined = orderRead.ok
   ? decodeOrder(
-      orderFile.json,
+      orderRead.json,
       files.map((file: string): string => basename(file, ".json")),
     )
   : undefined;
-if (order?.ok) await writeFormatted(join(LEVELS, ORDER), JSON.stringify(order.order, null, 2));
-else if (order) console.error(`${ORDER}: ${order.errors.join("; ")}`);
+if (order?.ok) await writeFormatted(join(LEVELS, ORDER_FILE), JSON.stringify(order.order, null, 2));
+else if (order) console.error(`${ORDER_FILE}: ${order.errors.join("; ")}`);
 const made: boolean[] = [];
 for (const file of files) made.push(await makeLevel(file));
 if (!order?.ok || made.includes(false)) process.exitCode = 1;

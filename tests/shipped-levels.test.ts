@@ -8,8 +8,8 @@ import {
   type PictureResult,
 } from "../src/core/level-decoder.ts";
 import { decodeOrder, type OrderResult } from "../src/core/level-order.ts";
-import type { Difficulty } from "../src/core/logic-solver.ts";
 import { formatPoint } from "../src/core/puzzle.ts";
+import { profileSolve, type SolveProfile } from "../src/core/solve-profile.ts";
 import { validateLevel, type Verdict } from "../src/core/validator.ts";
 import order from "../src/levels/order.json";
 import pictureOrder from "../pictures/order.json";
@@ -24,9 +24,9 @@ const pictures: Readonly<Record<string, unknown>> = import.meta.glob(
   { eager: true, import: "default" },
 );
 
-interface RatedLevel {
+interface ProfiledLevel {
   readonly id: string;
-  readonly difficulty: Difficulty;
+  readonly rounds: number;
 }
 
 function idOf(path: string): string {
@@ -62,17 +62,17 @@ describe("shipped levels", (): void => {
     expect(order).toEqual(pictureOrder);
   });
 
-  it("rises in difficulty along the play order", (): void => {
-    const rank: Readonly<Record<Difficulty, number>> = { easy: 0, medium: 1 };
-    const rated: readonly RatedLevel[] = order.map((id: string): RatedLevel => {
-      const verdict: Verdict = validateLevel(levels[`../src/levels/${id}.json`]);
-      if (!verdict.ok) throw new Error(`${id} has no level that passes the validator`);
-      return { id, difficulty: verdict.difficulty };
+  it("never takes fewer rounds of deduction than the level before", (): void => {
+    const profiled: readonly ProfiledLevel[] = order.map((id: string): ProfiledLevel => {
+      const decoded: DecodeResult = decodeLevel(levels[`../src/levels/${id}.json`]);
+      const profile: SolveProfile | undefined = decoded.ok
+        ? profileSolve(decoded.puzzle)
+        : undefined;
+      if (!profile) throw new Error(`${id} has no level the logic solver finishes`);
+      return { id, rounds: profile.rounds };
     });
-    expect(rated).toEqual(
-      [...rated].sort(
-        (a: RatedLevel, b: RatedLevel): number => rank[a.difficulty] - rank[b.difficulty],
-      ),
+    expect(profiled).toEqual(
+      [...profiled].sort((a: ProfiledLevel, b: ProfiledLevel): number => a.rounds - b.rounds),
     );
   });
 

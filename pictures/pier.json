@@ -1,0 +1,24 @@
+{
+  "id": "pier",
+  "title": "Pier",
+  "lengths": [4, 8],
+  "sameNumbers": 1,
+  "targetRounds": 6,
+  "pattern": [
+    "...............",
+    ".........YYY...",
+    "........YYYYY..",
+    ".........YYY...",
+    "...............",
+    "RRRRRRRRRRRR...",
+    ".R...R...R.....",
+    ".R...R...R.....",
+    "BPBBBPBBBPBBBBB",
+    "BPBBBPBBBPBBBBB",
+    "BRBBBRBBBRBBBBB",
+    "BBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBB",
+    "YYYYYYYYYYYYYYY",
+    "YYYYYYYYYYYYYYY"
+  ]
+}

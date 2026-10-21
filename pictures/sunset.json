@@ -1,0 +1,24 @@
+{
+  "id": "sunset",
+  "title": "Sunset",
+  "lengths": [4, 8],
+  "sameNumbers": 1,
+  "targetRounds": 7,
+  "pattern": [
+    "...............",
+    "......YYY......",
+    "....YYYYYYY....",
+    "...YYYYYYYYY...",
+    "..YYYYYYYYYYY..",
+    ".YYYYYYYYYYYYY.",
+    "BBBBBBBGBBBBBBB",
+    "BBBBBBBYBBBBBBB",
+    "BBBBBBBGBBBBBBB",
+    "BBBBBBBYBBBBBBB",
+    "BBBBBBBGBBBBBBB",
+    "BBBBBBBYBBBBBBB",
+    "BBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBB",
+    "..............."
+  ]
+}

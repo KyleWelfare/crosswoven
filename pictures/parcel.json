@@ -1,0 +1,22 @@
+{
+  "id": "parcel",
+  "title": "Parcel",
+  "lengths": [4, 8],
+  "sameNumbers": 1,
+  "targetRounds": 8,
+  "pattern": [
+    ".............",
+    "...YYY.YYY...",
+    "....YYYYY....",
+    "......Y......",
+    ".RRRRRORRRRR.",
+    ".RRRRRORRRRR.",
+    ".RRRRRORRRRR.",
+    ".RRRRRORRRRR.",
+    ".RRRRRORRRRR.",
+    ".RRRRRORRRRR.",
+    ".RRRRRORRRRR.",
+    "......Y......",
+    "............."
+  ]
+}

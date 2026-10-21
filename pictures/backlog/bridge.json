@@ -1,0 +1,21 @@
+{
+  "id": "bridge",
+  "title": "Bridge",
+  "lengths": [4, 8],
+  "sameNumbers": 1,
+  "pattern": [
+    "...............",
+    ".YYYY.BB.YYYYY.",
+    ".YYYYYBB.YYYYY.",
+    ".YYYYYBBYYYYYY.",
+    ".YYYYYBBYYYYYY.",
+    ".YYYYYBBYYYYYY.",
+    "RRRRRRPPRRRRRRR",
+    ".YYYYYBBYYYYYY.",
+    ".YYYYYBBYYYYYY.",
+    ".YYYYYBBYYYYYY.",
+    ".YYYYYBBYYYYYY.",
+    ".YYYY.BB.YYYYY.",
+    "..............."
+  ]
+}

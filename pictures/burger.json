@@ -2,6 +2,7 @@
   "id": "burger",
   "title": "Burger",
   "lengths": [5, 10],
+  "targetRounds": 1,
   "pattern": [
     ".....B.....",
     "..YYYGYYY..",

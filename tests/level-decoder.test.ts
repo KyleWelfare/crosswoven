@@ -311,6 +311,32 @@ describe("decodePicture", (): void => {
     },
   );
 
+  it("takes the same-numbers bias and target rounds when given", (): void => {
+    const { id, title, pattern }: typeof examplePuzzle = examplePuzzle;
+    expect(decodePicture({ id, title, pattern, sameNumbers: 0.5, targetRounds: 4 })).toMatchObject({
+      ok: true,
+      picture: { sameNumbers: 0.5, targetRounds: 4 },
+    });
+  });
+
+  it("rejects a same-numbers bias outside 0 to 1 and a target that isn't a count", (): void => {
+    const { id, title, pattern }: typeof examplePuzzle = examplePuzzle;
+    expect(decodePicture({ id, title, pattern, sameNumbers: 1.5, targetRounds: -1 })).toEqual({
+      ok: false,
+      errors: [
+        `"sameNumbers" must be a number from 0 to 1`,
+        `"targetRounds" must be a whole number from 0 up`,
+      ],
+    });
+    expect(decodePicture({ id, title, pattern, sameNumbers: "high", targetRounds: 2.5 })).toEqual({
+      ok: false,
+      errors: [
+        `"sameNumbers" must be a number from 0 to 1`,
+        `"targetRounds" must be a whole number from 0 up`,
+      ],
+    });
+  });
+
   it("rejects bad fields the way levels do", (): void => {
     expect(decodePicture({ id: "", pattern: ["...."] })).toEqual({
       ok: false,

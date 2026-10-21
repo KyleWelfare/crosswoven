@@ -1,6 +1,7 @@
 {
   "id": "kite",
   "title": "Kite",
+  "targetRounds": 1,
   "pattern": [
     ".....R.....",
     "....YOY....",

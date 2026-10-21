@@ -1,0 +1,23 @@
+{
+  "id": "lighthouse",
+  "title": "Lighthouse",
+  "sameNumbers": 1,
+  "targetRounds": 4,
+  "pattern": [
+    "...........",
+    "....YYY....",
+    "...RRRRR...",
+    "....YYY....",
+    "....RRR....",
+    "....RRR....",
+    "...YYYYY...",
+    "...YYYYY...",
+    "...RRRRR...",
+    "...RRRRR...",
+    "..YYYYYYY..",
+    "..YYYYYYY..",
+    "BBBBBBBBBBB",
+    "BBBBBBBBBBB",
+    "BBBBBBBBBBB"
+  ]
+}

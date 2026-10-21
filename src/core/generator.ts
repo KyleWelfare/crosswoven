@@ -14,6 +14,7 @@ import {
 } from "./puzzle.ts";
 import { createRng, randomInt, shuffled, type Rng } from "./rng.ts";
 import { findSolutions, type SearchResult } from "./search-solver.ts";
+import { profileSolve, type SolveProfile } from "./solve-profile.ts";
 import { toSolution, type Solution, type Thread } from "./thread.ts";
 import { validatePuzzle, type Verdict } from "./validator.ts";
 
@@ -32,6 +33,12 @@ interface Grid {
 interface ColourPath {
   readonly colour: ThreadColour;
   readonly squares: readonly number[];
+}
+
+interface LayingStyle {
+  readonly lengths: ThreadLengths;
+  /** See Picture. */
+  readonly sameNumbers: number;
 }
 
 /** For each two-colour square, the colour whose thread runs across it; the other runs down. */
@@ -70,7 +77,8 @@ export function layThreads(picture: Picture, seed: number): Laying {
   const rng: Rng = createRng(seed);
   const paths: ColourPath[] = [];
   for (const [colour, forced] of forcedByColour) {
-    for (const squares of layColour(grid, colour, forced, picture.lengths, rng)) {
+    const style: LayingStyle = { lengths: picture.lengths, sameNumbers: picture.sameNumbers ?? 0 };
+    for (const squares of layColour(grid, colour, forced, style, rng)) {
       paths.push({ colour, squares });
     }
   }
@@ -87,7 +95,7 @@ export interface Limits {
   readonly roundsPerSeed: number;
 }
 
-export const DEFAULT_LIMITS: Limits = { seeds: 10, roundsPerSeed: 50 };
+export const DEFAULT_LIMITS: Limits = { seeds: 30, roundsPerSeed: 50 };
 
 export type Outcome = "accepted" | "too-open" | "not-unique" | "needs-guessing";
 
@@ -104,6 +112,7 @@ export interface GeneratedLevel {
   readonly ok: true;
   readonly puzzle: Puzzle;
   readonly difficulty: Difficulty;
+  readonly profile: SolveProfile;
   readonly attempts: readonly Attempt[];
 }
 
@@ -125,15 +134,23 @@ interface Check {
   readonly trouble: readonly Point[];
 }
 
+/** A puzzle the validator accepts, and how it plays. */
+interface Settled {
+  readonly puzzle: Puzzle;
+  readonly profile: SolveProfile;
+}
+
 /**
  * Lays threads, then splits a thread where the puzzle goes wrong until the validator accepts it.
  * Splitting keeps the laid threads a solution and usually narrows the others. Seeds are tried
- * from 1 up, so a picture always gives the same level.
+ * from 1 up, so a picture always gives the same level. With a target, every seed is settled and
+ * the one closest to it kept; without, the first.
  */
 export function generateLevel(picture: Picture, limits: Limits = DEFAULT_LIMITS): Generation {
   const grid: Grid = gridOf(picture);
   const attempts: Attempt[] = [];
   const unsettled: Point[] = [];
+  let best: Settled | undefined;
   for (let seed: number = 1; seed <= limits.seeds; seed++) {
     const laying: Laying = layThreads(picture, seed);
     if (!laying.ok) {
@@ -141,17 +158,49 @@ export function generateLevel(picture: Picture, limits: Limits = DEFAULT_LIMITS)
     }
     let threads: Solution | undefined = laying.threads;
     let trouble: readonly Point[] = [];
+    let settled: Settled | undefined;
     for (let round: number = 0; threads && round < limits.roundsPerSeed; round++) {
       const puzzle: Puzzle = puzzleOf(picture, threads);
       const check: Check = checkLaying(puzzle);
       attempts.push({ seed, threads, ...check });
-      if (check.outcome === "accepted") return accepted(puzzle, attempts);
+      if (check.outcome === "accepted") {
+        settled = settle(puzzle);
+        break;
+      }
       trouble = check.trouble;
       threads = splitTrouble(grid, threads, trouble);
     }
-    unsettled.push(...trouble);
+    if (!settled) unsettled.push(...trouble);
+    else if (picture.targetRounds === undefined) return accepted(settled, attempts);
+    else if (!best || isCloser(settled, best, picture.targetRounds)) best = settled;
   }
+  if (best) return accepted(best, attempts);
   return { ok: false, reason: "unsettled", badSquares: uniquePoints(unsettled), attempts };
+}
+
+function settle(puzzle: Puzzle): Settled {
+  const profile: SolveProfile | undefined = profileSolve(puzzle);
+  if (!profile) throw new Error(`the logic solver can't profile "${puzzle.id}" it just solved`);
+  return { puzzle, profile };
+}
+
+/**
+ * Nearer the target in rounds, then fewer threads a player reads at a glance, then fewer pegs given
+ * away. Rounds measure the solver's proof, which a player skips when the obvious answer is right.
+ * Ties keep the earlier seed.
+ */
+function isCloser(settled: Settled, best: Settled, targetRounds: number): boolean {
+  const scores = ({ profile }: Settled): readonly number[] => [
+    Math.abs(profile.rounds - targetRounds),
+    profile.threads === 0 ? 0 : profile.obviousThreads / profile.threads,
+    profile.givenPegs / profile.pegs,
+  ];
+  const ours: readonly number[] = scores(settled);
+  const theirs: readonly number[] = scores(best);
+  const differs: number = ours.findIndex(
+    (score: number, i: number): boolean => score !== theirs[i],
+  );
+  return differs !== -1 && (ours[differs] ?? 0) < (theirs[differs] ?? 0);
 }
 
 /** The validator's checks, but saying where the trouble is so the generator knows what to split. */
@@ -166,12 +215,12 @@ function checkLaying(puzzle: Puzzle): Check {
   return { outcome: "accepted", trouble: [] };
 }
 
-function accepted(puzzle: Puzzle, attempts: readonly Attempt[]): GeneratedLevel {
+function accepted({ puzzle, profile }: Settled, attempts: readonly Attempt[]): GeneratedLevel {
   const verdict: Verdict = validatePuzzle(puzzle);
   if (!verdict.ok) {
     throw new Error(`the validator rejected "${puzzle.id}" after the generator's checks passed`);
   }
-  return { ok: true, puzzle, difficulty: verdict.difficulty, attempts };
+  return { ok: true, puzzle, difficulty: verdict.difficulty, profile, attempts };
 }
 
 /** Squares whose thread, of any colour, differs between the two solutions. */
@@ -425,7 +474,7 @@ function layColour(
   grid: Grid,
   colour: ThreadColour,
   forced: readonly (readonly number[])[],
-  lengths: ThreadLengths,
+  { lengths, sameNumbers }: LayingStyle,
   rng: Rng,
 ): readonly (readonly number[])[] {
   const taken: ReadonlySet<number> = new Set<number>(forced.flat());
@@ -442,25 +491,45 @@ function layColour(
         best === undefined || freeNeighbours(square) < freeNeighbours(best) ? square : best,
       undefined,
     );
+  const paths: number[][] = forced.map((path: readonly number[]): number[] => [...path]);
+  const targetLength = (path: readonly number[]): number => {
+    // Checks for 0 first so a picture without a bias draws the same random numbers as before.
+    if (sameNumbers > 0 && rng() < sameNumbers) {
+      const nearby: readonly number[] = paths
+        .filter(
+          (other: readonly number[]): boolean =>
+            other !== path &&
+            other.length >= Math.max(lengths.min, 2) &&
+            other.length <= lengths.max &&
+            endsNear(grid, other, path, lengths.max),
+        )
+        .map((other: readonly number[]): number => other.length);
+      const match: number | undefined = nearby[randomInt(rng, 0, nearby.length - 1)];
+      if (match !== undefined) return match;
+    }
+    return randomInt(rng, lengths.min, lengths.max);
+  };
+  /** False if that end has nowhere free to go. */
+  const extend = (path: number[], atEnd: boolean): boolean => {
+    const end: number | undefined = atEnd ? path.at(-1) : path[0];
+    if (end === undefined) return false;
+    const options: readonly number[] = neighbours(grid, end).filter((next: number): boolean =>
+      free.has(next),
+    );
+    const next: number | undefined = mostCutOff(shuffled(rng, options));
+    if (next === undefined) return false;
+    free.delete(next);
+    if (atEnd) path.push(next);
+    else path.unshift(next);
+    return true;
+  };
   const grow = (path: number[]): void => {
-    const target: number = randomInt(rng, lengths.min, lengths.max);
+    const target: number = targetLength(path);
     for (const atEnd of [true, false]) {
-      while (path.length < target) {
-        const end: number | undefined = atEnd ? path.at(-1) : path[0];
-        if (end === undefined) break;
-        const options: readonly number[] = neighbours(grid, end).filter((next: number): boolean =>
-          free.has(next),
-        );
-        const next: number | undefined = mostCutOff(shuffled(rng, options));
-        if (next === undefined) break;
-        free.delete(next);
-        if (atEnd) path.push(next);
-        else path.unshift(next);
-      }
+      while (path.length < target && extend(path, atEnd));
     }
   };
 
-  const paths: number[][] = forced.map((path: readonly number[]): number[] => [...path]);
   for (const path of paths) grow(path);
   const order: readonly number[] = shuffled(rng, [...free]);
   for (;;) {
@@ -491,6 +560,22 @@ function joinNeighbour(grid: Grid, paths: number[][], square: number, maxLength:
     }
   }
   return false;
+}
+
+/** Whether an end of `a` is within `distance` steps of an end of `b`, ignoring the picture. */
+function endsNear(
+  grid: Grid,
+  a: readonly number[],
+  b: readonly number[],
+  distance: number,
+): boolean {
+  const ends = (path: readonly number[]): readonly Point[] =>
+    [path[0], path.at(-1)].flatMap((end: number | undefined): Point[] =>
+      end === undefined ? [] : [pointAt(grid, end)],
+    );
+  return ends(a).some((p: Point): boolean =>
+    ends(b).some((q: Point): boolean => Math.abs(p.x - q.x) + Math.abs(p.y - q.y) <= distance),
+  );
 }
 
 function pegsOf(threads: Solution): readonly Peg[] {

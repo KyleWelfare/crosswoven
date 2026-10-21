@@ -47,7 +47,7 @@ Every shipped puzzle has exactly one solution, and it can be reached by deductio
 
 ### Levels
 
-- Hand-drawn picture puzzles, rising in difficulty, unlocked in order. 16 so far, listed in `pictures/`: openers, pictures that show off crossings, then Medium ones with longer threads
+- Hand-drawn picture puzzles, rising in difficulty, unlocked in order. 22 so far, listed in `pictures/`: small openers that give most threads away, pictures that show off crossings, then broad pictures with longer, repeating numbers that take long chains of deduction. Each picture sets a target number of rounds (see Level pipeline), and the targets rise along the play order. `pictures/backlog/` holds pictures that don't ship, kept as development material
 - Grid sizes from 5×5 to 15×15. Larger grids are possible with numbered pegs, but 15×15 is the most a phone screen holds for version one
 - Each level shows its difficulty, Easy or Medium, rated by the hardest deduction it needs. A Hard tier waits on playtesting
 - Progress (cleared or not) is saved in local storage. No accounts, scores or sound
@@ -92,6 +92,8 @@ Two-colour squares are an accent, not the main material. At a two-colour square 
 - Two-colour squares only form straight bands, so they suit things that are bands in real life: a stripe, a belt, a ribbon, a strap
 
 A picture that wants a mixed colour as a freeform area (a purple grape, a green leaf) should use a single colour there instead.
+
+A two-colour square fixes both of its threads, so crossings tend to give their threads away: a band of them is read, not solved. They add to the puzzle only when many threads cross a thin band and carry on into open areas on both sides, where the band fixes the middle of each thread but not where it ends or which peg it pairs with: a ribbon down a box (Parcel), posts standing in the sea (Pier), a broken reflection in the water (Sunset). Thick bands, and bands whose threads run along them rather than across, stay inert (Bridge, in `pictures/backlog/`). Nor should the crossings sit in consecutive rows: threads crossing a band row after row stack like the rungs of a ladder and run straight, so a player reads them off. Break the band up with single-colour squares between its crossings, as in Sunset's reflection, so the threads around it have to bend.
 
 ## Puzzle format
 
@@ -184,7 +186,8 @@ Claude draws each picture as a small text grid in the repo, using the pattern co
 
 1. The generator covers each colour's squares with threads, running straight through two-colour squares, and puts numbered pegs at their ends. It's seeded, so the same picture and seed always give the same level
    - A picture can set `lengths: [min, max]`, 2 to 5 by default. Each thread the generator grows aims for a length in that range, but these are targets, not limits. A thread that runs out of free squares stops short of `min`, and a lone square joins a neighbouring thread shorter than `max` or else becomes a length-1 thread. Splitting ignores `min`, and a thread forced through a band of crossings can run past `max`
-2. The validator certifies the result. If the puzzle has more than one solution, the generator re-lays threads where the two solutions differ, usually by splitting them shorter, and tries again. If that doesn't converge, it tries another seed
+   - A picture can set `sameNumbers` from 0 to 1, 0 by default: the chance a new thread aims for the length of a nearby thread of its colour instead of a random length. Repeated numbers give pegs rival partners, which makes broad pictures much harder; on thin outlines a thread rarely has a second route anyway
+2. The validator certifies the result. If the puzzle has more than one solution, the generator re-lays threads where the two solutions differ, usually by splitting them shorter, and tries again. If that doesn't converge, it tries another seed. A picture with `targetRounds` has all 30 seeds settled this way, and the generator keeps the one whose solve takes closest to that many rounds, then the one with fewest obvious threads (straight runs, and threads a peg sends straight into a band), then the one that gives away fewest pegs. Rounds measure the solver's proof, which a player skips when the obvious answer is right. Without a target it keeps the first seed that works
 3. Some pictures can't be woven at all: for example, a purple square on the edge of the grid has no room to cross. The script reports the squares at fault, so the picture can be fixed. If the picture can be woven but no seed works, it reports the squares that last caused trouble instead
 4. Certified levels are written to `src/levels/`, with the play order from `pictures/order.json`, which must list every picture once
 

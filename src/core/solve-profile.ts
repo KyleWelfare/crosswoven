@@ -6,7 +6,8 @@ import {
   type RoundsResult,
   type Step,
 } from "./logic-solver.ts";
-import type { Puzzle } from "./puzzle.ts";
+import { threadsThrough, type Point, type Puzzle } from "./puzzle.ts";
+import type { Thread } from "./thread.ts";
 
 /**
  * How a puzzle plays, beyond the hardest rule it needs. "Before any deduction" means from the
@@ -26,6 +27,14 @@ export interface SolveProfile {
   /** Deductions open per round, on average. Many at once means the player never has to search. */
   readonly stepsPerRound: number;
   readonly difficulty: Difficulty;
+  /** Threads in the solution longer than one square. */
+  readonly threads: number;
+  /**
+   * Of those, threads a player reads at a glance instead of deducing, though the solver may take
+   * rounds to prove them: ones running in a straight line to a matching number, and ones leaving a
+   * peg straight into a band of crossings, which only that peg can reach.
+   */
+  readonly obviousThreads: number;
 }
 
 /** Undefined unless the logic solver finishes the puzzle. */
@@ -39,6 +48,9 @@ export function profileSolve(puzzle: Puzzle): SolveProfile | undefined {
 
   const pegs: number = puzzle.pegs.length;
   const rounds: number = solved.rounds.length;
+  const long: readonly Thread[] = solved.result.solution.filter(
+    (thread: Thread): boolean => thread.squares.length > 1,
+  );
   return {
     pegs,
     givenPegs: pathCounts.filter((count: number): boolean => count === 1).length,
@@ -50,6 +62,8 @@ export function profileSolve(puzzle: Puzzle): SolveProfile | undefined {
     ).length,
     stepsPerRound: rounds === 0 ? 0 : solved.result.steps.length / rounds,
     difficulty: solved.result.difficulty,
+    threads: long.length,
+    obviousThreads: long.filter((thread: Thread): boolean => isObvious(puzzle, thread)).length,
   };
 }
 
@@ -63,6 +77,22 @@ function countCandidate(
     pathCounts[peg] = (pathCounts[peg] ?? 0) + 1;
     partners[peg]?.add(peg === first ? second : first);
   }
+}
+
+function isObvious(puzzle: Puzzle, { squares }: Thread): boolean {
+  const [first]: readonly Point[] = squares;
+  const straight: boolean =
+    first !== undefined &&
+    (squares.every((square: Point): boolean => square.x === first.x) ||
+      squares.every((square: Point): boolean => square.y === first.y));
+  return (
+    straight ||
+    [squares[1], squares.at(-2)].some(
+      (square: Point | undefined): boolean =>
+        square !== undefined &&
+        threadsThrough(puzzle.pattern[square.y]?.[square.x] ?? "blank").length === 2,
+    )
+  );
 }
 
 function sum(values: readonly number[]): number {

@@ -1,0 +1,20 @@
+{
+  "id": "whale",
+  "title": "Whale",
+  "sameNumbers": 1,
+  "targetRounds": 5,
+  "pattern": [
+    "...............",
+    "..........B.B..",
+    "...........B...",
+    "...BBBBBB..B...",
+    ".BBBBBBBBBBB...",
+    "BBYBBBBBBBBBB..",
+    "BBBBBBBBBBBBBB.",
+    "BBBBBBBBBBBBBBB",
+    ".BBBBBBBBBBBBB.",
+    "..YYYYYYYYYY...",
+    "...YYYYYYYY....",
+    "..............."
+  ]
+}

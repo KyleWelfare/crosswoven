@@ -2,6 +2,7 @@
   "id": "scarf",
   "title": "Scarf",
   "lengths": [4, 8],
+  "targetRounds": 2,
   "pattern": [
     "...............",
     "...B...Y...B...",

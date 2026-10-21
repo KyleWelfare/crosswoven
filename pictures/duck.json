@@ -1,0 +1,24 @@
+{
+  "id": "duck",
+  "title": "Duck",
+  "lengths": [4, 8],
+  "sameNumbers": 1,
+  "targetRounds": 9,
+  "pattern": [
+    "...............",
+    "...YYY.........",
+    "..YYYYY........",
+    "..YBYYYRR......",
+    "..YYYYYRR......",
+    "...YYY.........",
+    "..YYYYYYYYYY...",
+    ".YYYYYYYYYYYY..",
+    ".YYYYYYYYYYYYY.",
+    ".YYYYYYYYYYYY..",
+    "..YYYYYYYYYY...",
+    "BBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBB",
+    "..............."
+  ]
+}

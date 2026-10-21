@@ -1,0 +1,21 @@
+{
+  "id": "flag",
+  "title": "Flag",
+  "pattern": [
+    "...............",
+    ".Y.............",
+    ".YRRRRRRRRRRRR.",
+    ".YRRRRRRRRRRRR.",
+    ".YBBBBBBBBBBBB.",
+    ".YBBBBBBBBBBBB.",
+    ".YRRRRRRRRRRRR.",
+    ".YRRRRRRRRRRRR.",
+    ".YBBBBBBBBBBBB.",
+    ".YBBBBBBBBBBBB.",
+    ".Y.............",
+    ".Y.............",
+    ".Y.............",
+    "YYY............",
+    "..............."
+  ]
+}

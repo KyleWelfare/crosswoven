@@ -2,6 +2,7 @@
   "id": "fish",
   "title": "Fish",
   "lengths": [4, 8],
+  "targetRounds": 3,
   "pattern": [
     ".............",
     "......YY.....",

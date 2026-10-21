@@ -2,6 +2,7 @@
   "id": "house",
   "title": "House",
   "lengths": [4, 8],
+  "targetRounds": 4,
   "pattern": [
     ".....R.....",
     "....RRR....",

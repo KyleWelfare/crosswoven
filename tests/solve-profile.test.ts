@@ -16,7 +16,16 @@ describe("profileSolve", (): void => {
       mediumRounds: 0,
       stepsPerRound: 0,
       difficulty: "easy",
+      threads: 4,
+      obviousThreads: 4,
     });
+  });
+
+  it("counts straight threads and threads leaving a peg into a band of crossings as obvious", (): void => {
+    // The example lattice runs every thread straight or out of a peg into its purple band.
+    expect(profileSolve(decoded(examplePuzzle))).toMatchObject({ threads: 4, obviousThreads: 4 });
+    // Every thread here bends, and nothing crosses.
+    expect(profileSolve(decoded(sharedLevel))).toMatchObject({ threads: 2, obviousThreads: 0 });
   });
 
   it("counts pegs that could pair more than one way", (): void => {

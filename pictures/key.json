@@ -1,5 +1,6 @@
 {
   "id": "key",
   "title": "Key",
+  "targetRounds": 0,
   "pattern": [".YYY.....", "Y...Y....", "Y...YYYYY", "Y...Y..YY", ".YYY....."]
 }

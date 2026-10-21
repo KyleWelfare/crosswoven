@@ -1,6 +1,7 @@
 {
   "id": "ladder",
   "title": "Ladder",
+  "targetRounds": 0,
   "pattern": [
     ".R...R.",
     ".R...R.",

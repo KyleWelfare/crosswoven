@@ -2,6 +2,7 @@
   "id": "rocket",
   "title": "Rocket",
   "lengths": [5, 10],
+  "targetRounds": 3,
   "pattern": [
     "....R....",
     "...RRR...",

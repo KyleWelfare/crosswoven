@@ -38,7 +38,8 @@ async function makeLevel(file: string): Promise<boolean> {
   }
   await writeFormatted(join(LEVELS, file), levelJson(generation));
   console.log(
-    `${file}: ${generation.difficulty}, ${String(generation.puzzle.pegs.length)} pegs, ` +
+    `${file}: ${generation.difficulty}, ${String(generation.profile.rounds)} rounds, ` +
+      `${String(generation.puzzle.pegs.length)} pegs, ` +
       `${String(generation.attempts.length)} attempts`,
   );
   return true;

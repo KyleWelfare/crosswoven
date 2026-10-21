@@ -1,0 +1,22 @@
+{
+  "id": "apple",
+  "title": "Apple",
+  "lengths": [4, 8],
+  "sameNumbers": 1,
+  "targetRounds": 7,
+  "pattern": [
+    ".............",
+    "......Y......",
+    "......Y.BB...",
+    "...RRRYRRB...",
+    "..RRRRRRRRR..",
+    ".RRRRRRRRRRR.",
+    ".RRRRRRRRRRR.",
+    ".RRRRRRRRRRR.",
+    ".RRRRRRRRRRR.",
+    "..RRRRRRRRR..",
+    "..RRRRRRRRR..",
+    "...RRR.RRR...",
+    "............."
+  ]
+}

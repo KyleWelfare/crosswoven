@@ -1,5 +1,6 @@
 {
   "id": "heart",
   "title": "Heart",
+  "targetRounds": 1,
   "pattern": [".......", ".RR.RR.", "RRRRRRR", "RRRRRRR", ".RRRRR.", "..RRR..", "...R..."]
 }

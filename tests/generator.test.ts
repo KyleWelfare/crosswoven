@@ -1,6 +1,7 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import {
+  DEFAULT_LIMITS,
   generateLevel,
   layThreads,
   type Attempt,
@@ -60,6 +61,9 @@ function expectWeaves(rows: readonly string[], laying: Laying): void {
   expect(ruleBreaks(puzzle.width, puzzle.height, threads)).toEqual([]);
 }
 
+/** One open colour, where threads have room to wander and numbers to repeat. */
+const field: Picture = picture(Array.from({ length: 9 }, (): string => "RRRRRRRRR"));
+
 const heart: Picture = picture([
   ".......",
   ".RR.RR.",
@@ -93,6 +97,30 @@ describe("layThreads", (): void => {
         expectWeaves(weave.level.pattern, layThreads(pictureOf(decoded(weave.level)), seed));
       }),
     );
+  });
+
+  it("weaves any picture with the same-numbers bias, breaking no rule", (): void => {
+    fc.assert(
+      fc.property(randomWeaves, fc.nat(1000), (weave: Weave, seed: number): void => {
+        const biased: Picture = { ...pictureOf(decoded(weave.level)), sameNumbers: 1 };
+        expectWeaves(weave.level.pattern, layThreads(biased, seed));
+      }),
+    );
+  });
+
+  it("lays exactly as before with no same-numbers bias", (): void => {
+    for (const seed of [1, 2, 3]) {
+      expect(layThreads({ ...heart, sameNumbers: 0 }, seed)).toEqual(layThreads(heart, seed));
+    }
+  });
+
+  it("repeats numbers more with the same-numbers bias", (): void => {
+    const distinctNumbers = (sameNumbers: number): number =>
+      [1, 2, 3, 4, 5, 6].reduce((total: number, seed: number): number => {
+        const pegs: readonly Peg[] = laid(layThreads({ ...field, sameNumbers }, seed)).puzzle.pegs;
+        return total + new Set<number>(pegs.map((peg: Peg): number => peg.length)).size;
+      }, 0);
+    expect(distinctNumbers(1)).toBeLessThan(distinctNumbers(0));
   });
 
   it("keeps grown threads no longer than the picture's max", (): void => {
@@ -224,6 +252,23 @@ describe("generateLevel", (): void => {
         expect(validateLevel(encodeLevel(puzzle))).toMatchObject({ ok: true });
       }),
     );
+  });
+
+  it("keeps the first seed the validator accepts when there's no target", (): void => {
+    const attempts: readonly Attempt[] = generated(generateLevel(heart)).attempts;
+    expect(attempts.map((attempt: Attempt): number => attempt.seed)).toEqual([1]);
+  });
+
+  it("settles every seed and keeps the one nearest the target rounds", (): void => {
+    const aimed = (targetRounds: number): GeneratedLevel =>
+      generated(generateLevel({ ...field, sameNumbers: 1, targetRounds }));
+    const easy: GeneratedLevel = aimed(0);
+    const hard: GeneratedLevel = aimed(20);
+    expect(new Set(easy.attempts.map((attempt: Attempt): number => attempt.seed)).size).toBe(
+      DEFAULT_LIMITS.seeds,
+    );
+    expect(easy.profile.rounds).toBeLessThan(hard.profile.rounds);
+    expect(aimed(hard.profile.rounds).profile.rounds).toBe(hard.profile.rounds);
   });
 
   it("splits a thread where two solutions differ, then tries again", (): void => {

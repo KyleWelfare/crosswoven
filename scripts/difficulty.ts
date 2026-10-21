@@ -21,6 +21,7 @@ const HEADER: readonly string[] = [
   "Rounds",
   "Medium rounds",
   "Steps per round",
+  "Obvious threads",
   "Rating",
 ];
 
@@ -45,6 +46,7 @@ function row(id: string, index: number): readonly string[] {
     String(profile.rounds),
     String(profile.mediumRounds),
     profile.stepsPerRound.toFixed(1),
+    percentOf(profile.obviousThreads, profile.threads),
     profile.difficulty,
   ];
 }

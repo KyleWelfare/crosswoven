@@ -2,6 +2,7 @@
   "id": "gift",
   "title": "Gift",
   "lengths": [4, 8],
+  "targetRounds": 2,
   "pattern": [
     "...BBB...",
     ".RRRPRRR.",

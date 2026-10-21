@@ -55,8 +55,8 @@ export interface LevelFile {
 }
 
 /**
- * A picture file holds a level's id, title and pattern, with no version or pegs. An optional
- * `lengths: [min, max]` sets the lengths the generator aims its threads at.
+ * A picture file holds a level's id, title and pattern, with no version or pegs. Optional fields
+ * steer the generator: `lengths: [min, max]`, `sameNumbers` and `targetRounds` (see Picture).
  */
 export function decodePicture(json: unknown): PictureResult {
   if (!isJsonObject(json)) return { ok: false, errors: ["the picture must be a JSON object"] };
@@ -65,11 +65,34 @@ export function decodePicture(json: unknown): PictureResult {
   const title: string | undefined = decodeText(json, "title", errors);
   const pattern: Pattern | undefined = decodePattern(json["pattern"], errors);
   const lengths: ThreadLengths | undefined = decodeLengths(json["lengths"], errors);
+  const sameNumbers: unknown = json["sameNumbers"];
+  if (
+    sameNumbers !== undefined &&
+    !(typeof sameNumbers === "number" && sameNumbers >= 0 && sameNumbers <= 1)
+  ) {
+    errors.push(`"sameNumbers" must be a number from 0 to 1`);
+  }
+  const targetRounds: unknown = json["targetRounds"];
+  if (targetRounds !== undefined && !(isWholeNumber(targetRounds) && targetRounds >= 0)) {
+    errors.push(`"targetRounds" must be a whole number from 0 up`);
+  }
   if (errors.length > 0 || id === undefined || title === undefined || !pattern || !lengths) {
     return { ok: false, errors };
   }
   const width: number = pattern[0]?.length ?? 0;
-  return { ok: true, picture: { id, title, width, height: pattern.length, pattern, lengths } };
+  return {
+    ok: true,
+    picture: {
+      id,
+      title,
+      width,
+      height: pattern.length,
+      pattern,
+      lengths,
+      ...(typeof sameNumbers === "number" ? { sameNumbers } : {}),
+      ...(typeof targetRounds === "number" ? { targetRounds } : {}),
+    },
+  };
 }
 
 function decodeLengths(value: unknown, errors: string[]): ThreadLengths | undefined {

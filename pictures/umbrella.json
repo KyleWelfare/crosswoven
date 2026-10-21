@@ -2,6 +2,7 @@
   "id": "umbrella",
   "title": "Umbrella",
   "lengths": [4, 8],
+  "targetRounds": 3,
   "pattern": [
     ".....B.....",
     "...RRPRR...",

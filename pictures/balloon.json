@@ -1,0 +1,24 @@
+{
+  "id": "balloon",
+  "title": "Balloon",
+  "lengths": [4, 8],
+  "sameNumbers": 1,
+  "targetRounds": 6,
+  "pattern": [
+    "...........",
+    "...RRRRR...",
+    "..RRRRRRR..",
+    ".RRRRRRRRR.",
+    ".RRRRRRRRR.",
+    ".RRRRRRRRR.",
+    ".RRRRRRRRR.",
+    "..RRRRRRR..",
+    "...RRRRR...",
+    "....RRR....",
+    ".....Y.....",
+    "....Y......",
+    ".....Y.....",
+    "......Y....",
+    "..........."
+  ]
+}

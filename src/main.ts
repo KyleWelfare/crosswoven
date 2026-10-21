@@ -100,7 +100,7 @@ function scheduleRender(): void {
   });
 }
 
-/** The win fades in, and How It Works loops its scenes for as long as it's open. */
+/** The win fades in, and How the Puzzles Are Made loops its scenes for as long as it's open. */
 function animating(): boolean {
   return (model.screen === "game" && isFading(model)) || model.screen === "tour";
 }

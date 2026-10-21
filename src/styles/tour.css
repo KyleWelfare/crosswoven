@@ -1,4 +1,4 @@
-/* How It Works wants more room than a level, for the timeline beside the board. */
+/* How the Puzzles Are Made wants more room than a level, for the timeline beside the board. */
 .page:has(> .tour:not([hidden])) {
   width: min(100%, 1040px);
 }

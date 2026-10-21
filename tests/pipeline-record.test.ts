@@ -7,10 +7,10 @@ import {
 } from "../src/core/pipeline-record.ts";
 import { sameSolution, toSolution, type Thread } from "../src/core/thread.ts";
 import { tourRecord } from "../src/how-it-works/record.ts";
-import tourPicture from "../pictures/how-it-works/present.json";
+import tourPicture from "../pictures/how-it-works/sailboat.json";
 
 describe("recordPipeline", (): void => {
-  it("still records How It Works' picture as shipped, so npm run levels was rerun", (): void => {
+  it("still records How the Puzzles Are Made' picture as shipped, so npm run levels was rerun", (): void => {
     const picture: PictureResult = decodePicture(tourPicture);
     if (!picture.ok) throw new Error(picture.errors.join("; "));
     expect(recordPipeline(picture.picture)).toEqual(tourRecord);

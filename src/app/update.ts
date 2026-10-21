@@ -15,7 +15,7 @@ export function update(model: Model, msg: Msg): Model {
       return model.screen === "menu" && !model.rulesOpen ? { ...model, rulesOpen: true } : model;
     case "RulesClosed":
       return model.screen === "menu" && model.rulesOpen ? { ...model, rulesOpen: false } : model;
-    case "HowItWorksPressed":
+    case "HowPuzzlesAreMadePressed":
       return model.screen === "menu"
         ? { screen: "tour", step: 0, steps: msg.steps, elapsed: 0 }
         : model;

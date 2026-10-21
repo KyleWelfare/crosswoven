@@ -39,7 +39,13 @@ interface Placement {
  * for every resampled or blurred pixel.
  */
 // TODO: hint flags.
-export function drawStage(canvas: HTMLCanvasElement, game: Game, sprites: SpriteCache): void {
+/** `pegs: "tied"` draws every peg as tied, for animations where threads grow and shrink. */
+export function drawStage(
+  canvas: HTMLCanvasElement,
+  game: Game,
+  sprites: SpriteCache,
+  pegs: "by-thread" | "tied" = "by-thread",
+): void {
   const context: CanvasRenderingContext2D | null = canvas.getContext("2d");
   if (!context) throw new Error("Canvas 2D context unavailable");
   canvas.style.aspectRatio = `${String(game.puzzle.width)} / ${String(game.puzzle.height)}`;
@@ -75,7 +81,13 @@ export function drawStage(canvas: HTMLCanvasElement, game: Game, sprites: Sprite
         context,
         layout,
         peg,
-        pegSprite(sprites, peg, isPegTied(game.puzzle, threads, peg), layout, palette),
+        pegSprite(
+          sprites,
+          peg,
+          pegs === "tied" || isPegTied(game.puzzle, threads, peg),
+          layout,
+          palette,
+        ),
       );
     }
     context.globalAlpha = 1;

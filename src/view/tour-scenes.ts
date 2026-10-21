@@ -59,17 +59,22 @@ export function drawScene(
   }
 }
 
-/** The picture paints itself in along the threads that will weave it. */
+/** The picture fills in square by square, in reading order. */
 function paint(
   canvas: HTMLCanvasElement,
   scene: Extract<Scene, { kind: "paint" }>,
   time: number,
   sprites: SpriteCache,
 ): Badge {
-  const shown: readonly Thread[] = sequenced(
-    scene.threads,
-    easeInOutCubic(progress(time, 300, 2800)),
-  );
+  const { width, height }: Puzzle = scene.puzzle;
+  const filled: number = Math.round(width * height * easeInOutCubic(progress(time, 300, 2800)));
+  // At a full fade only the woven squares show, and they only need the right threads present.
+  const shown: readonly Thread[] = scene.threads.map((thread: Thread): Thread => ({
+    colour: thread.colour,
+    squares: thread.squares.filter(
+      (square: Point): boolean => square.y * width + square.x < filled,
+    ),
+  }));
   draw(canvas, { ...scene.puzzle, pegs: [] }, shown, WIN_FADE, sprites);
   return "A picture";
 }
@@ -154,11 +159,11 @@ function search(
   const count: number = scene.candidates.length;
   if (time < scanEnd) {
     const position: number = (progress(time, 200, scanEnd - 200) * count) | 0;
-    draw(canvas, scene.puzzle, [], undefined, sprites);
-    // The current path and a short fading trail behind it.
-    for (let back: number = 0; back < 4; back++) {
+    draw(canvas, scene.puzzle, [], undefined, sprites, "by-thread");
+    // The current path and a faint trace of the one before, so the eye follows without clutter.
+    for (let back: number = 0; back < 2; back++) {
       const candidate: Thread | undefined = scene.candidates[position - back];
-      if (candidate) ghost(canvas, scene.puzzle, candidate, 0.9 - back * 0.25);
+      if (candidate) ghost(canvas, scene.puzzle, candidate, back === 0 ? 0.9 : 0.2);
     }
     return `Weighing path ${String(Math.min(position + 1, count))} of ${String(count)}`;
   }
@@ -169,6 +174,7 @@ function search(
     scene.solution.map((thread: Thread): Thread => grownThread(thread, fraction)),
     undefined,
     sprites,
+    "by-thread",
   );
   return "Exactly 1 solution";
 }
@@ -191,11 +197,13 @@ function deduce(
     [...scene.known, ...(fraction > 0 ? settled : [])],
     undefined,
     sprites,
+    "by-thread",
   );
-  const stagger: number = 900 / Math.max(scene.ruledOut.length, 1);
+  const stagger: number = 1200 / Math.max(scene.ruledOut.length, 1);
   scene.ruledOut.forEach((thread: Thread, i: number): void => {
     const start: number = 200 + i * stagger;
-    const shown: number = progress(time, start, 250) - progress(time, start + 600, 500);
+    // Each path clears as the next arrives, so they never pile up on top of each other.
+    const shown: number = progress(time, start, 150) - progress(time, start + stagger, 150);
     if (shown > 0) ghost(canvas, scene.puzzle, thread, 0.85 * shown);
   });
   outline(canvas, scene.puzzle, squaresOf(scene.settled), progress(time, fadeEnd + 800, 400));
@@ -217,31 +225,17 @@ function reveal(
   return fade < 1 ? "Woven" : "Certified";
 }
 
+/** Pegs stay filled while threads grow and shrink, unless a step is about threads settling. */
 function draw(
   canvas: HTMLCanvasElement,
   puzzle: Puzzle,
   threads: readonly Thread[],
   solvedFor: number | undefined,
   sprites: SpriteCache,
+  pegs: "by-thread" | "tied" = "tied",
 ): void {
   const game: Game = { ...startLevel(puzzle), threads, solvedFor };
-  drawStage(canvas, game, sprites);
-}
-
-/** The first `fraction` of all the threads' squares, in order, as if drawn by one hand. */
-function sequenced(threads: readonly Thread[], fraction: number): readonly Thread[] {
-  const total: number = threads.reduce(
-    (sum: number, thread: Thread): number => sum + thread.squares.length,
-    0,
-  );
-  let left: number = Math.round(total * fraction);
-  const shown: Thread[] = [];
-  for (const thread of threads) {
-    if (left <= 0) break;
-    shown.push({ colour: thread.colour, squares: thread.squares.slice(0, left) });
-    left -= thread.squares.length;
-  }
-  return shown;
+  drawStage(canvas, game, sprites, pegs);
 }
 
 /** A thread drawn from its first peg, `fraction` of the way to its second. */

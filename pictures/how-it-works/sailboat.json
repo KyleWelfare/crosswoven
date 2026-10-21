@@ -1,0 +1,17 @@
+{
+  "id": "sailboat",
+  "title": "Sailboat",
+  "sameNumbers": 1,
+  "seed": 11,
+  "pattern": [
+    ".........",
+    "....R....",
+    "...YOY...",
+    "..YYOYY..",
+    ".YYYOYYY.",
+    "....R....",
+    "RRRRRRRRR",
+    ".RRRRRRR.",
+    "BBBBBBBBB"
+  ]
+}

@@ -13,7 +13,7 @@ The app uses a model-view-update architecture. State lives in one place, changes
 | `scripts/`          | The level pipeline (`npm run levels`): pictures in `pictures/`, certified levels out. Also the difficulty report (`npm run difficulty`) and the render benchmark (`npm run bench`), which drives headless Chrome | `core/`, `bench/` types  | No              |
 | `bench/`            | The page the render benchmark loads: draws worst-case boards with the real view and times them                                                                                                                   | `view/`, `app/`, `core/` | Yes             |
 | `src/levels/`       | Certified levels written by the pipeline, as JSON, and `order.json`, their play order                                                                                                                            | nothing: data only       | No              |
-| `src/how-it-works/` | The record How It Works replays, written by the pipeline as a typed module                                                                                                                                       | `core/` types            | No              |
+| `src/how-it-works/` | The record How the Puzzles Are Made replays, written by the pipeline as a typed module                                                                                                                           | `core/` types            | No              |
 
 `core/` and `app/` must run in Node with no browser, so they can be tested directly.
 

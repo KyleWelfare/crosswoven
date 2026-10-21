@@ -27,7 +27,7 @@ export interface Game {
   readonly solvedFor: number | undefined;
 }
 
-/** How It Works, on one of its steps. */
+/** How the Puzzles Are Made, on one of its steps. */
 export interface Tour {
   readonly screen: "tour";
   readonly step: number;

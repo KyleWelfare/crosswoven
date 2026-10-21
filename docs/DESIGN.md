@@ -59,25 +59,25 @@ The game opens on a menu:
 - **Play**: the level list. Each level is a numbered tile showing its pattern in the board's pale washes and its grid size. The title stays hidden, since it names the picture that solving reveals. Every level is open until progress is saved; then cleared levels are marked and the rest unlock in order
 - **How to Play**: a simple modal with the rules, improved later if there's time
 - Each screen past the menu has a back button: a level goes back to the list, the list to the menu
-- **How It Works**: a slideshow of how a level is made and proven
+- **How the Puzzles Are Made**: a slideshow of how a level is made and proven
 
-## How It Works
+## How the Puzzles Are Made
 
-The validator is the heart of the project, but a player never sees it. How It Works is an animated slideshow that takes one real picture through the level pipeline, so a visitor sees that work first. It takes priority over level count.
+The validator is the heart of the project, but a player never sees it. How the Puzzles Are Made is an animated slideshow that takes one real picture through the level pipeline, so a visitor sees that work first. It takes priority over level count.
 
-The visitor steps through it with Back and Next (or the arrow keys). It takes Present, a 9×9 red box with an orange ribbon kept in `pictures/how-it-works/`, outside the level pack. Its first two layings each have a second solution, which is what it needs. Each step is a looping animation, drawn on the game's own board renderer as a pure function of time (`src/view/tour-scenes.ts`, eased by `tween.ts`), and `src/app/tour.ts` builds the steps from the record:
+The visitor steps through it with Back and Next (or the arrow keys). It takes a 9×9 sailboat kept in `pictures/how-it-works/`, outside the level pack: its red mast runs down through the yellow sail as an orange stripe and on into the hull, so the crossing reads as part of the object. Its first laying has a second solution, which is what it needs. Each step is a looping animation, drawn on the game's own board renderer as a pure function of time (`src/view/tour-scenes.ts`, eased by `tween.ts`), and `src/app/tour.ts` builds the steps from the record:
 
 1. **Start from a picture**: the picture paints itself in along the threads that will weave it
 2. **Lay threads**: the generator's threads grow out of their pegs one after another, each peg popping in as its thread starts
 3. **Find a second solution**: the search solver's two solutions swap back and forth, the differing threads unweaving and reweaving, with the squares where they differ outlined
-4. **Split a thread**: the thread to cut pulses, then snaps into two pieces whose ends pop. This pair repeats while there's a second solution
+4. **Split a thread**: the thread to cut pulses, then snaps into two pieces whose ends pop. The pair would repeat while there's a second solution
 5. **Exactly one solution**: the search flickers through every path the pegs could be joined by, then the one weave that works locks in
 6. **Threads with one path, then each round of deduction**: the paths each round of the logic solver rules out flash as dashed ghosts and fade, then the threads it settles grow in
 7. **Certified**: the threads fade back to leave the picture, as when a level is won
 
 Beside the board (above it on a phone) a timeline has one entry per step, named for who does the work: the picture, the generator, the search solver, the logic solver or the validator, each in its own colour, so the two solvers read as separate. The current step is lit, ones already seen are half lit, and ones ahead are greyed. A badge above the board counts along with the animation ("Solution 2 of 2", "Weighing path 8 of 20"). With reduced motion set, each step shows its final frame, still.
 
-Not built yet: playing by itself, and a closing animation of the whole pipeline end to end. The search proves this picture unique after trying only 11 paths, because it always takes the most constrained choice first, so the steps quote the paths it weighed rather than a large count of combinations.
+Not built yet: playing by itself, and a closing animation of the whole pipeline end to end. The search proves this picture unique after trying only 13 paths, because it always takes the most constrained choice first, so the steps quote the paths it weighed rather than a large count of combinations.
 
 The slideshow is drawn live on the canvas with the game's own board renderer, from the record `npm run levels` saves (`src/core/pipeline-record.ts`, written to `src/how-it-works/record.ts` as a typed module). The browser doesn't run the generator or search solver, so the shipped game still includes only the logic solver, and the demo can't fail while someone is watching. A test regenerates the record, so it can't drift from the pipeline.
 

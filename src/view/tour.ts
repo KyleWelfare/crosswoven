@@ -57,7 +57,7 @@ export function buildTimeline(view: TourView, frames: readonly TourFrame[]): voi
   );
 }
 
-/** The arrow keys step too; off How It Works, update ignores them. */
+/** The arrow keys step too; off How the Puzzles Are Made, update ignores them. */
 export function listenToTour(view: TourView, dispatch: (msg: Msg) => void): void {
   view.previous.addEventListener("click", (): void => {
     dispatch({ type: "PreviousStepPressed" });

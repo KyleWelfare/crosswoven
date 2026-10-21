@@ -12,7 +12,7 @@ export type SearchResult =
   | {
       readonly ok: true;
       readonly solutions: readonly Solution[];
-      /** Paths the search tried, counting each time one was chosen, for How It Works. */
+      /** Paths the search tried, counting each time one was chosen, for How the Puzzles Are Made. */
       readonly tried: number;
     }
   | TooOpen;

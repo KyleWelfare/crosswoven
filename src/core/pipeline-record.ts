@@ -37,7 +37,7 @@ export interface RecordedRound {
 }
 
 /**
- * Everything How It Works replays for one picture: each laying in turn, then the accepted level
+ * Everything How the Puzzles Are Made replays for one picture: each laying in turn, then the accepted level
  * solved round by round. The browser never runs the generator or the search solver, so the
  * slideshow can't fail while someone is watching.
  */

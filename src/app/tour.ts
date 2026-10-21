@@ -49,7 +49,7 @@ export type Scene =
     }
   | { readonly kind: "reveal"; readonly puzzle: Puzzle; readonly threads: readonly Thread[] };
 
-/** One step of How It Works and its entry on the timeline. */
+/** One step of How the Puzzles Are Made and its entry on the timeline. */
 export interface TourFrame {
   readonly actor: Actor;
   readonly heading: string;

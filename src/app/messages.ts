@@ -6,12 +6,12 @@ export type Msg = ScreenMsg | GameMsg;
 export type ScreenMsg =
   | { readonly type: "PlayPressed" }
   | { readonly type: "HowToPlayPressed" }
-  /** `steps` is how many steps How It Works has. */
-  | { readonly type: "HowItWorksPressed"; readonly steps: number }
+  /** `steps` is how many steps How the Puzzles Are Made has. */
+  | { readonly type: "HowPuzzlesAreMadePressed"; readonly steps: number }
   | { readonly type: "NextStepPressed" }
   | { readonly type: "PreviousStepPressed" }
   | { readonly type: "RulesClosed" }
-  /** Leaves the level for the list, and the list or How It Works for the menu. */
+  /** Leaves the level for the list, and the list or How the Puzzles Are Made for the menu. */
   | { readonly type: "BackPressed" }
   | { readonly type: "LevelStarted"; readonly puzzle: Puzzle };
 

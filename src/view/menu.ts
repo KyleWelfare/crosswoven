@@ -5,7 +5,7 @@ import { requiredElement } from "./required-element.ts";
 export interface MenuControls {
   readonly play: HTMLButtonElement;
   readonly howToPlay: HTMLButtonElement;
-  readonly howItWorks: HTMLButtonElement;
+  readonly howPuzzlesAreMade: HTMLButtonElement;
   readonly rules: HTMLDialogElement;
 }
 
@@ -13,12 +13,12 @@ export function findMenu(root: ParentNode): MenuControls {
   return {
     play: requiredElement(root, "#play", HTMLButtonElement),
     howToPlay: requiredElement(root, "#how-to-play", HTMLButtonElement),
-    howItWorks: requiredElement(root, "#how-it-works", HTMLButtonElement),
+    howPuzzlesAreMade: requiredElement(root, "#how-puzzles-are-made", HTMLButtonElement),
     rules: requiredElement(root, "#rules", HTMLDialogElement),
   };
 }
 
-/** `tourSteps` is how many steps How It Works has. */
+/** `tourSteps` is how many steps How the Puzzles Are Made has. */
 export function listenToMenu(
   menu: MenuControls,
   dispatch: (msg: Msg) => void,
@@ -30,8 +30,8 @@ export function listenToMenu(
   menu.howToPlay.addEventListener("click", (): void => {
     dispatch({ type: "HowToPlayPressed" });
   });
-  menu.howItWorks.addEventListener("click", (): void => {
-    dispatch({ type: "HowItWorksPressed", steps: tourSteps });
+  menu.howPuzzlesAreMade.addEventListener("click", (): void => {
+    dispatch({ type: "HowPuzzlesAreMadePressed", steps: tourSteps });
   });
   // Fires for the dialog's own button and for Escape alike.
   menu.rules.addEventListener("close", (): void => {

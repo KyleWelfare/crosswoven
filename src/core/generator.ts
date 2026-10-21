@@ -99,7 +99,7 @@ export const DEFAULT_LIMITS: Limits = { seeds: 30, roundsPerSeed: 50 };
 
 export type Outcome = "accepted" | "too-open" | "not-unique" | "needs-guessing";
 
-/** One laying the generator tried. Kept for How It Works, which replays them. */
+/** One laying the generator tried. Kept for How the Puzzles Are Made, which replays them. */
 export interface Attempt {
   readonly seed: number;
   readonly threads: Solution;

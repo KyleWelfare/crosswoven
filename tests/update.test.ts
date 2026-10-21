@@ -196,8 +196,8 @@ describe("update: screens", (): void => {
     expect(update(menu, rulesClosed)).toBe(menu);
   });
 
-  it("opens How It Works from the menu and steps through it within its steps", (): void => {
-    const opened: Model = update(menu, { type: "HowItWorksPressed", steps: 3 });
+  it("opens How the Puzzles Are Made from the menu and steps through it within its steps", (): void => {
+    const opened: Model = update(menu, { type: "HowPuzzlesAreMadePressed", steps: 3 });
     expect(opened).toEqual({ screen: "tour", step: 0, steps: 3, elapsed: 0 });
     const next: Msg = { type: "NextStepPressed" };
     const previous: Msg = { type: "PreviousStepPressed" };
@@ -209,8 +209,8 @@ describe("update: screens", (): void => {
     expect(update(last, back)).toEqual(menu);
   });
 
-  it("runs How It Works' clock on ticks, restarting it on each step", (): void => {
-    const opened: Model = update(menu, { type: "HowItWorksPressed", steps: 3 });
+  it("runs How the Puzzles Are Made' clock on ticks, restarting it on each step", (): void => {
+    const opened: Model = update(menu, { type: "HowPuzzlesAreMadePressed", steps: 3 });
     const ticked: Model = [tick(100), tick(250)].reduce<Model>(update, opened);
     expect(ticked).toMatchObject({ step: 0, elapsed: 350 });
     expect(update(ticked, { type: "NextStepPressed" })).toMatchObject({ step: 1, elapsed: 0 });

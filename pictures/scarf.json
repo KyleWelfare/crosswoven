@@ -1,0 +1,16 @@
+{
+  "id": "scarf",
+  "title": "Scarf",
+  "lengths": [4, 8],
+  "pattern": [
+    "...............",
+    "...B...Y...B...",
+    "YRRPRRRORRRPRRY",
+    ".RRPRRRORRRPRR.",
+    "YRRPRRRORRRPRRY",
+    ".RRPRRRORRRPRR.",
+    "YRRPRRRORRRPRRY",
+    "...B...Y...B...",
+    "..............."
+  ]
+}

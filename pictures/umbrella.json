@@ -1,0 +1,18 @@
+{
+  "id": "umbrella",
+  "title": "Umbrella",
+  "lengths": [4, 8],
+  "pattern": [
+    ".....B.....",
+    "...RRPRR...",
+    "..RRRPRRR..",
+    ".RRRRPRRRR.",
+    "RRRRRPRRRRR",
+    "R.R.RPR.R.R",
+    ".....B.....",
+    ".....B.....",
+    ".....B.....",
+    ".....B.....",
+    ".....BBB..."
+  ]
+}

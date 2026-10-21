@@ -1,0 +1,18 @@
+{
+  "id": "basket",
+  "title": "Basket",
+  "lengths": [4, 8],
+  "pattern": [
+    "....RRRRR....",
+    "...R.....R...",
+    "..R.......R..",
+    "..Y..Y..Y..Y.",
+    ".RORRORRORROR",
+    "..Y..Y..Y..Y.",
+    "..Y..Y..Y..Y.",
+    ".RORRORRORROR",
+    "..Y..Y..Y..Y.",
+    "..Y..Y..Y..Y.",
+    ".RRRRRRRRRRR."
+  ]
+}

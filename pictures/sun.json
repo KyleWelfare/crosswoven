@@ -1,0 +1,5 @@
+{
+  "id": "sun",
+  "title": "Sun",
+  "pattern": ["Y..Y..Y", ".Y.Y.Y.", "..YYY..", "YYYYYYY", "..YYY..", ".Y.Y.Y.", "Y..Y..Y"]
+}

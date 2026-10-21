@@ -1,0 +1,22 @@
+{
+  "id": "rocket",
+  "title": "Rocket",
+  "lengths": [5, 10],
+  "pattern": [
+    "....R....",
+    "...RRR...",
+    "...BBB...",
+    "..BBBBB..",
+    "..BBYBB..",
+    "..BBBBB..",
+    ".RPPPPPR.",
+    "..BBBBB..",
+    "..BBBBB..",
+    ".RBBBBBR.",
+    "RRBBBBBRR",
+    "RR.YYY.RR",
+    "...YYY...",
+    "....Y....",
+    "........."
+  ]
+}

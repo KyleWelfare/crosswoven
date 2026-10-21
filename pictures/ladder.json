@@ -1,0 +1,19 @@
+{
+  "id": "ladder",
+  "title": "Ladder",
+  "pattern": [
+    ".R...R.",
+    ".R...R.",
+    "YOYYYOY",
+    ".R...R.",
+    ".R...R.",
+    "YOYYYOY",
+    ".R...R.",
+    ".R...R.",
+    "YOYYYOY",
+    ".R...R.",
+    ".R...R.",
+    "YOYYYOY",
+    ".R...R."
+  ]
+}

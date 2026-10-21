@@ -1,4 +1,4 @@
-import { createSprite, type Sprite } from "./sprite-cache.ts";
+import { createSprite, type Sprite } from "./sprite.ts";
 
 /**
  * The thread through one square, drawn heading east: `straight` crosses west to east, `corner`
@@ -27,6 +27,8 @@ const TWISTS_PER_SQUARE: number = 4.5;
 /** Tangent of the grooves' slant against the thread. */
 const TWIST_SLANT: number = 0.8;
 const FIBRE_NOISE: number = 0.08;
+/** Fraction of a square. */
+const THREAD_WIDTH: number = 0.28;
 /** Fraction of a square over which the shadow on the lower thread at a crossing fades out. */
 const WEAVE_SHADOW: number = 0.14;
 /**
@@ -35,15 +37,10 @@ const WEAVE_SHADOW: number = 0.14;
  */
 const DYE_BLEND: number = 0.2;
 
-/** `size` is in device pixels and `width` is the thread's width as a fraction of the square. */
-export function drawThreadTile(
-  piece: Piece,
-  colour: string,
-  size: number,
-  width: number,
-): HTMLCanvasElement {
+/** `size` is in device pixels. */
+export function drawThreadTile(piece: Piece, colour: string, size: number): HTMLCanvasElement {
   const base: Rgb = parseColour(colour);
-  const halfWidth: number = (width * size) / 2;
+  const halfWidth: number = (THREAD_WIDTH * size) / 2;
   const { canvas, context }: Sprite = createSprite(size, size);
   const image: ImageData = context.createImageData(size, size);
 
@@ -104,14 +101,13 @@ export function drawCrossingTile(
   over: HTMLCanvasElement,
   overAxis: Axis,
   shadow: string,
-  width: number,
 ): HTMLCanvasElement {
   const size: number = under.width;
   const { canvas, context }: Sprite = createSprite(size, size);
   context.drawImage(under, 0, 0);
 
   const middle: number = size / 2;
-  const threadWidth: number = width * size;
+  const threadWidth: number = THREAD_WIDTH * size;
   const dx: number = overAxis === "across" ? 1 : 0;
   const dy: number = 1 - dx;
   const fade: number = WEAVE_SHADOW * size;

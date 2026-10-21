@@ -1,7 +1,7 @@
 import type { Point, Puzzle, SquareColour, ThreadColour } from "../core/puzzle.ts";
 import { squareOrigin, type BoardLayout } from "./board-layout.ts";
 import type { Palette } from "./palette.ts";
-import { createSprite, type Sprite } from "./sprite-cache.ts";
+import { createSprite, type Sprite } from "./sprite.ts";
 
 const pips: Readonly<Record<SquareColour, readonly ThreadColour[]>> = {
   blank: [],

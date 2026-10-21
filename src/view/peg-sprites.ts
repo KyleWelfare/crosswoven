@@ -1,6 +1,6 @@
-import type { Point } from "../core/puzzle.ts";
+import type { Point, ThreadColour } from "../core/puzzle.ts";
 import type { Palette } from "./palette.ts";
-import { createSprite, type Sprite } from "./sprite-cache.ts";
+import { createSprite, type Sprite } from "./sprite.ts";
 
 /** Fractions of a square. The shadow stays inside it, so a sprite is one square in size. */
 const PEG_RADIUS: number = 0.34;
@@ -18,17 +18,17 @@ const GLINT_OFFSET: number = 0.35;
  * Either way it shows its thread's length.
  */
 export function drawPegSprite(
-  colour: string,
-  wash: string,
+  threadColour: ThreadColour,
   tied: boolean,
   length: number,
   cell: number,
   palette: Palette,
 ): HTMLCanvasElement {
+  const colour: string = palette.thread[threadColour];
   const { canvas, context }: Sprite = createSprite(cell, cell);
   const point: Point = { x: cell / 2, y: cell / 2 };
   if (tied) drawBead(context, point, colour, cell, palette);
-  else drawRing(context, point, colour, wash, cell);
+  else drawRing(context, point, colour, palette.wash[threadColour], cell);
   drawNumber(context, point, length, tied ? palette.pegNumber : colour, cell, palette.font);
   return canvas;
 }

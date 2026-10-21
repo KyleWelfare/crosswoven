@@ -10,7 +10,8 @@ import { canvasLayout, squareOrigin, type BoardLayout } from "./board-layout.ts"
 import { drawLengthBadge } from "./length-badge.ts";
 import { readPalette, type Palette } from "./palette.ts";
 import { drawPegSprite } from "./peg-sprites.ts";
-import { cachedSprite, rotateSprite, setGeneration, type SpriteCache } from "./sprite-cache.ts";
+import { rotateSprite } from "./sprite.ts";
+import { cachedBoard, cachedSprite, setGeneration, type SpriteCache } from "./sprite-cache.ts";
 import {
   drawCrossingTile,
   drawThreadTile,
@@ -32,15 +33,14 @@ interface Placement {
   readonly turns: number;
 }
 
-/** Fraction of a square. */
-const THREAD_WIDTH: number = 0.28;
 /** CSS pixels between the length badge and the square at the end of the thread. */
 const BADGE_GAP: number = 14;
 
 /**
  * Each frame copies cached sprites at whole device pixels: one image for the board, then a tile
- * per thread square, crossing and peg. Sprites are redrawn only when the square size or palette
- * changes, because unaccelerated canvas pays for every resampled or blurred pixel.
+ * per thread square, crossing and peg. Tiles are redrawn only when the square size or palette
+ * changes, and the board also when the level or stage size does, because unaccelerated canvas pays
+ * for every resampled or blurred pixel.
  */
 // TODO: hint flags.
 export function drawStage(canvas: HTMLCanvasElement, model: Model, sprites: SpriteCache): void {
@@ -60,9 +60,9 @@ export function drawStage(canvas: HTMLCanvasElement, model: Model, sprites: Spri
     `${String(layout.cell)} ${String(layout.ratio)} ${JSON.stringify(palette)}`,
   );
 
-  const board: HTMLCanvasElement = cachedSprite(
+  const board: HTMLCanvasElement = cachedBoard(
     sprites,
-    `board ${model.puzzle.id} ${String(layout.width)}x${String(layout.height)}`,
+    `${model.puzzle.id} ${String(layout.width)}x${String(layout.height)}`,
     (): HTMLCanvasElement => drawBoardLayer(model.puzzle, layout, palette),
   );
   context.drawImage(board, 0, 0);
@@ -165,7 +165,7 @@ function threadSprite(
   const base: HTMLCanvasElement = cachedSprite(
     sprites,
     `thread ${placement.piece} 0 ${colour}`,
-    (): HTMLCanvasElement => drawThreadTile(placement.piece, colour, cell, THREAD_WIDTH),
+    (): HTMLCanvasElement => drawThreadTile(placement.piece, colour, cell),
   );
   if (placement.turns === 0) return base;
   return cachedSprite(
@@ -201,7 +201,6 @@ function crossingSprite(
         dyed(crossing.over, overTurns),
         crossing.axis,
         palette.weaveShadow,
-        THREAD_WIDTH,
       ),
   );
 }
@@ -216,15 +215,7 @@ function pegSprite(
   return cachedSprite(
     sprites,
     `peg ${peg.colour} ${tied ? "tied" : "loose"} ${String(peg.length)}`,
-    (): HTMLCanvasElement =>
-      drawPegSprite(
-        palette.thread[peg.colour],
-        palette.wash[peg.colour],
-        tied,
-        peg.length,
-        layout.cell,
-        palette,
-      ),
+    (): HTMLCanvasElement => drawPegSprite(peg.colour, tied, peg.length, layout.cell, palette),
   );
 }
 

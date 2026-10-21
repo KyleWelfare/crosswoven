@@ -1,5 +1,5 @@
 import type { Palette } from "./palette.ts";
-import { createSprite, type Sprite } from "./sprite-cache.ts";
+import { createSprite, type Sprite } from "./sprite.ts";
 
 /** CSS pixels rather than fractions of a square, so it stays readable on a 15×15 phone board. */
 const BADGE_HEIGHT: number = 24;

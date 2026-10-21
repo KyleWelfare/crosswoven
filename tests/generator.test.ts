@@ -76,6 +76,17 @@ describe("layThreads", (): void => {
     expect(layThreads(heart, 7)).not.toEqual(layThreads(heart, 8));
   });
 
+  it("leaves the picture's lengths out of the puzzle", (): void => {
+    expect(Object.keys(laid(layThreads(heart, 1)).puzzle).sort()).toEqual([
+      "height",
+      "id",
+      "pattern",
+      "pegs",
+      "title",
+      "width",
+    ]);
+  });
+
   it("weaves any picture woven from random threads, breaking no rule", (): void => {
     fc.assert(
       fc.property(randomWeaves, fc.nat(1000), (weave: Weave, seed: number): void => {
@@ -84,14 +95,14 @@ describe("layThreads", (): void => {
     );
   });
 
-  it("keeps laid threads within the picture's lengths", (): void => {
+  it("keeps grown threads no longer than the picture's max", (): void => {
     const long: Picture = { ...heart, lengths: { min: 4, max: 8 } };
     for (const seed of [1, 2, 3, 4, 5]) {
       for (const thread of laid(layThreads(heart, seed)).threads) {
         expect(thread.squares.length).toBeLessThanOrEqual(DEFAULT_LENGTHS.max);
       }
       for (const thread of laid(layThreads(long, seed)).threads) {
-        expect(thread.squares.length).toBeLessThanOrEqual(8);
+        expect(thread.squares.length).toBeLessThanOrEqual(long.lengths.max);
       }
     }
   });

@@ -27,7 +27,6 @@ interface Grid {
   readonly width: number;
   readonly height: number;
   readonly squares: readonly SquareColour[];
-  readonly lengths: ThreadLengths;
 }
 
 interface ColourPath {
@@ -43,9 +42,9 @@ type Found<T> =
   | { readonly ok: false; readonly bad: readonly number[] };
 
 /**
- * Covers each colour of a picture with short threads and puts numbered pegs at their ends. The
- * same picture and seed always give the same laying. Whether it makes a good puzzle is the
- * validator's job.
+ * Covers each colour of a picture with threads of the picture's lengths and puts numbered pegs at
+ * their ends. The same picture and seed always give the same laying. Whether it makes a good
+ * puzzle is the validator's job.
  */
 export function layThreads(picture: Picture, seed: number): Laying {
   const grid: Grid = gridOf(picture);
@@ -71,7 +70,7 @@ export function layThreads(picture: Picture, seed: number): Laying {
   const rng: Rng = createRng(seed);
   const paths: ColourPath[] = [];
   for (const [colour, forced] of forcedByColour) {
-    for (const squares of layColour(grid, colour, forced, rng)) {
+    for (const squares of layColour(grid, colour, forced, picture.lengths, rng)) {
       paths.push({ colour, squares });
     }
   }
@@ -248,7 +247,8 @@ function cutsOf(grid: Grid, thread: Thread): readonly number[] {
 }
 
 function puzzleOf(picture: Picture, threads: Solution): Puzzle {
-  return { ...picture, pegs: pegsOf(threads) };
+  const { id, title, width, height, pattern }: Picture = picture;
+  return { id, title, width, height, pattern, pegs: pegsOf(threads) };
 }
 
 function gridOf(picture: Picture): Grid {
@@ -256,7 +256,6 @@ function gridOf(picture: Picture): Grid {
     width: picture.width,
     height: picture.height,
     squares: picture.pattern.flat(),
-    lengths: picture.lengths,
   };
 }
 
@@ -426,6 +425,7 @@ function layColour(
   grid: Grid,
   colour: ThreadColour,
   forced: readonly (readonly number[])[],
+  lengths: ThreadLengths,
   rng: Rng,
 ): readonly (readonly number[])[] {
   const taken: ReadonlySet<number> = new Set<number>(forced.flat());
@@ -443,7 +443,7 @@ function layColour(
       undefined,
     );
   const grow = (path: number[]): void => {
-    const target: number = randomInt(rng, grid.lengths.min, grid.lengths.max);
+    const target: number = randomInt(rng, lengths.min, lengths.max);
     for (const atEnd of [true, false]) {
       while (path.length < target) {
         const end: number | undefined = atEnd ? path.at(-1) : path[0];
@@ -471,16 +471,16 @@ function layColour(
     free.delete(start);
     const path: number[] = [start];
     grow(path);
-    if (path.length > 1 || !joinNeighbour(grid, paths, start)) paths.push(path);
+    if (path.length > 1 || !joinNeighbour(grid, paths, start, lengths.max)) paths.push(path);
   }
   return paths;
 }
 
 /** Adds a lone square to the end of a neighbouring thread with room for it. */
-function joinNeighbour(grid: Grid, paths: number[][], square: number): boolean {
+function joinNeighbour(grid: Grid, paths: number[][], square: number, maxLength: number): boolean {
   const nearby: ReadonlySet<number> = new Set<number>(neighbours(grid, square));
   for (const path of paths) {
-    if (path.length >= grid.lengths.max) continue;
+    if (path.length >= maxLength) continue;
     if (nearby.has(path.at(-1) ?? -1)) {
       path.push(square);
       return true;

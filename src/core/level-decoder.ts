@@ -56,7 +56,7 @@ export interface LevelFile {
 
 /**
  * A picture file holds a level's id, title and pattern, with no version or pegs. An optional
- * `lengths: [min, max]` sets how long the generator lays its threads.
+ * `lengths: [min, max]` sets the lengths the generator aims its threads at.
  */
 export function decodePicture(json: unknown): PictureResult {
   if (!isJsonObject(json)) return { ok: false, errors: ["the picture must be a JSON object"] };

@@ -179,7 +179,8 @@ A hint shows the next square or link the player can draw and the rule that force
 
 Claude draws each picture as a small text grid in the repo, using the pattern codes. `npm run levels` then turns each picture into a level:
 
-1. The generator covers each colour's squares with short threads, running straight through two-colour squares, and puts numbered pegs at their ends. It's seeded, so the same picture and seed always give the same level
+1. The generator covers each colour's squares with threads, running straight through two-colour squares, and puts numbered pegs at their ends. It's seeded, so the same picture and seed always give the same level
+   - A picture can set `lengths: [min, max]`, 2 to 5 by default. Each thread the generator grows aims for a length in that range, but these are targets, not limits. A thread that runs out of free squares stops short of `min`, and a lone square joins a neighbouring thread shorter than `max` or else becomes a length-1 thread. Splitting ignores `min`, and a thread forced through a band of crossings can run past `max`
 2. The validator certifies the result. If the puzzle has more than one solution, the generator re-lays threads where the two solutions differ, usually by splitting them shorter, and tries again. If that doesn't converge, it tries another seed
 3. Some pictures can't be woven at all: for example, a purple square on the edge of the grid has no room to cross. The script reports the squares at fault, so the picture can be fixed. If the picture can be woven but no seed works, it reports the squares that last caused trouble instead
 4. Certified levels are written to `src/levels/`, with the play order from `pictures/order.json`, which must list every picture once

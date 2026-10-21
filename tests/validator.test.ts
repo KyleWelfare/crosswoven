@@ -1,17 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 import type * as LogicSolver from "../src/core/logic-solver.ts";
 import { solveLogically } from "../src/core/logic-solver.ts";
+import type { Peg } from "../src/core/puzzle.ts";
 import { validateLevel } from "../src/core/validator.ts";
 import { allSolutions } from "./fixtures/all-solutions.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
 import { decoded } from "./fixtures/puzzle-of.ts";
 import {
-  crossingLevel,
   guessingLevel,
-  loopLevel,
-  pairingLevel,
-  strandLevel,
   openLevel,
+  pairingLevel,
+  partnerLevel,
+  sharedLevel,
   turningCrossingLevel,
 } from "./fixtures/reference-puzzles.ts";
 
@@ -69,14 +69,19 @@ describe("validateLevel", (): void => {
   });
 
   it("rates a puzzle by the hardest rule it needs", (): void => {
-    expect(validateLevel(crossingLevel)).toMatchObject({ ok: true, difficulty: "easy" });
-    expect(validateLevel(loopLevel)).toMatchObject({ ok: true, difficulty: "medium" });
-    expect(validateLevel(strandLevel)).toMatchObject({ ok: true, difficulty: "medium" });
+    expect(validateLevel(partnerLevel)).toMatchObject({ ok: true, difficulty: "easy" });
+    expect(validateLevel(sharedLevel)).toMatchObject({ ok: true, difficulty: "medium" });
   });
 
   it("throws when the logic solver finds a contradiction in a solvable puzzle", (): void => {
     vi.mocked(solveLogically).mockReturnValueOnce({ status: "contradiction", steps: [] });
-    expect((): unknown => validateLevel(crossingLevel)).toThrow("found a contradiction");
+    expect((): unknown => validateLevel(partnerLevel)).toThrow("found a contradiction");
+  });
+
+  it("throws when only the logic solver finds a puzzle too open", (): void => {
+    const peg: Peg = { x: 1, y: 0, colour: "blue", length: 2 };
+    vi.mocked(solveLogically).mockReturnValueOnce({ status: "too-open", pegs: [peg, peg] });
+    expect((): unknown => validateLevel(partnerLevel)).toThrow("too open");
   });
 
   it("throws when the solvers reach different solutions", (): void => {
@@ -86,6 +91,6 @@ describe("validateLevel", (): void => {
       difficulty: "easy",
       solution: [],
     });
-    expect((): unknown => validateLevel(crossingLevel)).toThrow("solvers disagree");
+    expect((): unknown => validateLevel(partnerLevel)).toThrow("solvers disagree");
   });
 });

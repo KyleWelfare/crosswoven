@@ -3,9 +3,11 @@ import {
   squareMask,
   type ColourMask,
   type Peg,
+  type Point,
   type Puzzle,
   type ThreadColour,
 } from "./puzzle.ts";
+import type { Solution, Thread } from "./thread.ts";
 
 /** Squares are numbered in reading order, `y * width + x`. */
 export interface Candidate {
@@ -164,4 +166,27 @@ function distance(grid: Grid, a: number, b: number): number {
 function isCrossing(grid: Grid, square: number): boolean {
   const mask: ColourMask = grid.masks[square] ?? 0;
   return (mask & (mask - 1)) !== 0;
+}
+
+/** In the order `Solution` documents. */
+export function solutionOf(width: number, chosen: readonly Candidate[]): Solution {
+  const order = (thread: Thread): number => {
+    const start: Point | undefined = thread.squares[0];
+    return start ? start.y * width + start.x : 0;
+  };
+  return chosen
+    .map((candidate: Candidate): Thread => threadOf(width, candidate))
+    .sort((a: Thread, b: Thread): number => order(a) - order(b));
+}
+
+export function threadOf(width: number, candidate: Candidate): Thread {
+  const squares: readonly number[] = candidate.squares;
+  const forwards: boolean = (squares[0] ?? 0) <= (squares.at(-1) ?? 0);
+  return {
+    colour: candidate.colour,
+    squares: (forwards ? squares : [...squares].reverse()).map((square: number): Point => ({
+      x: square % width,
+      y: Math.floor(square / width),
+    })),
+  };
 }

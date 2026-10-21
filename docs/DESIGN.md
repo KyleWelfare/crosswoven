@@ -128,15 +128,16 @@ Each solver is checked against the other, so a bug in one shows up as a disagree
 
 ### Deduction rules
 
-Proposed from the experiment that showed local deduction solves almost every unique puzzle. Final tiers are settled when the logic solver is rebuilt.
+Each rule rules out candidate paths. On 71,421 random unique puzzles they finished all but 15. There is no Hard tier yet; whether there should be one is settled after playtesting the level pack.
 
 | Rule       | Difficulty | Statement                                                                                                                         |
 | ---------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | Partner    | Easy       | A peg can only pair with a peg of its colour and number that its thread could reach. If only one can, they pair                   |
 | Only path  | Easy       | When a pair has one path left, that is its thread                                                                                 |
-| Crossing   | Easy       | At a two-colour square the threads run perpendicular, so once one thread's direction there is known, the other's is too           |
 | Shared     | Medium     | Squares that every remaining path of a peg passes through belong to that peg's thread; no other thread of its colour may use them |
 | Only reach | Medium     | A square that only one peg's paths can reach must be on that peg's thread, so its paths that miss the square are ruled out        |
+
+Crossings need no rule of their own. Candidate paths only run straight through two-colour squares, and two colours can never both cross a square the same way: they would share every square onward to the edge of the grid. So once paths are listed, every crossing is already perpendicular.
 
 A puzzle's difficulty is the hardest rule its solve needs. Trial and error ("assume this, follow it, hit a contradiction") is not a rule: a puzzle that needs it counts as needing guessing and is rejected.
 
@@ -180,7 +181,7 @@ Kept from the prototype and refined later:
 
 ## Open questions
 
-- What makes a puzzle Hard, now that the deduction rules are path-based. To settle when the logic solver is rebuilt
+- Whether there's a Hard tier, and what earns it. To settle after playtesting the level pack, along with counting steps below
 - Is there a maximum thread length? Long threads in open areas have many candidate paths, which slows both solvers. For now the validator rejects a pair with more than 100,000 paths
 - When every peg is tied but the board is wrong, what does the player see: just "not solved yet", or a count of wrong squares?
 - Does the shipped game keep a "Show answer" button?

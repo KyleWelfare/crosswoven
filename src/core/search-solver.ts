@@ -1,17 +1,12 @@
 import {
   listCandidates,
+  solutionOf,
   type Candidate,
   type CandidateList,
   type TooOpen,
 } from "./candidate-paths.ts";
-import {
-  THREAD_COLOURS,
-  threadsThrough,
-  type Point,
-  type Puzzle,
-  type SquareColour,
-} from "./puzzle.ts";
-import type { Solution, Thread } from "./thread.ts";
+import { THREAD_COLOURS, threadsThrough, type Puzzle, type SquareColour } from "./puzzle.ts";
+import type { Solution } from "./thread.ts";
 
 export type SearchResult = { readonly ok: true; readonly solutions: readonly Solution[] } | TooOpen;
 
@@ -48,7 +43,7 @@ export function findSolutions(puzzle: Puzzle, limit: number): SearchResult {
     if (solutions.length >= limit) return;
     const column: number | undefined = mostConstrained(cover);
     if (column === undefined) {
-      solutions.push(toSolution(puzzle.width, chosen));
+      solutions.push(solutionOf(puzzle.width, chosen));
       return;
     }
     for (const row of cover.rowsIn[column] ?? []) {
@@ -135,27 +130,4 @@ function choose(cover: Cover, row: number, change: 1 | -1): void {
       }
     }
   }
-}
-
-/** In the order `Solution` documents. */
-function toSolution(width: number, chosen: readonly Candidate[]): Solution {
-  const order = (thread: Thread): number => {
-    const start: Point | undefined = thread.squares[0];
-    return start ? start.y * width + start.x : 0;
-  };
-  return chosen
-    .map((candidate: Candidate): Thread => toThread(width, candidate))
-    .sort((a: Thread, b: Thread): number => order(a) - order(b));
-}
-
-function toThread(width: number, candidate: Candidate): Thread {
-  const squares: readonly number[] = candidate.squares;
-  const forwards: boolean = (squares[0] ?? 0) <= (squares.at(-1) ?? 0);
-  return {
-    colour: candidate.colour,
-    squares: (forwards ? squares : [...squares].reverse()).map((square: number): Point => ({
-      x: square % width,
-      y: Math.floor(square / width),
-    })),
-  };
 }

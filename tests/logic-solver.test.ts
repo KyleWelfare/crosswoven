@@ -8,31 +8,29 @@ import {
 import type { Puzzle } from "../src/core/puzzle.ts";
 import { allSolutions } from "./fixtures/all-solutions.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
-import { decoded, puzzleOf } from "./fixtures/puzzle-of.ts";
+import { decoded } from "./fixtures/puzzle-of.ts";
 import {
-  crossingLevel,
   guessingLevel,
-  loopLevel,
-  strandLevel,
+  onlyPathLevel,
+  onlyReachLevel,
+  openLevel,
+  partnerLevel,
+  sharedLevel,
   turningCrossingLevel,
 } from "./fixtures/reference-puzzles.ts";
 
-function rulesUsed(result: LogicResult): ReadonlySet<Rule> {
-  return new Set(result.steps.map((step: Step): Rule => step.rule));
-}
-
 /** Stuck without `rule` (and anything harder), solved once it's allowed. */
-function expectNeeds(puzzle: Puzzle, easier: readonly Rule[], rule: Rule): LogicResult {
+function expectNeeds(puzzle: Puzzle, easier: readonly Rule[], rule: Rule): readonly Step[] {
   expect(solveLogically(puzzle, easier).status).toBe("stuck");
   const result: LogicResult = solveLogically(puzzle, [...easier, rule]);
-  expect(result.status).toBe("solved");
-  return result;
+  if (result.status !== "solved") throw new Error(`expected solved, got ${result.status}`);
+  return result.steps;
 }
 
-const crossingPuzzle: Puzzle = decoded(crossingLevel);
-const loopPuzzle: Puzzle = decoded(loopLevel);
-const strandPuzzle: Puzzle = decoded(strandLevel);
-const guessingPuzzle: Puzzle = decoded(guessingLevel);
+const partnerPuzzle: Puzzle = decoded(partnerLevel);
+const onlyPathPuzzle: Puzzle = decoded(onlyPathLevel);
+const sharedPuzzle: Puzzle = decoded(sharedLevel);
+const onlyReachPuzzle: Puzzle = decoded(onlyReachLevel);
 
 describe("solveLogically", (): void => {
   it("solves the example puzzle to the search solver's answer", (): void => {
@@ -43,88 +41,64 @@ describe("solveLogically", (): void => {
   });
 
   describe("rules", (): void => {
-    it("count: a straight crossing needs nothing else", (): void => {
-      const puzzle: Puzzle = puzzleOf(
-        ["..B..", "..B..", "RRPRR", "..B..", "..B.."],
-        [
-          [2, 0, 5],
-          [0, 2, 5],
-          [4, 2, 5],
-          [2, 4, 5],
+    it("partner: a peg that can reach only one partner pairs with it", (): void => {
+      const steps: readonly Step[] = expectNeeds(partnerPuzzle, [], "partner");
+      expect(steps[0]).toEqual({
+        rule: "partner",
+        colour: "blue",
+        at: { x: 2, y: 0 },
+        ruledOut: [
+          {
+            colour: "blue",
+            squares: [
+              { x: 1, y: 0 },
+              { x: 1, y: 1 },
+            ],
+          },
         ],
-      );
-      const result: LogicResult = solveLogically(puzzle, ["count"]);
-      expect(result).toMatchObject({ status: "solved", difficulty: "easy" });
-      expect(rulesUsed(result)).toEqual(new Set(["count"]));
+      });
     });
 
-    it("crossing: fixes both threads once one direction is known", (): void => {
-      const result: LogicResult = expectNeeds(crossingPuzzle, ["count"], "crossing");
-      expect(result).toMatchObject({ difficulty: "easy" });
+    it("only path: a peg's last path is its thread, so clashing paths go", (): void => {
+      const steps: readonly Step[] = expectNeeds(onlyPathPuzzle, ["partner"], "only-path");
+      expect(steps[0]).toMatchObject({ rule: "only-path", at: { x: 3, y: 0 } });
     });
 
-    it("loop: a square can't link to both ends of one piece", (): void => {
-      const result: LogicResult = expectNeeds(loopPuzzle, ["count", "crossing"], "loop");
-      expect(result).toMatchObject({ difficulty: "medium" });
-      expect(result.steps).toContainEqual(
-        expect.objectContaining({
-          rule: "loop",
-          from: { x: 2, y: 2 },
-          to: { x: 3, y: 2 },
-          linked: true,
-        }),
-      );
+    it("shared: squares on every path of a peg are closed to other threads", (): void => {
+      const steps: readonly Step[] = expectNeeds(sharedPuzzle, ["partner", "only-path"], "shared");
+      expect(steps[0]).toMatchObject({ rule: "shared", at: { x: 1, y: 0 } });
     });
 
-    it("strand: won't finish a thread that strands other squares", (): void => {
-      const result: LogicResult = expectNeeds(
-        strandPuzzle,
-        ["count", "crossing", "loop"],
-        "strand",
+    it("only reach: the one peg that can reach a square must", (): void => {
+      const steps: readonly Step[] = expectNeeds(
+        onlyReachPuzzle,
+        ["partner", "only-path", "shared"],
+        "only-reach",
       );
-      expect(result).toMatchObject({ difficulty: "medium" });
-      expect(result.steps).toContainEqual(
-        expect.objectContaining({
-          rule: "strand",
-          from: { x: 2, y: 3 },
-          to: { x: 3, y: 3 },
-          linked: false,
-        }),
+      expect(steps).toContainEqual(
+        expect.objectContaining({ rule: "only-reach", at: { x: 1, y: 6 } }),
       );
-    });
-
-    it("parity: links what a region needs to pair its pegs", (): void => {
-      const puzzle: Puzzle = puzzleOf(
-        ["RRRR.", ".....", ".....", ".....", "....."],
-        [
-          [0, 0, 4],
-          [3, 0, 4],
-        ],
-      );
-      const result: LogicResult = solveLogically(puzzle, ["parity"]);
-      expect(result).toMatchObject({ status: "solved", difficulty: "hard" });
-      expect(rulesUsed(result)).toEqual(new Set(["parity"]));
     });
   });
 
   it("gets stuck on a puzzle that needs guessing", (): void => {
-    expect(allSolutions(guessingPuzzle, 2)).toHaveLength(1);
-    expect(solveLogically(guessingPuzzle).status).toBe("stuck");
+    const puzzle: Puzzle = decoded(guessingLevel);
+    expect(allSolutions(puzzle, 2)).toHaveLength(1);
+    expect(solveLogically(puzzle).status).toBe("stuck");
   });
 
   it("reports a contradiction on a puzzle with no solution", (): void => {
-    const puzzle: Puzzle = decoded(turningCrossingLevel);
-    expect(solveLogically(puzzle).status).toBe("contradiction");
+    expect(solveLogically(decoded(turningCrossingLevel)).status).toBe("contradiction");
+  });
+
+  it("reports pegs with too many paths to check", (): void => {
+    expect(solveLogically(decoded(openLevel))).toMatchObject({ status: "too-open" });
   });
 
   it("rates a puzzle by the hardest rule it needed", (): void => {
-    expect(solveLogically(crossingPuzzle)).toMatchObject({ difficulty: "easy" });
-    expect(solveLogically(loopPuzzle)).toMatchObject({ difficulty: "medium" });
-    expect(solveLogically(strandPuzzle)).toMatchObject({ difficulty: "medium" });
-  });
-
-  it("uses easier rules before harder ones", (): void => {
-    const steps: readonly Step[] = solveLogically(strandPuzzle).steps;
-    expect(steps[0]?.rule).toBe("count");
+    expect(solveLogically(partnerPuzzle)).toMatchObject({ difficulty: "easy" });
+    expect(solveLogically(onlyPathPuzzle)).toMatchObject({ difficulty: "easy" });
+    expect(solveLogically(sharedPuzzle)).toMatchObject({ difficulty: "medium" });
+    expect(solveLogically(onlyReachPuzzle)).toMatchObject({ difficulty: "medium" });
   });
 });

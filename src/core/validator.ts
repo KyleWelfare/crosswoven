@@ -34,6 +34,11 @@ export function validatePuzzle(puzzle: Puzzle): Verdict {
   const logic: LogicResult = solveLogically(puzzle);
   // The solvers check each other. Disagreeing on a puzzle with one solution is a solver bug, so it
   // throws: rejecting would let the generator quietly retry past it.
+  if (logic.status === "too-open") {
+    throw new Error(
+      `logic solver found puzzle "${puzzle.id}" too open, but the search solver didn't`,
+    );
+  }
   if (logic.status !== "solved") {
     if (logic.status === "contradiction") {
       throw new Error(`logic solver found a contradiction in solvable puzzle "${puzzle.id}"`);

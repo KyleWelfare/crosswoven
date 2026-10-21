@@ -15,6 +15,7 @@ import {
   type SquareColour,
   type ThreadColour,
 } from "./puzzle.ts";
+import { joinedPeg, seenMoves, type Seen } from "./sight.ts";
 import type { Solution, Thread } from "./thread.ts";
 
 export type Rule = "partner" | "only-path" | "shared" | "only-reach";
@@ -111,6 +112,129 @@ export function solveLogically(puzzle: Puzzle, rules: readonly Rule[] = RULES): 
  */
 export function solveInRounds(puzzle: Puzzle, rules: readonly Rule[] = RULES): RoundsResult {
   return solve(puzzle, rules, roundOfFindings);
+}
+
+export interface Look {
+  readonly seen: number;
+  /** Pegs whose thread isn't finished, so `seen / open` is how much of the board can move. */
+  readonly open: number;
+}
+
+export interface PlayerResult {
+  readonly result: LogicResult;
+  /**
+   * The rounds of deduction a player needs: each comes once they've run out of moves they can see
+   * (sight.ts), and takes every deduction open at that point, easy before medium.
+   */
+  readonly thinking: readonly (readonly Step[])[];
+  /** Each time the player looks the board over, how many pegs they can see a move for. */
+  readonly looks: readonly Look[];
+}
+
+/**
+ * Solves the way a player plays: moves they can see cost nothing, and only running out of them
+ * calls for a round of deduction. A long chain of forced moves is one glance to a player, but as
+ * many rounds to solveInRounds.
+ */
+export function solveAsPlayer(puzzle: Puzzle): PlayerResult {
+  const list: CandidateList = listCandidates(puzzle);
+  if (!list.ok) return { result: { status: "too-open", pegs: list.pegs }, thinking: [], looks: [] };
+  const board: Board = createBoard(puzzle, list.candidates);
+  const prefixes: number[][] = puzzle.pegs.map((peg: Peg): number[] => [squareOf(puzzle, peg)]);
+  const done: boolean[] = puzzle.pegs.map((peg: Peg): boolean => peg.length === 1);
+  const thinking: (readonly Step[])[] = [];
+  const looks: Look[] = [];
+  for (;;) {
+    followSight(board, prefixes, done, looks);
+    if (hasContradiction(board) || isSolved(board)) break;
+    const found: readonly Finding[] = roundOfFindings(board, RULES);
+    if (found.length === 0) break;
+    thinking.push(found.map((finding: Finding): Step => ruleOut(board, finding)));
+    const touched: ReadonlySet<number> = new Set<number>(
+      found.flatMap((finding: Finding): number[] =>
+        finding.rows.flatMap((row: number): number[] => [...candidateAt(board, row).pegs]),
+      ),
+    );
+    for (const peg of touched) learnPrefix(board, prefixes, done, peg);
+  }
+  return { result: resultOf(board, thinking.flat()), thinking, looks };
+}
+
+function followSight(board: Board, prefixes: number[][], done: boolean[], looks: Look[]): void {
+  for (;;) {
+    const seen: readonly Seen[] = seenMoves(board.puzzle, prefixes, done);
+    if (seen.length === 0) return;
+    looks.push({
+      seen: seen.length,
+      open: done.filter((finished: boolean): boolean => !finished).length,
+    });
+    for (const { peg, square } of seen) {
+      // Two ends that see each other in one look join on the first; the second has nothing left.
+      if (done[peg]) continue;
+      prefixes[peg]?.push(square);
+      const path: readonly number[] = prefixes[peg] ?? [];
+      const joined: number | undefined = joinedPeg(board.puzzle, prefixes, done, peg, path);
+      if (joined !== undefined) {
+        const whole: readonly number[] = [
+          ...path,
+          ...[...(prefixes[joined] ?? [])].reverse().slice(1),
+        ];
+        prefixes[peg] = [...whole];
+        prefixes[joined] = [...whole].reverse();
+        done[peg] = true;
+        done[joined] = true;
+        keepTo(board, joined, prefixes[joined] ?? []);
+      }
+      keepTo(board, peg, prefixes[peg] ?? []);
+    }
+  }
+}
+
+/** What a round of deduction showed of a peg's thread: the start every live path shares. */
+function learnPrefix(board: Board, prefixes: number[][], done: boolean[], peg: number): void {
+  const paths: readonly (readonly number[])[] = liveIn(board, board.byPeg[peg]).map(
+    (row: number): readonly number[] => pathFrom(candidateAt(board, row), peg),
+  );
+  const [first, ...rest]: readonly (readonly number[])[] = paths;
+  if (!first) return;
+  let shared: number = 0;
+  while (
+    shared < first.length &&
+    rest.every((path: readonly number[]): boolean => path[shared] === first[shared])
+  ) {
+    shared++;
+  }
+  if (shared <= (prefixes[peg]?.length ?? 0)) return;
+  prefixes[peg] = first.slice(0, shared);
+  if (rest.length > 0) return;
+  const partner: number = partnerOf(board, liveIn(board, board.byPeg[peg])[0] ?? -1, peg);
+  done[peg] = true;
+  done[partner] = true;
+  prefixes[partner] = [...first].reverse();
+}
+
+/** Rules out every path that disagrees with what's known of a peg's thread. */
+function keepTo(board: Board, peg: number, prefix: readonly number[]): void {
+  const colour: ThreadColour = pegOf(board, peg).colour;
+  for (const row of liveIn(board, board.byPeg[peg])) {
+    const path: readonly number[] = pathFrom(candidateAt(board, row), peg);
+    if (prefix.some((square: number, i: number): boolean => path[i] !== square)) {
+      board.alive[row] = 0;
+    }
+  }
+  for (const square of prefix) {
+    for (const row of liveIn(board, board.bySlot[slotOf(square, colour)])) {
+      if (!candidateAt(board, row).pegs.includes(peg)) board.alive[row] = 0;
+    }
+  }
+}
+
+function pathFrom(candidate: Candidate, peg: number): readonly number[] {
+  return candidate.pegs[0] === peg ? candidate.squares : [...candidate.squares].reverse();
+}
+
+function squareOf(puzzle: Puzzle, point: Point): number {
+  return point.y * puzzle.width + point.x;
 }
 
 function solve(puzzle: Puzzle, rules: readonly Rule[], advance: Advance): RoundsResult {

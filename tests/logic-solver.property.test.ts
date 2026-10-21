@@ -1,6 +1,11 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import { solveInRounds, solveLogically, type LogicResult } from "../src/core/logic-solver.ts";
+import {
+  solveAsPlayer,
+  solveInRounds,
+  solveLogically,
+  type LogicResult,
+} from "../src/core/logic-solver.ts";
 import type { Puzzle } from "../src/core/puzzle.ts";
 import type { Solution } from "../src/core/thread.ts";
 import { allSolutions } from "./fixtures/all-solutions.ts";
@@ -42,6 +47,21 @@ describe("solveLogically properties", (): void => {
       fc.property(randomWeaves, (weave: Weave): void => {
         expect(solveLogically(decoded(weave.level)).status).not.toBe("contradiction");
       }),
+    );
+  });
+
+  it("reaches the same verdict solving as a player, so what a player sees is never wrong", (): void => {
+    fc.assert(
+      fc.property(randomWeaves, (weave: Weave): void => {
+        const puzzle: Puzzle = decoded(weave.level);
+        const one: LogicResult = solveLogically(puzzle);
+        const player: LogicResult = solveAsPlayer(puzzle).result;
+        expect(player.status).toBe(one.status);
+        if (one.status === "solved" && player.status === "solved") {
+          expect(player.solution).toEqual(one.solution);
+        }
+      }),
+      { numRuns: 1000 },
     );
   });
 

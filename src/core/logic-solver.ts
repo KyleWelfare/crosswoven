@@ -58,6 +58,12 @@ export type LogicResult =
   | { readonly status: "contradiction"; readonly steps: readonly Step[] }
   | { readonly status: "too-open"; readonly pegs: readonly [Peg, Peg] };
 
+export interface RoundsResult {
+  readonly result: LogicResult;
+  /** `result`'s steps, grouped by the round that took them. */
+  readonly rounds: readonly (readonly Step[])[];
+}
+
 /**
  * Squares are numbered `y * width + x`. A slot is one colour's thread at one square, numbered
  * `square * THREAD_COLOURS.length + colour`.
@@ -71,45 +77,102 @@ interface Board {
   readonly bySlot: readonly (readonly number[])[];
   /** Slots the pattern asks for: each needs exactly one thread. */
   readonly slots: readonly number[];
-  readonly steps: Step[];
 }
 
-const applyRule: Readonly<Record<Rule, (board: Board) => boolean>> = {
-  partner: applyPartner,
-  "only-path": applyOnlyPath,
-  shared: applyShared,
-  "only-reach": applyOnlyReach,
+/** What a rule can rule out, worked out without changing the board. */
+interface Finding {
+  readonly rule: Rule;
+  readonly colour: ThreadColour;
+  readonly at: Point;
+  /** Candidate rows, sorted and never empty. */
+  readonly rows: readonly number[];
+}
+
+/** The findings to apply next, or none once nothing applies. */
+type Advance = (board: Board, allowed: readonly Rule[]) => readonly Finding[];
+
+/** Each rule looks at one peg, or for only-reach one slot, by its index. */
+const findAt: Readonly<Record<Rule, (board: Board, item: number) => Finding | undefined>> = {
+  partner: findPartner,
+  "only-path": findOnlyPath,
+  shared: findShared,
+  "only-reach": findOnlyReach,
 };
 
 /** `rules` limits which rules it may use. */
 export function solveLogically(puzzle: Puzzle, rules: readonly Rule[] = RULES): LogicResult {
+  return solve(puzzle, rules, firstFinding).result;
+}
+
+/**
+ * Solves the way a player scans the whole board before moving on: each round takes every
+ * deduction open at its start, from the easiest tier that has any. Ruling paths out never stops
+ * a rule from applying, so this ends where solveLogically does, with the same verdict.
+ */
+export function solveInRounds(puzzle: Puzzle, rules: readonly Rule[] = RULES): RoundsResult {
+  return solve(puzzle, rules, roundOfFindings);
+}
+
+function solve(puzzle: Puzzle, rules: readonly Rule[], advance: Advance): RoundsResult {
   const list: CandidateList = listCandidates(puzzle);
-  if (!list.ok) return { status: "too-open", pegs: list.pegs };
+  if (!list.ok) return { result: { status: "too-open", pegs: list.pegs }, rounds: [] };
   const board: Board = createBoard(puzzle, list.candidates);
   const allowed: readonly Rule[] = RULES.filter((rule: Rule): boolean => rules.includes(rule));
+  const rounds: (readonly Step[])[] = [];
 
   while (!hasContradiction(board) && !isSolved(board)) {
-    const progressed: boolean = allowed.some((rule: Rule): boolean => applyRule[rule](board));
-    if (!progressed) break;
+    const found: readonly Finding[] = advance(board, allowed);
+    if (found.length === 0) break;
+    rounds.push(found.map((finding: Finding): Step => ruleOut(board, finding)));
   }
+  return { result: resultOf(board, rounds.flat()), rounds };
+}
 
-  if (hasContradiction(board)) return { status: "contradiction", steps: board.steps };
-  if (!isSolved(board)) {
-    return { status: "stuck", steps: board.steps, unsettled: unsettledPegs(board) };
-  }
+function resultOf(board: Board, steps: readonly Step[]): LogicResult {
+  if (hasContradiction(board)) return { status: "contradiction", steps };
+  if (!isSolved(board)) return { status: "stuck", steps, unsettled: unsettledPegs(board) };
   return {
     status: "solved",
-    steps: board.steps,
-    difficulty: board.steps.some((step: Step): boolean => RULE_DIFFICULTY[step.rule] === "medium")
+    steps,
+    difficulty: steps.some((step: Step): boolean => RULE_DIFFICULTY[step.rule] === "medium")
       ? "medium"
       : "easy",
     solution: solutionOf(
-      puzzle.width,
+      board.puzzle.width,
       liveIn(board, [...board.candidates.keys()]).map((row: number): Candidate =>
         candidateAt(board, row),
       ),
     ),
   };
+}
+
+function firstFinding(board: Board, allowed: readonly Rule[]): readonly Finding[] {
+  for (const rule of allowed) {
+    for (let item: number = 0; item < itemCount(board, rule); item++) {
+      const found: Finding | undefined = findAt[rule](board, item);
+      if (found) return [found];
+    }
+  }
+  return [];
+}
+
+/** `allowed` runs easiest first, so a tier's rules are next to each other. */
+function roundOfFindings(board: Board, allowed: readonly Rule[]): readonly Finding[] {
+  const found: Finding[] = [];
+  let tier: Difficulty | undefined;
+  for (const rule of allowed) {
+    if (RULE_DIFFICULTY[rule] !== tier && found.length > 0) return found;
+    tier = RULE_DIFFICULTY[rule];
+    for (let item: number = 0; item < itemCount(board, rule); item++) {
+      const finding: Finding | undefined = findAt[rule](board, item);
+      if (finding) found.push(finding);
+    }
+  }
+  return found;
+}
+
+function itemCount(board: Board, rule: Rule): number {
+  return rule === "only-reach" ? board.slots.length : board.puzzle.pegs.length;
 }
 
 function createBoard(puzzle: Puzzle, candidates: readonly Candidate[]): Board {
@@ -134,114 +197,110 @@ function createBoard(puzzle: Puzzle, candidates: readonly Candidate[]): Board {
     slots: squares.flatMap((square: SquareColour, index: number): number[] =>
       threadsThrough(square).map((colour: ThreadColour): number => slotOf(index, colour)),
     ),
-    steps: [],
   };
 }
 
 /** A peg whose paths all lead to one partner pairs with it, so the partner's other paths go. */
-function applyPartner(board: Board): boolean {
-  return board.puzzle.pegs.some((peg: Peg, index: number): boolean => {
-    if (peg.length === 1) return false;
-    const partners: ReadonlySet<number> = new Set<number>(
-      liveIn(board, board.byPeg[index]).map((row: number): number => partnerOf(board, row, index)),
-    );
-    const partner: number | undefined = partners.size === 1 ? [...partners][0] : undefined;
-    if (partner === undefined) return false;
-    const elsewhere: readonly number[] = liveIn(board, board.byPeg[partner]).filter(
-      (row: number): boolean => partnerOf(board, row, partner) !== index,
-    );
-    return ruleOut(board, "partner", peg.colour, positionOf(peg), elsewhere);
-  });
+function findPartner(board: Board, index: number): Finding | undefined {
+  const peg: Peg = pegOf(board, index);
+  if (peg.length === 1) return undefined;
+  const partners: ReadonlySet<number> = new Set<number>(
+    liveIn(board, board.byPeg[index]).map((row: number): number => partnerOf(board, row, index)),
+  );
+  const partner: number | undefined = partners.size === 1 ? [...partners][0] : undefined;
+  if (partner === undefined) return undefined;
+  const elsewhere: readonly number[] = liveIn(board, board.byPeg[partner]).filter(
+    (row: number): boolean => partnerOf(board, row, partner) !== index,
+  );
+  return finding("partner", peg.colour, positionOf(peg), elsewhere);
 }
 
 /** A peg with one path left is fixed, so every path sharing a peg or a slot with it goes. */
-function applyOnlyPath(board: Board): boolean {
-  return board.puzzle.pegs.some((peg: Peg, index: number): boolean => {
-    const rows: readonly number[] = liveIn(board, board.byPeg[index]);
-    const only: number | undefined = rows[0];
-    if (rows.length !== 1 || only === undefined) return false;
-    const candidate: Candidate = candidateAt(board, only);
-    const clashes: readonly number[] = liveIn(board, [
-      ...candidate.pegs.flatMap(
-        (pegIndex: number): readonly number[] => board.byPeg[pegIndex] ?? [],
-      ),
-      ...candidate.squares.flatMap(
-        (square: number): readonly number[] => board.bySlot[slotOf(square, candidate.colour)] ?? [],
-      ),
-    ]).filter((row: number): boolean => row !== only);
-    return ruleOut(board, "only-path", peg.colour, positionOf(peg), clashes);
-  });
+function findOnlyPath(board: Board, index: number): Finding | undefined {
+  const peg: Peg = pegOf(board, index);
+  const rows: readonly number[] = liveIn(board, board.byPeg[index]);
+  const only: number | undefined = rows[0];
+  if (rows.length !== 1 || only === undefined) return undefined;
+  const candidate: Candidate = candidateAt(board, only);
+  const clashes: readonly number[] = liveIn(board, [
+    ...candidate.pegs.flatMap((pegIndex: number): readonly number[] => board.byPeg[pegIndex] ?? []),
+    ...candidate.squares.flatMap(
+      (square: number): readonly number[] => board.bySlot[slotOf(square, candidate.colour)] ?? [],
+    ),
+  ]).filter((row: number): boolean => row !== only);
+  return finding("only-path", peg.colour, positionOf(peg), clashes);
 }
 
 /** Squares on every remaining path of a peg are its own, so other threads of its colour lose them. */
-function applyShared(board: Board): boolean {
-  return board.puzzle.pegs.some((peg: Peg, index: number): boolean => {
-    const paths: readonly (readonly number[])[] = liveIn(board, board.byPeg[index]).map(
-      (row: number): readonly number[] => candidateAt(board, row).squares,
-    );
-    const [first, ...rest]: readonly (readonly number[])[] = paths;
-    if (!first) return false;
-    const shared: readonly number[] = first.filter((square: number): boolean =>
-      rest.every((squares: readonly number[]): boolean => squares.includes(square)),
-    );
-    const others: readonly number[] = liveIn(
-      board,
-      shared.flatMap(
-        (square: number): readonly number[] => board.bySlot[slotOf(square, peg.colour)] ?? [],
-      ),
-    ).filter((row: number): boolean => !candidateAt(board, row).pegs.includes(index));
-    return ruleOut(board, "shared", peg.colour, positionOf(peg), others);
-  });
+function findShared(board: Board, index: number): Finding | undefined {
+  const peg: Peg = pegOf(board, index);
+  const paths: readonly (readonly number[])[] = liveIn(board, board.byPeg[index]).map(
+    (row: number): readonly number[] => candidateAt(board, row).squares,
+  );
+  const [first, ...rest]: readonly (readonly number[])[] = paths;
+  if (!first) return undefined;
+  const shared: readonly number[] = first.filter((square: number): boolean =>
+    rest.every((squares: readonly number[]): boolean => squares.includes(square)),
+  );
+  const others: readonly number[] = liveIn(
+    board,
+    shared.flatMap(
+      (square: number): readonly number[] => board.bySlot[slotOf(square, peg.colour)] ?? [],
+    ),
+  ).filter((row: number): boolean => !candidateAt(board, row).pegs.includes(index));
+  return finding("shared", peg.colour, positionOf(peg), others);
 }
 
 /** If every path through a slot belongs to one peg, that peg's paths that miss the slot go. */
-function applyOnlyReach(board: Board): boolean {
-  return board.slots.some((slot: number): boolean => {
-    const through: readonly number[] = liveIn(board, board.bySlot[slot]);
-    const [first, ...rest]: readonly number[] = through;
-    if (first === undefined) return false;
-    const owners: readonly number[] = candidateAt(board, first).pegs.filter(
-      (peg: number): boolean =>
-        rest.every((row: number): boolean => candidateAt(board, row).pegs.includes(peg)),
+function findOnlyReach(board: Board, item: number): Finding | undefined {
+  const slot: number | undefined = board.slots[item];
+  if (slot === undefined) throw new RangeError(`no slot ${String(item)}`);
+  const through: readonly number[] = liveIn(board, board.bySlot[slot]);
+  const [first, ...rest]: readonly number[] = through;
+  if (first === undefined) return undefined;
+  const owners: readonly number[] = candidateAt(board, first).pegs.filter((peg: number): boolean =>
+    rest.every((row: number): boolean => candidateAt(board, row).pegs.includes(peg)),
+  );
+  const square: Point = pointAt(board, Math.floor(slot / THREAD_COLOURS.length));
+  for (const owner of owners) {
+    const misses: readonly number[] = liveIn(board, board.byPeg[owner]).filter(
+      (row: number): boolean => !through.includes(row),
     );
-    return owners.some((owner: number): boolean => {
-      const misses: readonly number[] = liveIn(board, board.byPeg[owner]).filter(
-        (row: number): boolean => !through.includes(row),
-      );
-      const square: number = Math.floor(slot / THREAD_COLOURS.length);
-      return ruleOut(
-        board,
-        "only-reach",
-        candidateAt(board, first).colour,
-        pointAt(board, square),
-        misses,
-      );
-    });
-  });
+    const found: Finding | undefined = finding(
+      "only-reach",
+      candidateAt(board, first).colour,
+      square,
+      misses,
+    );
+    if (found) return found;
+  }
+  return undefined;
 }
 
-/** False if there's nothing to rule out. */
-function ruleOut(
-  board: Board,
+/** Undefined if there's nothing to rule out. */
+function finding(
   rule: Rule,
   colour: ThreadColour,
   at: Point,
   rows: readonly number[],
-): boolean {
+): Finding | undefined {
+  if (rows.length === 0) return undefined;
   const unique: readonly number[] = [...new Set<number>(rows)].sort(
     (a: number, b: number): number => a - b,
   );
-  if (unique.length === 0) return false;
-  for (const row of unique) board.alive[row] = 0;
-  board.steps.push({
+  return { rule, colour, at, rows: unique };
+}
+
+function ruleOut(board: Board, { rule, colour, at, rows }: Finding): Step {
+  for (const row of rows) board.alive[row] = 0;
+  return {
     rule,
     colour,
     at,
-    ruledOut: unique.map((row: number): Thread =>
+    ruledOut: rows.map((row: number): Thread =>
       threadOf(board.puzzle.width, candidateAt(board, row)),
     ),
-  });
-  return true;
+  };
 }
 
 function hasContradiction(board: Board): boolean {
@@ -267,6 +326,12 @@ function candidateAt(board: Board, row: number): Candidate {
   const candidate: Candidate | undefined = board.candidates[row];
   if (!candidate) throw new RangeError(`no candidate ${String(row)}`);
   return candidate;
+}
+
+function pegOf(board: Board, index: number): Peg {
+  const peg: Peg | undefined = board.puzzle.pegs[index];
+  if (!peg) throw new RangeError(`no peg ${String(index)}`);
+  return peg;
 }
 
 function partnerOf(board: Board, row: number, peg: number): number {

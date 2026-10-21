@@ -172,6 +172,8 @@ Crossings need no rule of their own. Candidate paths only run straight through t
 
 A puzzle's difficulty is the hardest rule its solve needs. Trial and error ("assume this, follow it, hit a contradiction") is not a rule: a puzzle that needs it counts as needing guessing and is rejected.
 
+The rating alone can't say how a level feels. `npm run difficulty` (`src/core/solve-profile.ts`) also counts how many pegs the board gives away (one possible path before any deduction), how many could pair more than one way, and how many rounds the solve takes when each round makes every deduction open at its start. Rounds are the longest chain of reasoning; many steps per round means the player never has to search. Playtesting found the first pack too easy, and the profile shows why: most pegs are given and most levels solve in one round or none.
+
 A hint shows the next square or link the player can draw and the rule that forced it.
 
 `Puzzle` stores squares as readable colour names. The solvers convert the pattern once to bitmasks of thread colours (red 1, blue 2, yellow 4, so purple is 3), because their work is set operations: what a square still needs, whether a colour may enter, whether a square is satisfied.
@@ -219,7 +221,7 @@ Kept from the prototype and refined later:
 - When every peg is tied but the board is wrong, what does the player see: just "not solved yet", or a count of wrong squares?
 - Does the shipped game keep a "Show answer" button?
 - Do level files store the solution, or is it always derived by the solver?
-- Should difficulty also count steps? A large puzzle that only needs Easy rules can still be a long solve. Revisit after playtesting
+- Should the rating use the solve profile (rounds, given pegs) as well as the hardest rule? A large puzzle that only needs Easy rules can still be a long solve, and one that needs Medium once can still be dull
 - What a hint does when the player's board already has mistakes
 - Which picture How It Works uses. It needs a second solution on the first try for slides 3 and 4, and a solve short enough to watch. None of the 16 does at its chosen lengths; the sailboat does at the default 2 to 5
 - Does How It Works play by itself or does the visitor step through it? Build both and choose by feel

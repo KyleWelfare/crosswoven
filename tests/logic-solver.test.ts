@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  solveInRounds,
   solveLogically,
   type LogicResult,
+  type RoundsResult,
   type Rule,
   type Step,
 } from "../src/core/logic-solver.ts";
@@ -93,6 +95,30 @@ describe("solveLogically", (): void => {
 
   it("reports pegs with too many paths to check", (): void => {
     expect(solveLogically(decoded(openLevel))).toMatchObject({ status: "too-open" });
+  });
+
+  describe("in rounds", (): void => {
+    const rulesOf = (round: readonly Step[]): readonly Rule[] =>
+      round.map((step: Step): Rule => step.rule);
+
+    it("takes every deduction open at the start of a round together", (): void => {
+      const { rounds }: RoundsResult = solveInRounds(onlyPathPuzzle);
+      expect(rounds.map(rulesOf)).toEqual([["only-path", "only-path"]]);
+    });
+
+    it("takes medium deductions only in rounds where no easy one is open", (): void => {
+      const { rounds }: RoundsResult = solveInRounds(sharedPuzzle);
+      expect(rounds.map(rulesOf)).toEqual([
+        ["shared", "shared", "only-reach", "only-reach"],
+        ["partner", "partner", "only-path", "only-path"],
+      ]);
+    });
+
+    it("counts a chain of deductions as one round per link", (): void => {
+      const { result, rounds }: RoundsResult = solveInRounds(onlyReachPuzzle);
+      expect(rounds).toHaveLength(3);
+      expect(result.status === "solved" && result.steps).toEqual(rounds.flat());
+    });
   });
 
   it("rates a puzzle by the hardest rule it needed", (): void => {

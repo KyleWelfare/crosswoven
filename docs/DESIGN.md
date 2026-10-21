@@ -187,7 +187,7 @@ Claude draws each picture as a small text grid in the repo, using the pattern co
 
 Short threads keep candidate paths few and deductions local; long threads through open areas are what make puzzles ambiguous or slow to check.
 
-CI re-validates every shipped level, so a generator change can't silently break one.
+CI re-validates every shipped level and regenerates it from its picture, so a generator change can't silently break or change one. A change that alters any level fails CI until `npm run levels` is rerun and the new levels are committed.
 
 ## Look
 

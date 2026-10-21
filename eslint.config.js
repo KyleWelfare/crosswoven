@@ -11,7 +11,7 @@ const bench = "**/bench/**";
 const scripts = "**/scripts/**";
 
 export default tseslint.config(
-  { ignores: ["dist"] },
+  { ignores: ["dist", ".claude/worktrees"] },
   js.configs.recommended,
   ...tseslint.configs.strictTypeChecked,
   {

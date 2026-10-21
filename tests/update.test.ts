@@ -196,6 +196,19 @@ describe("update: screens", (): void => {
     expect(update(menu, rulesClosed)).toBe(menu);
   });
 
+  it("opens How It Works from the menu and steps through it within its steps", (): void => {
+    const opened: Model = update(menu, { type: "HowItWorksPressed", steps: 3 });
+    expect(opened).toEqual({ screen: "tour", step: 0, steps: 3 });
+    const next: Msg = { type: "NextStepPressed" };
+    const previous: Msg = { type: "PreviousStepPressed" };
+    expect(update(opened, previous)).toBe(opened);
+    const last: Model = [next, next].reduce<Model>(update, opened);
+    expect(last).toEqual({ screen: "tour", step: 2, steps: 3 });
+    expect(update(last, next)).toBe(last);
+    expect(update(last, previous)).toEqual({ screen: "tour", step: 1, steps: 3 });
+    expect(update(last, back)).toEqual(menu);
+  });
+
   it("ignores board messages off the board", (): void => {
     for (const msg of [press(2, 0), enter(2, 1), release, cancel, undo, clear, tick(100)]) {
       expect(update(menu, msg)).toBe(menu);

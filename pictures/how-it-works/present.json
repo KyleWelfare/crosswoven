@@ -1,0 +1,18 @@
+{
+  "id": "present",
+  "title": "Present",
+  "lengths": [4, 8],
+  "sameNumbers": 1,
+  "seed": 38,
+  "pattern": [
+    ".........",
+    "..YY.YY..",
+    "...YYY...",
+    "....Y....",
+    ".RRRORRR.",
+    ".RRRORRR.",
+    ".RRRORRR.",
+    ".RRRORRR.",
+    "....Y...."
+  ]
+}

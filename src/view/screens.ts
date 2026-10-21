@@ -9,6 +9,7 @@ export function findScreens(root: ParentNode): Screens {
     menu: requiredElement(root, "#menu", HTMLElement),
     levels: requiredElement(root, "#levels", HTMLElement),
     game: requiredElement(root, "#game", HTMLElement),
+    tour: requiredElement(root, "#tour", HTMLElement),
   };
 }
 

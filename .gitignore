@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 .plan
+
+# Agent worktrees live inside the checkout
+.claude/worktrees/

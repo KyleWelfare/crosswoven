@@ -297,7 +297,8 @@ function cutsOf(grid: Grid, thread: Thread): readonly number[] {
   });
 }
 
-function puzzleOf(picture: Picture, threads: Solution): Puzzle {
+/** The puzzle a laying makes: the picture with a peg at each end of each thread. */
+export function puzzleOf(picture: Picture, threads: Solution): Puzzle {
   const { id, title, width, height, pattern }: Picture = picture;
   return { id, title, width, height, pattern, pegs: pegsOf(threads) };
 }

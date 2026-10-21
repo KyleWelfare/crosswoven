@@ -2,7 +2,7 @@ import type { Puzzle } from "../core/puzzle.ts";
 import type { Thread } from "../core/thread.ts";
 
 // TODO: hint mode and progress, as the messages that change them arrive.
-export type Model = Menu | LevelList | Game;
+export type Model = Menu | LevelList | Game | Tour;
 
 export interface Menu {
   readonly screen: "menu";
@@ -25,6 +25,13 @@ export interface Game {
   readonly history: readonly (readonly Thread[])[];
   /** Milliseconds since the puzzle was solved, which drives the win animation. */
   readonly solvedFor: number | undefined;
+}
+
+/** How It Works, on one of its steps. */
+export interface Tour {
+  readonly screen: "tour";
+  readonly step: number;
+  readonly steps: number;
 }
 
 export const menu: Menu = { screen: "menu", rulesOpen: false };

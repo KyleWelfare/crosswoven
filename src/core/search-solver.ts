@@ -8,7 +8,14 @@ import {
 import { THREAD_COLOURS, threadsThrough, type Puzzle, type SquareColour } from "./puzzle.ts";
 import type { Solution } from "./thread.ts";
 
-export type SearchResult = { readonly ok: true; readonly solutions: readonly Solution[] } | TooOpen;
+export type SearchResult =
+  | {
+      readonly ok: true;
+      readonly solutions: readonly Solution[];
+      /** Paths the search tried, counting each time one was chosen, for How It Works. */
+      readonly tried: number;
+    }
+  | TooOpen;
 
 /**
  * Rows are candidate paths. Crossing threads need no column to keep them perpendicular: candidates
@@ -38,6 +45,7 @@ export function findSolutions(puzzle: Puzzle, limit: number): SearchResult {
   const cover: Cover = createCover(puzzle, candidates);
   const chosen: Candidate[] = [];
   const solutions: Solution[] = [];
+  let tried: number = 0;
 
   function search(): void {
     if (solutions.length >= limit) return;
@@ -50,6 +58,7 @@ export function findSolutions(puzzle: Puzzle, limit: number): SearchResult {
       const candidate: Candidate | undefined = candidates[row];
       if (!candidate || cover.clashes[row] !== 0) continue;
       chosen.push(candidate);
+      tried++;
       choose(cover, row, 1);
       search();
       choose(cover, row, -1);
@@ -59,7 +68,7 @@ export function findSolutions(puzzle: Puzzle, limit: number): SearchResult {
   }
 
   search();
-  return { ok: true, solutions };
+  return { ok: true, solutions, tried };
 }
 
 function createCover(puzzle: Puzzle, candidates: readonly Candidate[]): Cover {

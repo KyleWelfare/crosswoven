@@ -1,0 +1,73 @@
+.tour-checks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1) var(--space-3);
+  flex: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}
+
+.tour-check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--ink-muted);
+}
+
+.tour-check.is-passed {
+  color: var(--ink);
+}
+
+.tour-check.is-failed {
+  color: var(--thread-red);
+}
+
+.tour-check-mark {
+  font-weight: 800;
+}
+
+.tour-text {
+  flex: none;
+  text-align: center;
+}
+
+.tour-step-title {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.tour-caption {
+  max-width: 34rem;
+  min-height: 3em;
+  margin: 0 auto;
+}
+
+.tour-nav {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--space-3);
+  flex: none;
+}
+
+.tour-count {
+  min-width: 4em;
+  color: var(--ink-muted);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Shares the space with the text below it, so it shrinks before they do. */
+.tour .stage {
+  margin-top: auto;
+}
+
+.tour .tour-nav {
+  margin-bottom: auto;
+}

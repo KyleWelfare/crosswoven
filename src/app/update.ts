@@ -15,9 +15,17 @@ export function update(model: Model, msg: Msg): Model {
       return model.screen === "menu" && !model.rulesOpen ? { ...model, rulesOpen: true } : model;
     case "RulesClosed":
       return model.screen === "menu" && model.rulesOpen ? { ...model, rulesOpen: false } : model;
+    case "HowItWorksPressed":
+      return model.screen === "menu" ? { screen: "tour", step: 0, steps: msg.steps } : model;
+    case "NextStepPressed":
+      return model.screen === "tour" && model.step < model.steps - 1
+        ? { ...model, step: model.step + 1 }
+        : model;
+    case "PreviousStepPressed":
+      return model.screen === "tour" && model.step > 0 ? { ...model, step: model.step - 1 } : model;
     case "BackPressed":
       if (model.screen === "game") return levelList;
-      return model.screen === "levels" ? menu : model;
+      return model.screen === "levels" || model.screen === "tour" ? menu : model;
     case "LevelStarted":
       return startLevel(msg.puzzle);
     case "SquarePressed":

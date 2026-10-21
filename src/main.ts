@@ -4,14 +4,17 @@ import "./styles/layout.css";
 import "./styles/masthead.css";
 import "./styles/menu.css";
 import "./styles/level-list.css";
+import "./styles/tour.css";
 import "./styles/dock.css";
 import type { Msg } from "./app/messages.ts";
 import { menu, type Model } from "./app/model.ts";
 import { update } from "./app/update.ts";
+import { tourFrames, type TourFrame } from "./app/tour.ts";
 import { isFading } from "./app/win.ts";
 import { decodeLevel, type DecodeResult } from "./core/level-decoder.ts";
 import { decodeOrder, type OrderResult } from "./core/level-order.ts";
 import type { Puzzle } from "./core/puzzle.ts";
+import { tourRecord } from "./how-it-works/record.ts";
 import order from "./levels/order.json";
 import { listenForDrags } from "./view/board-input.ts";
 import { drawBraid } from "./view/braid.ts";
@@ -22,6 +25,7 @@ import { requiredElement } from "./view/required-element.ts";
 import { findScreens, listenForBack, renderScreens, type Screens } from "./view/screens.ts";
 import { drawStage } from "./view/stage.ts";
 import { createSpriteCache, type SpriteCache } from "./view/sprite-cache.ts";
+import { findTour, listenToTour, renderTour, type TourView } from "./view/tour.ts";
 
 const levelFiles: Readonly<Record<string, unknown>> = import.meta.glob(
   ["./levels/*.json", "!./levels/order.json"],
@@ -53,6 +57,10 @@ const sprites: SpriteCache = createSpriteCache();
 const screens: Screens = findScreens(document);
 const menuControls: MenuControls = findMenu(document);
 const panels: Panels = findPanels(document);
+const tour: TourView = findTour(document);
+const frames: readonly TourFrame[] = tourFrames(tourRecord);
+// The tour board shows a different puzzle, so it keeps its own sprites.
+const tourSprites: SpriteCache = createSpriteCache();
 
 let renderPending: boolean = false;
 let ticking: boolean = false;
@@ -85,6 +93,7 @@ function scheduleRender(): void {
     // Screens first, so a canvas that has just appeared has a size to draw at.
     renderScreens(screens, model);
     renderMenu(menuControls, model);
+    if (model.screen === "tour") renderTour(tour, frames, model.step, tourSprites);
     if (model.screen !== "game") return;
     drawStage(stage, model, sprites);
     renderPanels(panels, model, levels);
@@ -114,7 +123,8 @@ function nextLevel(): Puzzle | undefined {
 }
 
 buildLevelList(requiredElement(document, "#level-list", HTMLElement), levels, dispatch);
-listenToMenu(menuControls, dispatch);
+listenToMenu(menuControls, dispatch, frames.length);
+listenToTour(tour, dispatch);
 listenForBack(document, dispatch);
 listenForDrags(
   stage,
@@ -123,6 +133,7 @@ listenForDrags(
 );
 listenToPanels(panels, dispatch, nextLevel);
 new ResizeObserver(scheduleRender).observe(stage);
+new ResizeObserver(scheduleRender).observe(tour.canvas);
 watchPixelRatio();
 // The palette comes from CSS custom properties that switch with the colour scheme.
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", scheduleRender);

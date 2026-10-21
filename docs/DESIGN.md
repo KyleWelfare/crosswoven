@@ -65,21 +65,20 @@ The game opens on a menu:
 
 The validator is the heart of the project, but a player never sees it. How It Works is an animated slideshow that takes one real picture through the level pipeline, so a visitor sees that work first. It takes priority over level count.
 
-Draft slides:
+The visitor steps through it with Back and Next (or the arrow keys). It takes Present, a 9×9 red box with an orange ribbon kept in `pictures/how-it-works/`, outside the level pack. Its first two layings each have a second solution, which is what the slideshow needs. The steps, built by `src/app/tour.ts`:
 
-1. **The picture**: a pixel-art grid in pattern codes
-2. **Laying threads**: the generator covers each colour with short threads and puts numbered pegs at their ends
-3. **A second solution**: the search solver finds two, and the squares where they differ light up
-4. **Re-laying**: the generator splits threads there and tries again until only one solution is left. A counter shows the search proving it: "checked 48,000 combinations: exactly 1 solution"
-5. **Solving by deduction**: the logic solver steps through the puzzle. Candidate paths fade as they're ruled out, each step with its one-line reason
-6. **Certified**: one solution, no guessing, and a difficulty set by the hardest rule used. Two independent solvers agree
+1. **The picture**: the finished cloth
+2. **Laying threads**: the generator's first laying, with its count of threads and pegs
+3. **A second solution**: the other weave the search solver found, with the squares where the two differ outlined. Re-laying and finding another second solution repeat this pair
+4. **Exactly one solution**: the accepted laying, and how many possible paths the search weighed
+5. **Solving by deduction**: the threads the board gives away, then one step per round of the logic solver, adding the threads it settled with the rules it used as the reason
+6. **Certified**: one solution, no guessing, the rating, and the picture again
 
-Around the board:
+Above the board a checklist (threads laid, solvable, unique, no guessing, rated) ticks off as each passes, and shows a cross while the puzzle has a second solution. A caption under the board says what's happening.
 
-- **A checklist on the side** of the concrete steps: threads laid, solvable, unique, solvable without guessing, difficulty rated. Each ticks off as it passes. Unique fails first, shows a cross, and ticks once the re-lay fixes it, so the retry is visible. On a phone in portrait it becomes a compact row of ticks above the board
-- **A caption under the board** says what the pipeline is working through at that moment: "looking for a second way to weave this", "these two solutions differ in the top-left corner", "this 3 can only reach the other 3 by going down"
+Not built yet: candidate paths fading as they're ruled out, and playing by itself. The search proves this picture unique after trying only 11 paths, because it always takes the most constrained choice first, so the step quotes the paths it weighed rather than a large count of combinations.
 
-The slideshow is drawn live on the canvas with the game's own board renderer, from a step-by-step record that `npm run levels` saves for the chosen picture. The browser doesn't run the generator or search solver, so the shipped game still includes only the logic solver, and the demo can't fail while someone is watching. The generator already returns every attempt and the logic solver every step; the search solver still needs to report how many combinations it checked, for slide 4.
+The slideshow is drawn live on the canvas with the game's own board renderer, from the record `npm run levels` saves (`src/core/pipeline-record.ts`, written to `src/how-it-works/record.ts` as a typed module). The browser doesn't run the generator or search solver, so the shipped game still includes only the logic solver, and the demo can't fail while someone is watching. A test regenerates the record, so it can't drift from the pipeline.
 
 ## Pictures
 
@@ -226,6 +225,4 @@ Kept from the prototype and refined later:
 - Do level files store the solution, or is it always derived by the solver?
 - Should the rating use the solve profile (rounds, given pegs) as well as the hardest rule? A large puzzle that only needs Easy rules can still be a long solve, and one that needs Medium once can still be dull
 - What a hint does when the player's board already has mistakes
-- Which picture How It Works uses. It needs a second solution on the first try for slides 3 and 4, and a solve short enough to watch. None of the 16 does at its chosen lengths; the sailboat does at the default 2 to 5
-- Does How It Works play by itself or does the visitor step through it? Build both and choose by feel
 - Squares at 15×15 on a phone are about 24 px. Is that enough to drag accurately, or do large puzzles need zoom?

@@ -5,6 +5,7 @@ import "./styles/base.css";
 import "./styles/layout.css";
 import "./styles/masthead.css";
 import "./styles/menu.css";
+import "./styles/rules.css";
 import "./styles/level-list.css";
 import "./styles/tour.css";
 import "./styles/dock.css";

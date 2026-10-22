@@ -7,6 +7,8 @@ import { requiredElement } from "./required-element.ts";
 // TODO: progress and hint mode.
 export interface Panels {
   readonly title: HTMLElement;
+  readonly howToPlay: HTMLButtonElement;
+  readonly rules: HTMLDialogElement;
   readonly controls: HTMLElement;
   readonly undo: HTMLButtonElement;
   readonly clear: HTMLButtonElement;
@@ -18,6 +20,8 @@ export interface Panels {
 export function findPanels(root: ParentNode): Panels {
   return {
     title: requiredElement(root, "#game-title", HTMLElement),
+    howToPlay: requiredElement(root, "#how-to-play", HTMLButtonElement),
+    rules: requiredElement(root, "#rules", HTMLDialogElement),
     controls: requiredElement(root, "#controls", HTMLElement),
     undo: requiredElement(root, "#undo", HTMLButtonElement),
     clear: requiredElement(root, "#clear", HTMLButtonElement),
@@ -33,6 +37,13 @@ export function listenToPanels(
   dispatch: (msg: Msg) => void,
   next: () => Puzzle | undefined,
 ): void {
+  panels.howToPlay.addEventListener("click", (): void => {
+    dispatch({ type: "HowToPlayPressed" });
+  });
+  // Fires for the dialog's own button and for Escape alike.
+  panels.rules.addEventListener("close", (): void => {
+    dispatch({ type: "RulesClosed" });
+  });
   panels.undo.addEventListener("click", (): void => {
     dispatch({ type: "UndoPressed" });
   });
@@ -45,8 +56,13 @@ export function listenToPanels(
   });
 }
 
-/** The win panel fades in as the threads fade out, in the place the controls leave. */
+/**
+ * The win panel fades in as the threads fade out, in the place the controls leave. The rules are
+ * a modal dialog, which traps focus and hands it back to How to Play when it closes.
+ */
 export function renderPanels(panels: Panels, game: Game, levels: readonly Puzzle[]): void {
+  if (game.rulesOpen && !panels.rules.open) panels.rules.showModal();
+  if (!game.rulesOpen && panels.rules.open) panels.rules.close();
   const solved: boolean = game.solvedFor !== undefined;
   const number: number = levels.indexOf(game.puzzle) + 1;
   panels.title.textContent = `Level ${String(number)}`;

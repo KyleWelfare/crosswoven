@@ -4,10 +4,10 @@ What the game supports for screen reader and keyboard users today, and what's st
 
 ## Supported
 
-- Every control is a native button with a text label, so it works from the keyboard and shows a focus ring: the menu, the back buttons, Undo, Clear and Next level (`src/styles/dock.css`), and the level tiles (`src/styles/level-list.css`)
+- Every control is a native button with a text label, so it works from the keyboard and shows a focus ring: the menu, the back buttons, How to Play, Undo, Clear and Next level (`src/styles/dock.css`), and the level tiles (`src/styles/level-list.css`)
 - Level tiles are named "Level 3, 7 by 7"; their pattern thumbnails are hidden from screen readers
 - Each screen has its own `h1`. As a screen appears, focus moves to its heading (Play on the menu), so focus never stays on a button that just vanished (`src/view/screens.ts`)
-- How to Play is a native modal `<dialog>`: it traps focus, closes on Escape, and returns focus to the button that opened it
+- How to Play opens from a button in each level's top bar. It's a native modal `<dialog>`: it traps focus, closes on Escape, and returns focus to the button that opened it
 - The win message sits in an `aria-live="polite"` region, so screen readers announce a solved level
 - How the Puzzles Are Made steps with Back and Next or the arrow keys. Its actor, heading and caption sit in an `aria-live="polite"` region, and the timeline marks the current step with `aria-current="step"`. The board and the badge that counts along with each animation are hidden from screen readers, since the caption describes the step. With reduced motion set, every animation shows its final frame, still
 - The masthead braid and the menu's weaving board are decorative and hidden from screen readers. With reduced motion set, the menu board shows its finished weave, still

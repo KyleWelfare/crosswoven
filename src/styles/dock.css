@@ -36,7 +36,7 @@
 }
 
 /* A running stitch just inside the edge, so each button reads as a woven label. */
-.button:not(.button-back)::before {
+.button:not(.button-back, .button-help)::before {
   content: "";
   position: absolute;
   inset: 4px;
@@ -92,6 +92,23 @@
 }
 
 .button-back:hover:not(:disabled) {
+  background: none;
+  color: var(--ink);
+}
+
+/* Mirrors the back button from the bar's right column. */
+.button-help {
+  grid-column: 3;
+  justify-self: end;
+  min-width: 0;
+  padding: 0 var(--space-2) 0 var(--space-3);
+  background: none;
+  color: var(--ink-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.button-help:hover:not(:disabled) {
   background: none;
   color: var(--ink);
 }

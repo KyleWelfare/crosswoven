@@ -40,6 +40,7 @@ describe("update", (): void => {
       drag: undefined,
       history: [],
       solvedFor: undefined,
+      rulesOpen: false,
     });
   });
 
@@ -188,12 +189,18 @@ describe("update: screens", (): void => {
     expect(left).toEqual(levelList);
   });
 
-  it("opens and closes the rules over the menu", (): void => {
-    const open: Model = update(menu, howToPlay);
-    expect(open).toEqual({ screen: "menu", rulesOpen: true, elapsed: 0 });
+  it("opens and closes the rules over a level, keeping the board", (): void => {
+    const laid: Game = run(fresh, press(2, 0), enter(1, 0), release);
+    const open: Model = update(laid, howToPlay);
+    expect(open).toEqual({ ...laid, rulesOpen: true });
     expect(update(open, howToPlay)).toBe(open);
-    expect(update(open, rulesClosed)).toEqual(menu);
-    expect(update(menu, rulesClosed)).toBe(menu);
+    expect(update(open, rulesClosed)).toEqual(laid);
+    expect(update(laid, rulesClosed)).toBe(laid);
+  });
+
+  it("starts the next level with the rules closed", (): void => {
+    const open: Model = update(fresh, howToPlay);
+    expect(update(open, { type: "LevelStarted", puzzle: lattice })).toEqual(fresh);
   });
 
   it("opens How the Puzzles Are Made from the menu and steps through it within its steps", (): void => {
@@ -216,17 +223,27 @@ describe("update: screens", (): void => {
     expect(update(ticked, { type: "NextStepPressed" })).toMatchObject({ step: 1, elapsed: 0 });
   });
 
-  it("runs the menu's clock on ticks, with the rules open or not, and restarts it on return", (): void => {
-    const ticked: Model = [tick(100), howToPlay, tick(250)].reduce<Model>(update, menu);
-    expect(ticked).toEqual({ screen: "menu", rulesOpen: true, elapsed: 350 });
+  it("runs the menu's clock on ticks, and restarts it on return", (): void => {
+    const ticked: Model = [tick(100), tick(250)].reduce<Model>(update, menu);
+    expect(ticked).toEqual({ screen: "menu", elapsed: 350 });
     expect(update(update(ticked, play), back)).toEqual(menu);
   });
 
-  it("ignores board messages off the board", (): void => {
-    for (const msg of [press(2, 0), enter(2, 1), release, cancel, undo, clear]) {
+  it("ignores level messages outside a level", (): void => {
+    const levelMsgs: readonly Msg[] = [
+      press(2, 0),
+      enter(2, 1),
+      release,
+      cancel,
+      undo,
+      clear,
+      howToPlay,
+      rulesClosed,
+    ];
+    for (const msg of levelMsgs) {
       expect(update(menu, msg)).toBe(menu);
     }
-    for (const msg of [press(2, 0), enter(2, 1), release, cancel, undo, clear, tick(100)]) {
+    for (const msg of [...levelMsgs, tick(100)]) {
       expect(update(levelList, msg)).toBe(levelList);
     }
   });

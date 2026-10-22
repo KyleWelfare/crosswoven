@@ -83,5 +83,6 @@ function worstCase(size: number): Game {
     drag: undefined,
     history: [],
     solvedFor: undefined,
+    rulesOpen: false,
   };
 }

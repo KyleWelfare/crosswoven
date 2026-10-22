@@ -11,10 +11,6 @@ export function update(model: Model, msg: Msg): Model {
   switch (msg.type) {
     case "PlayPressed":
       return model.screen === "menu" ? levelList : model;
-    case "HowToPlayPressed":
-      return model.screen === "menu" && !model.rulesOpen ? { ...model, rulesOpen: true } : model;
-    case "RulesClosed":
-      return model.screen === "menu" && model.rulesOpen ? { ...model, rulesOpen: false } : model;
     case "HowPuzzlesAreMadePressed":
       return model.screen === "menu"
         ? { screen: "tour", step: 0, steps: msg.steps, elapsed: 0 }
@@ -38,6 +34,8 @@ export function update(model: Model, msg: Msg): Model {
     case "PointerCancelled":
     case "UndoPressed":
     case "ClearPressed":
+    case "HowToPlayPressed":
+    case "RulesClosed":
       return model.screen === "game" ? updateGame(model, msg) : model;
     case "Tick":
       if (model.screen === "tour" || model.screen === "menu") {
@@ -74,6 +72,10 @@ function updateGame(game: Game, msg: GameMsg): Game {
     }
     case "ClearPressed":
       return isEditable(game) ? withThreads(game, []) : game;
+    case "HowToPlayPressed":
+      return game.rulesOpen ? game : { ...game, rulesOpen: true };
+    case "RulesClosed":
+      return game.rulesOpen ? { ...game, rulesOpen: false } : game;
     case "Tick":
       if (!isFading(game)) return game;
       return { ...game, solvedFor: Math.min((game.solvedFor ?? 0) + msg.dt, WIN_FADE) };

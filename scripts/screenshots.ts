@@ -201,6 +201,7 @@ function allShots(tourSteps: number): readonly Shot[] {
     {
       name: "02-rules",
       reach: async (devTools: DevTools): Promise<void> => {
+        await open(FIRST_LEVEL)(devTools);
         await click(devTools, "#how-to-play");
       },
     },

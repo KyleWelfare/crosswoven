@@ -6,7 +6,6 @@ export type Model = Menu | LevelList | Game | Tour;
 
 export interface Menu {
   readonly screen: "menu";
-  readonly rulesOpen: boolean;
   /** Milliseconds on the menu, which drives the board weaving itself beside the title. */
   readonly elapsed: number;
 }
@@ -27,6 +26,7 @@ export interface Game {
   readonly history: readonly (readonly Thread[])[];
   /** Milliseconds since the puzzle was solved, which drives the win animation. */
   readonly solvedFor: number | undefined;
+  readonly rulesOpen: boolean;
 }
 
 /** How the Puzzles Are Made, on one of its steps. */
@@ -38,7 +38,7 @@ export interface Tour {
   readonly elapsed: number;
 }
 
-export const menu: Menu = { screen: "menu", rulesOpen: false, elapsed: 0 };
+export const menu: Menu = { screen: "menu", elapsed: 0 };
 
 export const levelList: LevelList = { screen: "levels" };
 
@@ -50,5 +50,6 @@ export function startLevel(puzzle: Puzzle): Game {
     drag: undefined,
     history: [],
     solvedFor: undefined,
+    rulesOpen: false,
   };
 }

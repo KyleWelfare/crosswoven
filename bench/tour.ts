@@ -4,6 +4,7 @@ import "../src/styles/tokens.css";
 import "../src/styles/base.css";
 import "../src/styles/layout.css";
 import "../src/styles/menu.css";
+import "../src/styles/rules.css";
 import "../src/styles/tour.css";
 import { tourFrames, type TourFrame } from "../src/app/tour.ts";
 import { tourRecord } from "../src/how-it-works/record.ts";

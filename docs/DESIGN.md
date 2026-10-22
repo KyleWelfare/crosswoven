@@ -59,9 +59,9 @@ The game accepts any weave that follows the rules, so uniqueness isn't about whi
 The game opens on a menu:
 
 - **Play**: the level list. Each level is a numbered tile showing its pattern in the board's pale washes and its grid size. The title stays hidden, since it names the picture that solving reveals. Every level is open until progress is saved; then cleared levels are marked and the rest unlock in order
-- **How to Play**: a simple modal with the rules, improved later if there's time
-- Each screen past the menu has a back button: a level goes back to the list, the list to the menu
 - **How the Puzzles Are Made**: a slideshow of how a level is made and proven
+- Each screen past the menu has a back button: a level goes back to the list, the list to the menu
+- **How to Play** isn't on the menu. A How to Play button in each level's top bar, opposite the back button, opens the rules as a modal over the board, where a player needs them
 
 ## How the Puzzles Are Made
 

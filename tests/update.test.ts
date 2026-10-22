@@ -156,7 +156,7 @@ describe("update: winning", (): void => {
   });
 
   it("keeps the progress as it was when solving a level cleared before", (): void => {
-    const progress: Progress = { cleared: [lattice.id], tipsSeen: [] };
+    const progress: Progress = { ...noProgress, cleared: [lattice.id] };
     expect(run({ ...almost, progress }, release).progress).toBe(progress);
   });
 
@@ -250,7 +250,7 @@ describe("update: screens", (): void => {
   });
 
   it("carries progress from screen to screen", (): void => {
-    const progress: Progress = { cleared: ["key"], tipsSeen: ["drag"] };
+    const progress: Progress = { cleared: ["key"], tipsSeen: ["drag"], theme: "dark" };
     const opened: Msg = { type: "HowPuzzlesAreMadePressed", steps: 3 };
     const started: Msg = { type: "LevelStarted", puzzle: lattice };
     const route: readonly Msg[] = [play, started, back, back, opened, back];
@@ -265,8 +265,17 @@ describe("update: screens", (): void => {
     const seen: Msg = { type: "TipSeen", tip: "drag" };
     for (const model of [menu, levelList, fresh]) {
       const after: Model = update(model, seen);
-      expect(after).toEqual({ ...model, progress: { cleared: [], tipsSeen: ["drag"] } });
+      expect(after).toEqual({ ...model, progress: { ...noProgress, tipsSeen: ["drag"] } });
       expect(update(after, seen)).toBe(after);
+    }
+  });
+
+  it("remembers the chosen theme, on any screen", (): void => {
+    const chosen: Msg = { type: "ThemeChosen", theme: "dark" };
+    for (const model of [menu, levelList, fresh]) {
+      const after: Model = update(model, chosen);
+      expect(after).toEqual({ ...model, progress: { ...noProgress, theme: "dark" } });
+      expect(update(after, chosen)).toBe(after);
     }
   });
 

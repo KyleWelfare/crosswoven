@@ -24,6 +24,20 @@
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <title>Crosswoven</title>
+    <script>
+      // Sets the saved theme before first paint, so the page never flashes the wrong one.
+      // src/view/theme-picker.ts takes over once the app loads.
+      (() => {
+        let theme = "system";
+        try {
+          theme = JSON.parse(localStorage.getItem("crosswoven:progress") ?? "{}").theme;
+        } catch {}
+        const dark =
+          theme === "dark" ||
+          (theme !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = dark ? "dark" : "light";
+      })();
+    </script>
   </head>
   <body>
     <main class="page">
@@ -45,6 +59,14 @@
           </div>
         </div>
         <canvas id="menu-board" class="stage menu-board" aria-hidden="true"></canvas>
+        <label class="theme-picker">
+          Theme
+          <select id="theme">
+            <option value="system">System</option>
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </label>
       </section>
 
       <section id="levels" class="screen" aria-labelledby="levels-title" hidden>

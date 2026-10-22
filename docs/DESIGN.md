@@ -52,7 +52,7 @@ The game accepts any weave that follows the rules, so uniqueness isn't about whi
 - Hand-drawn picture puzzles, rising in difficulty, unlocked in order. 14 so far, listed in `pictures/`: two openers that teach threads and crossings, then pictures where crossings play a part, ending with ones whose crossing threads run on into open areas and take long chains of deduction. Each picture sets a target number of rounds (see Level pipeline), and the targets rise along the play order. `pictures/backlog/` holds pictures that don't ship, kept as development material: ones that give nearly every thread away, and broad single-colour ones that are hard but have no colour mixing, such as Red Giant
 - Grid sizes from 5×5 to 15×15. Larger grids are possible with numbered pegs, but 15×15 is the most a phone screen holds for version one
 - Each level shows its difficulty, Easy or Medium, rated by the hardest deduction it needs. A Hard tier waits on playtesting
-- Cleared levels and tutorial tips seen are saved in local storage, and survive a reload. If storage is blocked the game plays on without saving. No accounts, scores or sound
+- Cleared levels, tutorial tips seen and the chosen theme are saved in local storage, and survive a reload. If storage is blocked the game plays on without saving. No accounts, scores or sound
 
 ### Tutorial
 
@@ -74,6 +74,7 @@ The game opens on a menu:
 
 - **Play**: the level list. Each level is a numbered tile showing its pattern in the board's pale washes and its grid size. The title stays hidden, since it names the picture that solving reveals. Only the first level is open at the start; each one after unlocks once the level before it is cleared. Cleared levels are ticked, and a locked level shows its loom still empty, with a padlock stitched on a cloth patch
 - **How the Puzzles Are Made**: a slideshow of how a level is made and proven
+- **Theme**: a dropdown in the top right corner, System, Light or Dark
 - Each screen past the menu has a back button: a level goes back to the list, the list to the menu
 - **How to Play** isn't on the menu. A How to Play button in each level's top bar, opposite the back button, opens the rules as a modal over the board, where a player needs them
 
@@ -220,7 +221,7 @@ Kept from the prototype and refined later:
 - Where two threads cross, both are dyed their mixed colour through the middle of the square, blending back to their own colours at its edges. The mixing shows in the threads, not only the squares. Wrong crossings mix too, which shows the mismatch
 - Squares show a pale wash of their target colour, deeper once the threads there match. The colour alone names a two-colour square's threads, with no other mark, to keep the board calm
 - Pegs show their number, and are hollow until tied
-- Light and dark themes
+- Light and dark themes. A Theme dropdown on the menu picks System (the default, following the device), Light or Dark
 - The page outside the board takes its look from cloth rather than from an app: a faint linen weave behind everything, square corners like the board's squares, and buttons, tags and the How to Play card stitched just inside their edges like woven labels. Colour comes only from the threads and the pictures; the rest stays undyed linen and ink
 - Fraunces, with its softened serifs, is kept for names: the game's and each picture's when it's solved. Figtree, heavy and tight, sets every heading and everything else, peg numbers included. Both are bundled rather than fetched from a font service
 - The menu sets the title off centre beside a board weaving the tour's sailboat thread by thread, which is not a shipped level, so it gives nothing away

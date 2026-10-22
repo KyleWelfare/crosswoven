@@ -31,6 +31,7 @@ import { requiredElement } from "./view/required-element.ts";
 import { findScreens, listenForBack, renderScreens, type Screens } from "./view/screens.ts";
 import { drawStage } from "./view/stage.ts";
 import { createSpriteCache, setGeneration, type SpriteCache } from "./view/sprite-cache.ts";
+import { findThemePicker, listenToThemePicker, renderTheme } from "./view/theme-picker.ts";
 import { buildTimeline, findTour, listenToTour, renderTour, type TourView } from "./view/tour.ts";
 import {
   findTutorial,
@@ -91,6 +92,7 @@ let model: Model = { ...menu, progress: loadProgress() };
 const sprites: SpriteCache = createSpriteCache();
 const screens: Screens = findScreens(document);
 const menuControls: MenuControls = findMenu(document);
+const themePicker: HTMLSelectElement = findThemePicker(document);
 const panels: Panels = findPanels(document);
 const tour: TourView = findTour(document);
 const tutorial: TutorialView = findTutorial(document);
@@ -131,6 +133,8 @@ function scheduleRender(): void {
   renderPending = true;
   requestAnimationFrame((): void => {
     renderPending = false;
+    // The canvases read their colours from the theme's tokens.
+    renderTheme(themePicker, model.progress.theme);
     // Screens first, so a canvas that has just appeared has a size to draw at.
     renderScreens(screens, model);
     renderMenu(menuControls, model, heroScene, heroSprites);
@@ -181,6 +185,7 @@ function nextLevel(): Puzzle | undefined {
 
 buildLevelList(levelListElement, levels, dispatch);
 listenToMenu(menuControls, dispatch, frames.length);
+listenToThemePicker(themePicker, dispatch);
 buildTimeline(tour, frames);
 listenToTour(tour, dispatch);
 listenForBack(document, dispatch);
@@ -198,7 +203,7 @@ new ResizeObserver(scheduleRender).observe(tour.canvas);
 new ResizeObserver(scheduleRender).observe(menuControls.board);
 watchPixelRatio();
 if (animating()) startTicking();
-// The palette comes from CSS custom properties that switch with the colour scheme.
+// The System theme follows the device, and the palette with it.
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", scheduleRender);
 // Peg numbers drawn before the web font arrived would stay in the fallback font in cached sprites.
 void document.fonts.ready.then((): void => {

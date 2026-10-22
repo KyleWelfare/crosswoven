@@ -4,6 +4,7 @@ import {
   isUnlocked,
   noProgress,
   withCleared,
+  withTheme,
   withTipSeen,
   type Progress,
 } from "../src/app/progress.ts";
@@ -11,15 +12,21 @@ import {
 describe("progress", (): void => {
   it("adds a cleared level once", (): void => {
     const cleared: Progress = withCleared(noProgress, "key");
-    expect(cleared).toEqual({ cleared: ["key"], tipsSeen: [] });
+    expect(cleared).toEqual({ cleared: ["key"], tipsSeen: [], theme: "system" });
     expect(withCleared(cleared, "key")).toBe(cleared);
     expect(noProgress.cleared).toEqual([]);
   });
 
   it("adds a seen tip once", (): void => {
     const seen: Progress = withTipSeen(noProgress, "drag");
-    expect(seen).toEqual({ cleared: [], tipsSeen: ["drag"] });
+    expect(seen).toEqual({ cleared: [], tipsSeen: ["drag"], theme: "system" });
     expect(withTipSeen(seen, "drag")).toBe(seen);
+  });
+
+  it("changes the theme only when it differs", (): void => {
+    const dark: Progress = withTheme(noProgress, "dark");
+    expect(dark).toEqual({ cleared: [], tipsSeen: [], theme: "dark" });
+    expect(withTheme(dark, "dark")).toBe(dark);
   });
 
   it("opens the first level, then each level once the one before it is cleared", (): void => {
@@ -37,7 +44,7 @@ describe("progress", (): void => {
   });
 
   it("decodes what it saves", (): void => {
-    const progress: Progress = { cleared: ["key", "ladder"], tipsSeen: ["drag"] };
+    const progress: Progress = { cleared: ["key", "ladder"], tipsSeen: ["drag"], theme: "light" };
     expect(decodeProgress(JSON.parse(JSON.stringify(progress)))).toEqual(progress);
   });
 
@@ -51,7 +58,13 @@ describe("progress", (): void => {
     expect(decodeProgress({ cleared: ["key", 4, null, "key"], tipsSeen: "drag" })).toEqual({
       cleared: ["key"],
       tipsSeen: [],
+      theme: "system",
     });
     expect(decodeProgress({})).toEqual(noProgress);
+  });
+
+  it("reads an unknown or missing theme as System, as a save from before themes has none", (): void => {
+    expect(decodeProgress({ cleared: [], tipsSeen: [], theme: "sepia" }).theme).toBe("system");
+    expect(decodeProgress({ cleared: ["key"], tipsSeen: [] }).theme).toBe("system");
   });
 });

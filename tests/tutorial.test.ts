@@ -136,7 +136,7 @@ describe("tutorial in play", (): void => {
   });
 
   it("crosses the red rail with yellow on the second level", (): void => {
-    const start: Game = startLevel(ladder, { cleared: ["key"], tipsSeen: [] });
+    const start: Game = startLevel(ladder, { ...noProgress, cleared: ["key"] });
     const rail: Game = run(start, ...lay(windowOf("red-rail")));
     expect(currentStep(rail)?.id).toBe("crossing");
     const crossed: Game = run(rail, ...lay(windowOf("crossing")));

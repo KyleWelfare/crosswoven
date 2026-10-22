@@ -18,7 +18,6 @@ import { decodeProgress, noProgress, type Progress } from "./app/progress.ts";
 import { soundCues } from "./app/sound-cues.ts";
 import { update } from "./app/update.ts";
 import { tourFrames, type StepScene, type TourFrame } from "./app/tour.ts";
-import { currentStep, type TutorialStep } from "./app/tutorial.ts";
 import { isFading } from "./app/win.ts";
 import { decodeLevel, type DecodeResult } from "./core/level-decoder.ts";
 import { decodeOrder, type OrderResult } from "./core/level-order.ts";
@@ -107,7 +106,7 @@ drawBraid(requiredElement(document, "#braid", SVGSVGElement));
 drawBraid(requiredElement(document, "#win-braid", SVGSVGElement));
 const levels: readonly Puzzle[] = shippedLevels();
 const levelListElement: HTMLElement = requiredElement(document, "#level-list", HTMLElement);
-let model: Model = { ...menu, progress: loadProgress() };
+let model: Model = { ...menu, progress: loadProgress(), levels };
 const sprites: SpriteCache = createSpriteCache();
 const screens: Screens = findScreens(document);
 const menuControls: MenuControls = findMenu(document);
@@ -177,7 +176,7 @@ function scheduleRender(): void {
     if (model.screen !== "game") return;
     drawStage(stage, model, sprites);
     renderBoardSummary(boardNarration, model);
-    renderPanels(panels, model, levels);
+    renderPanels(panels, model);
   });
 }
 
@@ -207,10 +206,6 @@ function startTicking(): void {
   requestAnimationFrame(frame);
 }
 
-function nextLevel(): Puzzle | undefined {
-  return model.screen === "game" ? levels[levels.indexOf(model.puzzle) + 1] : undefined;
-}
-
 buildLevelList(levelListElement, levels, dispatch);
 listenToMenu(menuControls, dispatch, frames.length);
 listenToThemePicker(themePicker, dispatch);
@@ -225,10 +220,8 @@ listenForDrags(
   dispatch,
 );
 listenForKeys(stage, dispatch);
-listenToPanels(panels, dispatch, nextLevel);
-listenToTutorial(tutorial, dispatch, (): TutorialStep | undefined =>
-  model.screen === "game" ? currentStep(model) : undefined,
-);
+listenToPanels(panels, dispatch);
+listenToTutorial(tutorial, dispatch);
 new ResizeObserver(scheduleRender).observe(stage);
 new ResizeObserver(scheduleRender).observe(tour.canvas);
 new ResizeObserver(scheduleRender).observe(menuControls.board);

@@ -1,8 +1,8 @@
-import { onBoard, type Point } from "../core/puzzle.ts";
+import { onBoard, type Point, type Puzzle } from "../core/puzzle.ts";
 import { sameSolution, type Thread } from "../core/thread.ts";
 import { dragTo, releasedThreads, startDrag } from "./drag.ts";
 import type { Arrow, BoardKey, GameMsg, Msg } from "./messages.ts";
-import { levelList, menu, startLevel, type Game, type Model } from "./model.ts";
+import { levelList, menu, nextLevel, shared, startLevel, type Game, type Model } from "./model.ts";
 import { isTied } from "./tie.ts";
 import {
   withCleared,
@@ -25,10 +25,10 @@ import { isFading, isSolved, WIN_FADE } from "./win.ts";
 export function update(model: Model, msg: Msg): Model {
   switch (msg.type) {
     case "PlayPressed":
-      return model.screen === "menu" ? { ...levelList, progress: model.progress } : model;
+      return model.screen === "menu" ? { ...levelList, ...shared(model) } : model;
     case "HowPuzzlesAreMadePressed":
       return model.screen === "menu"
-        ? { screen: "tour", step: 0, steps: msg.steps, elapsed: 0, progress: model.progress }
+        ? { screen: "tour", step: 0, steps: msg.steps, elapsed: 0, ...shared(model) }
         : model;
     case "NextStepPressed":
       return model.screen === "tour" && model.step < model.steps - 1
@@ -39,14 +39,22 @@ export function update(model: Model, msg: Msg): Model {
         ? { ...model, step: model.step - 1, elapsed: 0 }
         : model;
     case "BackPressed":
-      if (model.screen === "game") return { ...levelList, progress: model.progress };
+      if (model.screen === "game") return { ...levelList, ...shared(model) };
       return model.screen === "levels" || model.screen === "tour"
-        ? { ...menu, progress: model.progress }
+        ? { ...menu, ...shared(model) }
         : model;
     case "LevelStarted":
-      return startLevel(msg.puzzle, model.progress);
-    case "TipSeen":
-      return withProgress(model, withTipSeen(model.progress, msg.tip));
+      return startLevel(msg.puzzle, model.progress, model.levels);
+    case "NextLevelPressed": {
+      const next: Puzzle | undefined =
+        model.screen === "game" && model.solvedFor !== undefined ? nextLevel(model) : undefined;
+      return next ? startLevel(next, model.progress, model.levels) : model;
+    }
+    case "TipDismissed": {
+      const shown: TutorialStep | undefined =
+        model.screen === "game" ? currentStep(model) : undefined;
+      return shown ? withProgress(model, withTipSeen(model.progress, shown.id)) : model;
+    }
     case "TutorialSkipped":
       return withProgress(model, skipTutorial(model.progress));
     case "ThemeChosen":

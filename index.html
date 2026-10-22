@@ -3,7 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A logic puzzle of crossing threads. Weave coloured threads between pegs to reveal a hidden picture."
+    />
+    <meta name="theme-color" content="#f7f4ee" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121110" media="(prefers-color-scheme: dark)" />
+    <!-- Link previews need absolute URLs, so these name the GitHub Pages deploy. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://kylewelfare.github.io/crosswoven/" />
+    <meta property="og:title" content="Crosswoven" />
+    <meta
+      property="og:description"
+      content="A logic puzzle of crossing threads. Weave the colours to reveal the picture."
+    />
+    <meta property="og:image" content="https://kylewelfare.github.io/crosswoven/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
     <title>Crosswoven</title>
   </head>
   <body>
@@ -12,6 +31,7 @@
         <header class="masthead">
           <h1 id="menu-title" class="title">Crosswoven</h1>
           <svg id="braid" class="braid" aria-hidden="true"></svg>
+          <p class="tagline">Lay the threads. Cross the colours. Reveal the picture.</p>
         </header>
         <div class="menu-actions">
           <button id="play" class="button button-primary" type="button" data-focus>Play</button>
@@ -42,7 +62,9 @@
             <button id="clear" class="button" type="button">Clear</button>
           </div>
           <section id="win" class="win is-hidden" aria-live="polite">
+            <p class="win-eyebrow">Solved</p>
             <p id="win-title" class="win-title"></p>
+            <svg id="win-braid" class="braid win-braid" aria-hidden="true"></svg>
             <button id="next" class="button button-primary" type="button">Next level</button>
           </section>
         </div>

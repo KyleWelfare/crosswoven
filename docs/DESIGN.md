@@ -204,6 +204,9 @@ Kept from the prototype and refined later:
 - Squares show a pale wash of their target colour, deeper once the threads there match. The colour alone names a two-colour square's threads, with no other mark, to keep the board calm
 - Pegs show their number, and are hollow until tied
 - Light and dark themes
+- Fraunces, with its softened serifs, for headings, and Figtree for everything else, peg numbers included. Both are bundled rather than fetched from a font service
+- The level list is a gallery: each tile shows its picture in woven colours, which tells nothing the board doesn't already show
+- On a phone, Undo and Clear sit at the foot of the screen within reach of a thumb
 
 ## Targets
 

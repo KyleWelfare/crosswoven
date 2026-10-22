@@ -51,7 +51,7 @@ Tuning the generator to aim each level at a difficulty target helped, but the bi
 
 ## How I built it
 
-Designed and reviewed by me, implemented with Claude Code. The agent rules (`.claude/CLAUDE.md`) and design docs are in the repo.
+I made the design calls and Claude Code wrote most of the code. My job was deciding what to build, setting the rules it worked under, and checking its output: reviewing each change, and backing claims with tests and data rather than taking them on trust. The design docs and agent rules (`.claude/CLAUDE.md`) are in the repo.
 
 ## Credits
 

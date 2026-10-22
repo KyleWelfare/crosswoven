@@ -1,42 +1,51 @@
+/* A sampler: swatches on one shared grid, each tagged with its number like a label. */
 .level-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: var(--space-2);
   min-height: 0;
   margin: 0;
-  /* Room for the tiles' focus rings and hover lift, which the scroll box would otherwise clip. */
-  padding: var(--space-2) var(--space-1) var(--space-4);
+  /* Room for the tiles' focus rings, which the scroll box would otherwise clip. */
+  padding: var(--space-1) var(--space-1) var(--space-4);
   overflow-y: auto;
   list-style: none;
 }
 
 .level-tile {
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
-  gap: var(--space-2) var(--space-1);
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--space-2);
   width: 100%;
-  padding: var(--space-2);
-  border: 1px solid var(--hairline);
-  border-radius: 16px;
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  border: 1px solid var(--board-frame);
+  border-radius: var(--radius);
   background: var(--surface);
-  box-shadow: var(--raised-shadow);
   color: var(--ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition:
-    transform 160ms ease,
-    box-shadow 160ms ease;
+  transition: border-color 140ms ease;
+}
+
+/* Stitched in on hover, as a swatch is picked out of the book. */
+.level-tile::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px dashed var(--stitch);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease;
 }
 
 .level-tile:hover {
-  box-shadow: var(--lifted-shadow);
-  transform: translateY(-2px);
+  border-color: var(--ink-muted);
 }
 
-.level-tile:active {
-  transform: translateY(0);
+.level-tile:hover::before {
+  opacity: 1;
 }
 
 .level-tile:focus-visible {
@@ -49,18 +58,24 @@
   display: block;
   width: 100%;
   aspect-ratio: 1;
+  margin-bottom: var(--space-1);
 }
 
 .level-number {
-  padding-left: var(--space-1);
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 700;
+  min-width: 1.75rem;
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: var(--ink);
+  color: var(--page);
+  font-size: 0.8125rem;
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .level-size {
-  padding-right: var(--space-1);
   color: var(--ink-muted);
   font-size: 0.8125rem;
+  text-align: right;
   font-variant-numeric: tabular-nums;
 }

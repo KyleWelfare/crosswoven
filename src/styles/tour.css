@@ -33,7 +33,7 @@
   width: 9.5rem;
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
   border-left: 3px solid var(--actor);
-  border-radius: 4px 10px 10px 4px;
+  border-radius: 1px var(--radius) var(--radius) 1px;
   background: var(--control);
   opacity: 0.4;
   counter-increment: step;
@@ -70,7 +70,8 @@
 .tour-entry.is-current {
   opacity: 1;
   background: var(--surface);
-  box-shadow: 0 4px 14px var(--board-shadow);
+  outline: 1px solid var(--board-frame);
+  outline-offset: -1px;
 }
 
 /* The step the closing recap is replaying. */
@@ -114,7 +115,7 @@
   height: var(--tour-badge-height);
   margin: 0;
   padding: 0 var(--space-4);
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: var(--control);
   color: var(--ink);
   font-size: 1.0625rem;

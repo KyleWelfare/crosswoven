@@ -28,18 +28,24 @@
   <body>
     <main class="page">
       <section id="menu" class="screen menu" aria-labelledby="menu-title">
-        <header class="masthead">
-          <h1 id="menu-title" class="title">Crosswoven</h1>
-          <svg id="braid" class="braid" aria-hidden="true"></svg>
-          <p class="tagline">Lay the threads. Cross the colours. Reveal the picture.</p>
-        </header>
-        <div class="menu-actions">
-          <button id="play" class="button button-primary" type="button" data-focus>Play</button>
-          <button id="how-puzzles-are-made" class="button" type="button">
-            How the Puzzles Are Made
-          </button>
-          <button id="how-to-play" class="button" type="button">How to Play</button>
+        <div class="menu-copy">
+          <header class="masthead">
+            <h1 id="menu-title" class="title">Crosswoven</h1>
+            <svg id="braid" class="braid" aria-hidden="true"></svg>
+            <p class="tagline">
+              A logic puzzle you weave. Every picture has exactly one solution, and you never need
+              to guess.
+            </p>
+          </header>
+          <div class="menu-actions">
+            <button id="play" class="button button-primary" type="button" data-focus>Play</button>
+            <button id="how-puzzles-are-made" class="button" type="button">
+              How the Puzzles Are Made
+            </button>
+            <button id="how-to-play" class="button" type="button">How to Play</button>
+          </div>
         </div>
+        <canvas id="menu-board" class="stage menu-board" aria-hidden="true"></canvas>
       </section>
 
       <section id="levels" class="screen" aria-labelledby="levels-title" hidden>

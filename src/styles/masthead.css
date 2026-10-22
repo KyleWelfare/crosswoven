@@ -1,19 +1,16 @@
-.masthead {
-  text-align: center;
-}
-
 .title {
-  font-family: var(--font-display);
+  font-family: var(--font-name);
   font-size: clamp(2.25rem, 9vw, 3rem);
   font-weight: 700;
   letter-spacing: -0.03em;
 }
 
 .tagline {
+  max-width: 24rem;
   margin: var(--space-3) 0 0;
   color: var(--ink-muted);
-  font-size: 1rem;
-  text-wrap: balance;
+  font-size: 1.0625rem;
+  text-wrap: pretty;
 }
 
 /* Sized to the viewBox in src/view/braid.ts, so stroke widths below are CSS pixels. */

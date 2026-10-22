@@ -7,8 +7,8 @@
 :root {
   color-scheme: light dark;
 
-  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", var(--font-body);
+  --font-body: "Figtree Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Fraunces Variable", Georgia, serif;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -21,8 +21,12 @@
   --page: #f7f4ee;
   --ink: #2a2723;
   --ink-muted: #7a7266;
-  --control: #e9e2d4;
-  --surface: #fcfaf5;
+  --control: #ebe4d6;
+  --control-hover: #e0d7c5;
+  --surface: #fdfbf7;
+  --hairline: rgb(70 50 20 / 0.1);
+  --raised-shadow: 0 1px 2px rgb(70 50 20 / 0.06), 0 4px 14px rgb(70 50 20 / 0.07);
+  --lifted-shadow: 0 2px 4px rgb(70 50 20 / 0.08), 0 12px 28px rgb(70 50 20 / 0.12);
 
   --board-frame: #e2dacb;
   --board-shadow: rgb(70 50 20 / 0.18);
@@ -62,7 +66,11 @@
     --ink: #ece7de;
     --ink-muted: #948b7e;
     --control: #262421;
-    --surface: #1d1b19;
+    --control-hover: #312e2a;
+    --surface: #1b1a18;
+    --hairline: rgb(255 245 225 / 0.07);
+    --raised-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 14px rgb(0 0 0 / 0.3);
+    --lifted-shadow: 0 2px 4px rgb(0 0 0 / 0.4), 0 12px 28px rgb(0 0 0 / 0.45);
 
     --board-frame: #0c0b0a;
     --board-shadow: rgb(0 0 0 / 0.6);

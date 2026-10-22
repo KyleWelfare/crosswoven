@@ -10,12 +10,30 @@ body {
   color: var(--ink);
   font-family: var(--font-body);
   line-height: 1.5;
+  /* Fraunces' softened serifs suit thread and cloth; Figtree has no such axis and ignores it. */
+  font-variation-settings: "SOFT" 100;
   -webkit-font-smoothing: antialiased;
 }
 
 h1 {
   margin: 0;
   line-height: 1.1;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* Read by screen readers, not shown. */

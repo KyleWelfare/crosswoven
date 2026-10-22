@@ -32,7 +32,7 @@ function levelItem(puzzle: Puzzle, number: number, dispatch: (msg: Msg) => void)
   return item;
 }
 
-/** The pattern in the same pale washes the board starts with. */
+/** The pattern in its woven colours, so the list reads as a gallery of pictures to make. */
 function thumbnail(puzzle: Puzzle): SVGSVGElement {
   const svg: SVGSVGElement = svgElement("svg");
   svg.setAttribute("viewBox", `0 0 ${String(puzzle.width)} ${String(puzzle.height)}`);
@@ -47,7 +47,7 @@ function thumbnail(puzzle: Puzzle): SVGSVGElement {
       rect.setAttribute("height", String(1 - SQUARE_GAP));
       rect.setAttribute("rx", String(SQUARE_GAP));
       // A fill attribute can't read a custom property; a style can.
-      rect.style.fill = `var(--wash-${square})`;
+      rect.style.fill = square === "blank" ? "var(--wash-blank)" : `var(--woven-${square})`;
       svg.append(rect);
     });
   });

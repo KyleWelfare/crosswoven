@@ -1,3 +1,5 @@
+import "@fontsource-variable/figtree";
+import "@fontsource-variable/fraunces/soft.css";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/layout.css";
@@ -24,7 +26,7 @@ import { findPanels, listenToPanels, renderPanels, type Panels } from "./view/pa
 import { requiredElement } from "./view/required-element.ts";
 import { findScreens, listenForBack, renderScreens, type Screens } from "./view/screens.ts";
 import { drawStage } from "./view/stage.ts";
-import { createSpriteCache, type SpriteCache } from "./view/sprite-cache.ts";
+import { createSpriteCache, setGeneration, type SpriteCache } from "./view/sprite-cache.ts";
 import { buildTimeline, findTour, listenToTour, renderTour, type TourView } from "./view/tour.ts";
 
 const levelFiles: Readonly<Record<string, unknown>> = import.meta.glob(
@@ -51,6 +53,7 @@ function shippedLevels(): readonly Puzzle[] {
 
 const stage: HTMLCanvasElement = requiredElement(document, "#stage", HTMLCanvasElement);
 drawBraid(requiredElement(document, "#braid", SVGSVGElement));
+drawBraid(requiredElement(document, "#win-braid", SVGSVGElement));
 const levels: readonly Puzzle[] = shippedLevels();
 let model: Model = menu;
 const sprites: SpriteCache = createSpriteCache();
@@ -139,3 +142,9 @@ new ResizeObserver(scheduleRender).observe(tour.canvas);
 watchPixelRatio();
 // The palette comes from CSS custom properties that switch with the colour scheme.
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", scheduleRender);
+// Peg numbers drawn before the web font arrived would stay in the fallback font in cached sprites.
+void document.fonts.ready.then((): void => {
+  setGeneration(sprites, "");
+  setGeneration(tourSprites, "");
+  scheduleRender();
+});

@@ -3,7 +3,7 @@ import { sameSolution, type Thread } from "../core/thread.ts";
 import { dragTo, releasedThreads, startDrag } from "./drag.ts";
 import type { GameMsg, Msg } from "./messages.ts";
 import { levelList, menu, startLevel, type Game, type Model } from "./model.ts";
-import { withCleared, withTheme, withTipSeen, type Progress } from "./progress.ts";
+import { withCleared, withMuteToggled, withTheme, withTipSeen, type Progress } from "./progress.ts";
 import {
   advanceTutorial,
   currentStep,
@@ -43,6 +43,8 @@ export function update(model: Model, msg: Msg): Model {
       return withProgress(model, skipTutorial(model.progress));
     case "ThemeChosen":
       return withProgress(model, withTheme(model.progress, msg.theme));
+    case "MuteToggled":
+      return withProgress(model, withMuteToggled(model.progress));
     case "SquarePressed":
     case "SquareEntered":
     case "PointerReleased":

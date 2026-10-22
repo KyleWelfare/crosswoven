@@ -1,16 +1,15 @@
 import type { Puzzle } from "../core/puzzle.ts";
 import type { Theme } from "./theme.ts";
 
-export type Msg = ScreenMsg | GameMsg | TutorialMsg | ThemeChosen;
+export type Msg = ScreenMsg | GameMsg | TutorialMsg | SettingMsg;
 
 /** Tutorial steps, once seen, are saved and never shown again. */
 export type TutorialMsg =
   { readonly type: "TipSeen"; readonly tip: string } | { readonly type: "TutorialSkipped" };
 
-export interface ThemeChosen {
-  readonly type: "ThemeChosen";
-  readonly theme: Theme;
-}
+/** Saved with the progress, and heard on every screen. */
+export type SettingMsg =
+  { readonly type: "ThemeChosen"; readonly theme: Theme } | { readonly type: "MuteToggled" };
 
 /** Moves between screens. */
 export type ScreenMsg =

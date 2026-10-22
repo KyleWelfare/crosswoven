@@ -13,6 +13,7 @@ import "./styles/tutorial.css";
 import type { Msg } from "./app/messages.ts";
 import { menu, type Model } from "./app/model.ts";
 import { decodeProgress, noProgress, type Progress } from "./app/progress.ts";
+import { soundCues } from "./app/sound-cues.ts";
 import { update } from "./app/update.ts";
 import { tourFrames, type StepScene, type TourFrame } from "./app/tour.ts";
 import { currentStep, type TutorialStep } from "./app/tutorial.ts";
@@ -20,6 +21,9 @@ import { isFading } from "./app/win.ts";
 import { decodeLevel, type DecodeResult } from "./core/level-decoder.ts";
 import { decodeOrder, type OrderResult } from "./core/level-order.ts";
 import type { Puzzle } from "./core/puzzle.ts";
+// FLAC because every current browser decodes it, Safari included, and lossless audio loops
+// without the gap MP3 or AAC encoding leaves at the seam.
+import musicUrl from "./audio/heavenly-loop.flac?url";
 import { tourRecord } from "./how-it-works/record.ts";
 import order from "./levels/order.json";
 import { listenForDrags } from "./view/board-input.ts";
@@ -31,6 +35,8 @@ import { requiredElement } from "./view/required-element.ts";
 import { findScreens, listenForBack, renderScreens, type Screens } from "./view/screens.ts";
 import { drawStage } from "./view/stage.ts";
 import { createSpriteCache, setGeneration, type SpriteCache } from "./view/sprite-cache.ts";
+import { findSoundToggles, listenToSoundToggles, renderSoundToggles } from "./view/sound-toggle.ts";
+import { createSpeaker, play, setMuted, wakeOnGesture, type Speaker } from "./view/speaker.ts";
 import { findThemePicker, listenToThemePicker, renderTheme } from "./view/theme-picker.ts";
 import { buildTimeline, findTour, listenToTour, renderTour, type TourView } from "./view/tour.ts";
 import {
@@ -103,6 +109,8 @@ const tourSprites: SpriteCache = createSpriteCache();
 const heroScene: StepScene | undefined = menuScene(frames);
 // Separate from the tour's too, as the two boards are drawn at different sizes.
 const heroSprites: SpriteCache = createSpriteCache();
+const soundToggles: readonly HTMLButtonElement[] = findSoundToggles(document);
+const speaker: Speaker = createSpeaker(musicUrl, model.progress.muted);
 
 let renderPending: boolean = false;
 let ticking: boolean = false;
@@ -111,6 +119,8 @@ function dispatch(msg: Msg): void {
   const next: Model = update(model, msg);
   if (next === model) return;
   if (next.progress !== model.progress) saveProgress(next.progress);
+  setMuted(speaker, next.progress.muted);
+  play(speaker, soundCues(model, next));
   model = next;
   scheduleRender();
   if (animating()) startTicking();
@@ -135,6 +145,7 @@ function scheduleRender(): void {
     renderPending = false;
     // The canvases read their colours from the theme's tokens.
     renderTheme(themePicker, model.progress.theme);
+    renderSoundToggles(soundToggles, model.progress.muted);
     // Screens first, so a canvas that has just appeared has a size to draw at.
     renderScreens(screens, model);
     renderMenu(menuControls, model, heroScene, heroSprites);
@@ -186,6 +197,8 @@ function nextLevel(): Puzzle | undefined {
 buildLevelList(levelListElement, levels, dispatch);
 listenToMenu(menuControls, dispatch, frames.length);
 listenToThemePicker(themePicker, dispatch);
+listenToSoundToggles(soundToggles, dispatch);
+wakeOnGesture(speaker);
 buildTimeline(tour, frames);
 listenToTour(tour, dispatch);
 listenForBack(document, dispatch);

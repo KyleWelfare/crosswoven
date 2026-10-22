@@ -102,11 +102,11 @@
   }
 
   .game .button-back,
-  .game .button-help {
+  .game .bar-actions {
     grid-row: 2;
   }
 
-  .game .button-help {
+  .game .bar-actions {
     grid-column: 2;
   }
 

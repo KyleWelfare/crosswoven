@@ -52,7 +52,7 @@ The game accepts any weave that follows the rules, so uniqueness isn't about whi
 - Hand-drawn picture puzzles, rising in difficulty, unlocked in order. 14 so far, listed in `pictures/`: two openers that teach threads and crossings, then pictures where crossings play a part, ending with ones whose crossing threads run on into open areas and take long chains of deduction. Each picture sets a target number of rounds (see Level pipeline), and the targets rise along the play order. `pictures/backlog/` holds pictures that don't ship, kept as development material: ones that give nearly every thread away, and broad single-colour ones that are hard but have no colour mixing, such as Red Giant
 - Grid sizes from 5×5 to 15×15. Larger grids are possible with numbered pegs, but 15×15 is the most a phone screen holds for version one
 - Each level shows its difficulty, Easy or Medium, rated by the hardest deduction it needs. A Hard tier waits on playtesting
-- Cleared levels, tutorial tips seen and the chosen theme are saved in local storage, and survive a reload. If storage is blocked the game plays on without saving. No accounts, scores or sound
+- Cleared levels, tutorial tips seen, the chosen theme and mute are saved in local storage, and survive a reload. If storage is blocked the game plays on without saving. No accounts or scores
 
 ### Tutorial
 
@@ -227,6 +227,13 @@ Kept from the prototype and refined later:
 - The menu sets the title off centre beside a board weaving the tour's sailboat thread by thread, which is not a shipped level, so it gives nothing away
 - The level list is a sampler: each swatch shows its picture in woven colours, which tells nothing the board doesn't already show, under a number tag
 - On a phone, Undo and Clear sit at the foot of the screen within reach of a thumb
+
+## Sound
+
+- Effects are plucked strings, synthesised in the browser (Karplus-Strong), so there are no effect files to license. Each square a drag grows by plucks a note, climbing a D major pentatonic scale as the thread lengthens; each colour starts a step higher. Tying a thread plays a two-note chord the moment it reaches its peg, Undo and Clear fall, and solving runs an arpeggio up the scale. A pentatonic scale means overlapping notes never clash
+- One music loop, Heavenly Loop by isaiah658 (CC0, 34 seconds of soft synth ambience), plays across every screen without restarting, fading in from the first tap, since browsers block sound until then
+- There's no volume control, so the mix is fixed: music well under the effects, and nothing near full scale on a phone speaker
+- A mute button sits beside the Theme dropdown on the menu and beside How to Play in each level. Muting suspends the audio rather than silencing it, so the music pauses where it is, and it pauses too while the page is hidden. On phones narrower than 460 px, How to Play shows as "Rules" to make room
 
 ## Targets
 

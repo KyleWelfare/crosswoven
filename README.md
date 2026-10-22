@@ -39,6 +39,10 @@ The measurements say it fixes the core problem. With the colours shown, each col
 
 What it still needs before it ships: a playtest (peg colours may sketch the picture enough for players to guess regions, which my player model doesn't do), a gentle ramp of hidden levels to teach it, and a clearer crossing mark.
 
+## Credits
+
+Music: [Heavenly Loop](https://opengameart.org/content/heavenly-loop) by isaiah658, CC0. The sound effects are synthesised in the browser.
+
 ## Development
 
 ```sh

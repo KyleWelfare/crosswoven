@@ -59,14 +59,29 @@
           </div>
         </div>
         <canvas id="menu-board" class="stage menu-board" aria-hidden="true"></canvas>
-        <label class="theme-picker">
-          Theme
-          <select id="theme">
-            <option value="system">System</option>
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
-          </select>
-        </label>
+        <div class="menu-corner">
+          <button
+            class="sound-toggle"
+            type="button"
+            aria-label="Mute"
+            aria-pressed="false"
+            data-mute
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path class="sound-body" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" />
+              <path class="sound-on" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" />
+              <path class="sound-off" d="M16 9.5l5 5M21 9.5l-5 5" />
+            </svg>
+          </button>
+          <label class="theme-picker">
+            Theme
+            <select id="theme">
+              <option value="system">System</option>
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+            </select>
+          </label>
+        </div>
       </section>
 
       <section id="levels" class="screen" aria-labelledby="levels-title" hidden>
@@ -81,7 +96,30 @@
         <header class="screen-bar">
           <button class="button button-back" type="button" data-back>Levels</button>
           <h1 id="game-title" class="screen-title" tabindex="-1" data-focus></h1>
-          <button id="how-to-play" class="button button-help" type="button">How to Play</button>
+          <div class="bar-actions">
+            <!-- Labelled so the name stays How to Play when narrow phones show the short word. -->
+            <button
+              id="how-to-play"
+              class="button button-help"
+              type="button"
+              aria-label="How to Play"
+            >
+              <span class="label-long">How to Play</span><span class="label-short">Rules</span>
+            </button>
+            <button
+              class="sound-toggle"
+              type="button"
+              aria-label="Mute"
+              aria-pressed="false"
+              data-mute
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path class="sound-body" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" />
+                <path class="sound-on" d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" />
+                <path class="sound-off" d="M16 9.5l5 5M21 9.5l-5 5" />
+              </svg>
+            </button>
+          </div>
         </header>
         <canvas id="stage" class="stage"></canvas>
         <div class="dock">

@@ -1,13 +1,14 @@
 import { isTheme, type Theme } from "./theme.ts";
 
-/** What survives a reload: levels cleared and tutorial tips seen, by id, and the theme. */
+/** What survives a reload: levels cleared and tutorial tips seen, by id, the theme and mute. */
 export interface Progress {
   readonly cleared: readonly string[];
   readonly tipsSeen: readonly string[];
   readonly theme: Theme;
+  readonly muted: boolean;
 }
 
-export const noProgress: Progress = { cleared: [], tipsSeen: [], theme: "system" };
+export const noProgress: Progress = { cleared: [], tipsSeen: [], theme: "system", muted: false };
 
 /** Returns `progress` itself when the level was already cleared. */
 export function withCleared(progress: Progress, levelId: string): Progress {
@@ -24,6 +25,10 @@ export function withTipSeen(progress: Progress, tip: string): Progress {
 /** Returns `progress` itself when the theme was already chosen. */
 export function withTheme(progress: Progress, theme: Theme): Progress {
   return progress.theme === theme ? progress : { ...progress, theme };
+}
+
+export function withMuteToggled(progress: Progress): Progress {
+  return { ...progress, muted: !progress.muted };
 }
 
 /** The first level is always open; each one after opens once the level before it is cleared. */
@@ -44,6 +49,7 @@ export function decodeProgress(json: unknown): Progress {
     cleared: strings(saved.cleared),
     tipsSeen: strings(saved.tipsSeen),
     theme: isTheme(saved.theme) ? saved.theme : "system",
+    muted: saved.muted === true,
   };
 }
 

@@ -96,10 +96,15 @@
   color: var(--ink);
 }
 
-/* Mirrors the back button from the bar's right column. */
-.button-help {
+/* How to Play and mute mirror the back button from the bar's right column. */
+.bar-actions {
   grid-column: 3;
   justify-self: end;
+  display: flex;
+  align-items: center;
+}
+
+.button-help {
   min-width: 0;
   padding: 0 var(--space-2) 0 var(--space-3);
   background: none;
@@ -111,6 +116,63 @@
 .button-help:hover:not(:disabled) {
   background: none;
   color: var(--ink);
+}
+
+.label-short {
+  display: none;
+}
+
+/* Below this the bar can't fit the full label beside the mute button and a two-digit level. */
+@media (max-width: 460px) {
+  .label-long {
+    display: none;
+  }
+
+  .label-short {
+    display: inline;
+  }
+}
+
+.sound-toggle {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition: color 140ms ease;
+}
+
+.sound-toggle:hover {
+  color: var(--ink);
+}
+
+.sound-toggle:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.sound-toggle svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sound-toggle .sound-body {
+  fill: currentColor;
+}
+
+.sound-toggle[aria-pressed="true"] .sound-on,
+.sound-toggle[aria-pressed="false"] .sound-off {
+  display: none;
 }
 
 .button-back::before {

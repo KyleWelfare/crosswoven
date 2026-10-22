@@ -13,6 +13,7 @@ The app uses a model-view-update architecture. State lives in one place, changes
 | `scripts/`          | The level pipeline (`npm run levels`): pictures in `pictures/`, certified levels out. Also the difficulty report (`npm run difficulty`) and the render benchmark (`npm run bench`), which drives headless Chrome | `core/`, `bench/` types  | No              |
 | `bench/`            | The page the render benchmark loads: draws worst-case boards with the real view and times them                                                                                                                   | `view/`, `app/`, `core/` | Yes             |
 | `src/levels/`       | Certified levels written by the pipeline, as JSON, and `order.json`, their play order                                                                                                                            | nothing: data only       | No              |
+| `src/audio/`        | The music loop. CC0, credited in the README                                                                                                                                                                      | nothing: data only       | No              |
 | `src/how-it-works/` | The record How the Puzzles Are Made replays, written by the pipeline as a typed module                                                                                                                           | `core/` types            | No              |
 
 `core/` and `app/` must run in Node with no browser, so they can be tested directly.
@@ -46,9 +47,12 @@ Anything that isn't pure happens in `main.ts` or `view/`, and its result comes b
 
 - Animation frames, timers
 - Reading and saving progress in local storage
+- Sound
 - Resize, device pixel ratio
 
-`update` stays pure and returns only the model; `main.ts` reacts to what changed. Progress is the only effect so far: `main.ts` loads it from local storage at start and saves it whenever `update` returns a new `progress` (`src/app/progress.ts` returns the same object when nothing changed). Blocked or full storage fails quietly, and a malformed save reads as no progress. Tests assert the progress in the model, without storage.
+`update` stays pure and returns only the model; `main.ts` reacts to what changed. Progress is the main effect: `main.ts` loads it from local storage at start and saves it whenever `update` returns a new `progress` (`src/app/progress.ts` returns the same object when nothing changed). Blocked or full storage fails quietly, and a malformed save reads as no progress. Tests assert the progress in the model, without storage.
+
+Sound is read off the model the same way: on each dispatch `main.ts` passes the old and new model to `soundCues` (`src/app/sound-cues.ts`), a pure function that names what's worth hearing, and `src/view/speaker.ts` plays it. A message that changes nothing makes no sound.
 
 If an effect ever needs its result back, or can't be read off the model, `update` grows to return `[model, cmds]`: commands as plain data, carried out by `main.ts`, with results coming back as `Msg`s.
 

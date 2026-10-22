@@ -55,7 +55,10 @@
 
 /* On a phone the controls sit at the bottom, in reach of a thumb, with the board centred above. */
 @media (max-width: 600px) {
+  /* The board's own margin keeps it off the screen edge, so it can spend the page's gutter. */
   .game .stage {
+    width: calc(100% + 2 * var(--space-3));
+    margin-inline: calc(-1 * var(--space-3));
     margin-bottom: auto;
   }
 
@@ -70,7 +73,10 @@
   }
 }
 
-/* A landscape phone is too short to stack a board above its controls, so they sit side by side. */
+/*
+ * A landscape phone is too short to stack anything above the board, so the bar and controls share
+ * a column beside it and the board gets the full height.
+ */
 @media (orientation: landscape) and (max-height: 520px) {
   .page {
     width: 100%;
@@ -85,11 +91,29 @@
   }
 
   .game .screen-bar {
+    grid-column: 2;
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+  }
+
+  .game .screen-title {
     grid-column: 1 / -1;
+    grid-row: 1;
+  }
+
+  .game .button-back,
+  .game .button-help {
+    grid-row: 2;
+  }
+
+  .game .button-help {
+    grid-column: 2;
   }
 
   /* Fills the height and takes its width from the level's ratio, which stage.ts sets inline. */
   .game .stage {
+    grid-column: 1;
+    grid-row: 1 / -1;
     justify-self: center;
     width: auto;
     max-width: 100%;
@@ -98,6 +122,7 @@
   }
 
   .game .dock {
+    grid-column: 2;
     align-self: center;
     min-width: 220px;
     margin: 0;
@@ -121,6 +146,10 @@
   aspect-ratio: 1;
   /* The board is dragged on, so touches mustn't scroll or zoom the page. */
   touch-action: none;
+  /* Holding a peg on iOS would otherwise select the page or open a callout. */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .masthead,

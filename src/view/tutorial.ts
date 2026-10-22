@@ -55,7 +55,7 @@ export function listenToTutorial(
 }
 
 /**
- * Shades the page below the screen bar, so Back and How to Play stay clear, but for the step's
+ * Shades the page but for the screen bar, so Back and How to Play stay clear, and the step's
  * window, with the card just beside it. The board itself
  * ignores presses outside the window, so the shade only has to look the part; the controls
  * under it are made inert. A tip that's read and dismissed shades the whole board.
@@ -83,7 +83,7 @@ export function renderTutorial(
   const windows: readonly Box[] = step.window.map((square: Point): Box =>
     squareBox(stage, game, square),
   );
-  drawShade(view.shade, bar.getBoundingClientRect().bottom, windows);
+  drawShade(view.shade, barArea(bar, stage), windows);
   if (windows.length > 0) placeCard(view.card, bounds(windows));
   else centreCard(view.card, stage.getBoundingClientRect());
 }
@@ -98,7 +98,14 @@ function squareBox(stage: HTMLCanvasElement, game: Game, square: Point): Box {
   return { left, top, right: left + size, bottom: top + size };
 }
 
-function drawShade(canvas: HTMLCanvasElement, top: number, windows: readonly Box[]): void {
+/** The bar and the page around it: a band across the top, or its own column on a landscape phone. */
+function barArea(bar: HTMLElement, stage: HTMLCanvasElement): Box {
+  const box: DOMRect = bar.getBoundingClientRect();
+  const besideBoard: boolean = box.bottom > stage.getBoundingClientRect().top;
+  return { left: besideBoard ? box.left : 0, top: 0, right: window.innerWidth, bottom: box.bottom };
+}
+
+function drawShade(canvas: HTMLCanvasElement, bar: Box, windows: readonly Box[]): void {
   const ratio: number = window.devicePixelRatio;
   canvas.width = Math.round(canvas.clientWidth * ratio);
   canvas.height = Math.round(canvas.clientHeight * ratio);
@@ -106,9 +113,10 @@ function drawShade(canvas: HTMLCanvasElement, top: number, windows: readonly Box
   if (!context) return;
   context.scale(ratio, ratio);
   context.fillStyle = getComputedStyle(canvas).color;
-  context.fillRect(0, top, canvas.clientWidth, canvas.clientHeight - top);
-  // Padded squares overlap their neighbours, so a run of them opens as one window.
+  context.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
+  context.clearRect(bar.left, bar.top, bar.right - bar.left, bar.bottom - bar.top);
   context.globalCompositeOperation = "destination-out";
+  // Padded squares overlap their neighbours, so a run of them opens as one window.
   context.beginPath();
   for (const box of windows) {
     context.roundRect(

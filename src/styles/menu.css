@@ -147,7 +147,7 @@
   .menu-actions .button,
   .menu-actions .button-primary,
   .theme-picker select {
-    min-height: 40px;
+    min-height: 44px;
     font-size: 0.9375rem;
   }
 }

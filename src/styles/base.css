@@ -17,6 +17,8 @@ body {
   /* Fraunces' softened serifs suit thread and cloth; Figtree has no such axis and ignores it. */
   font-variation-settings: "SOFT" 100;
   -webkit-font-smoothing: antialiased;
+  /* Quick taps on Undo would otherwise zoom the page on iOS. Pinch zoom still works. */
+  touch-action: manipulation;
 }
 
 h1 {

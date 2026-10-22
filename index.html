@@ -116,7 +116,24 @@
             </button>
           </div>
         </header>
-        <canvas id="stage" class="stage"></canvas>
+        <!-- Keys are for players who can't use a pointer, so they're explained here, not in How to Play. -->
+        <canvas
+          id="stage"
+          class="stage"
+          tabindex="0"
+          role="application"
+          aria-roledescription="board"
+          aria-labelledby="game-title"
+          aria-describedby="board-help board-summary"
+        ></canvas>
+        <p id="board-help" hidden>
+          Arrow keys move between squares, counted in rows and columns from the top left. Enter
+          picks up the thread at a peg, or a laid thread where it is, and Enter again lays it down.
+          A peg marked 1 ties in one press. While you hold a thread, the arrows lay it a square at a
+          time, Backspace takes back a square and Escape drops it.
+        </p>
+        <p id="board-summary" hidden></p>
+        <p id="board-live" class="visually-hidden" aria-live="polite"></p>
         <div class="dock">
           <div id="controls" class="controls">
             <button id="undo" class="button" type="button">Undo</button>

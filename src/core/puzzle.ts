@@ -66,6 +66,10 @@ export function pegAt(puzzle: Puzzle, square: Point): Peg | undefined {
   return puzzle.pegs.find((peg: Peg): boolean => peg.x === square.x && peg.y === square.y);
 }
 
+export function onBoard(puzzle: Puzzle, square: Point): boolean {
+  return square.x >= 0 && square.y >= 0 && square.x < puzzle.width && square.y < puzzle.height;
+}
+
 /** Drops a peg's colour and length, so it compares equal to a plain point. */
 export function positionOf(peg: Peg): Point {
   return { x: peg.x, y: peg.y };

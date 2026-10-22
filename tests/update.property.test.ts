@@ -1,6 +1,6 @@
 import fc from "fast-check";
 import { describe, expect, it } from "vitest";
-import type { Msg } from "../src/app/messages.ts";
+import type { BoardKey, Msg } from "../src/app/messages.ts";
 import { startLevel, type Model } from "../src/app/model.ts";
 import { noProgress } from "../src/app/progress.ts";
 import { shownThreads } from "../src/app/drag.ts";
@@ -84,7 +84,23 @@ function gesture(puzzle: Puzzle): fc.Arbitrary<Msg[]> {
     });
 }
 
+/** Keyboard focus, then keys weighted towards arrows so threads get somewhere. */
+const keyboard: fc.Arbitrary<Msg[]> = fc
+  .array(
+    fc.oneof(
+      { weight: 6, arbitrary: fc.constantFrom<BoardKey>("up", "down", "left", "right") },
+      { weight: 2, arbitrary: fc.constant<BoardKey>("lay") },
+      { weight: 1, arbitrary: fc.constantFrom<BoardKey>("drop", "shorten") },
+    ),
+    { maxLength: 30 },
+  )
+  .map((keys: BoardKey[]): Msg[] => [
+    { type: "BoardFocused" },
+    ...keys.map((key: BoardKey): Msg => ({ type: "BoardKeyPressed", key })),
+  ]);
+
 const stray: fc.Arbitrary<Msg[]> = fc.oneof(
+  fc.constant<Msg[]>([{ type: "BoardBlurred" }]),
   anySquare.map((square: Point): Msg[] => [{ type: "SquarePressed", ...square }]),
   anySquare.map((square: Point): Msg[] => [{ type: "SquareEntered", ...square }]),
   fc.constant<Msg[]>([{ type: "PointerReleased" }]),
@@ -98,9 +114,14 @@ const cases: fc.Arbitrary<Case> = fc
   .constantFrom(lattice, short)
   .chain((puzzle: Puzzle): fc.Arbitrary<Case> =>
     fc
-      .array(fc.oneof({ weight: 4, arbitrary: gesture(puzzle) }, { weight: 1, arbitrary: stray }), {
-        maxLength: 10,
-      })
+      .array(
+        fc.oneof(
+          { weight: 4, arbitrary: gesture(puzzle) },
+          { weight: 2, arbitrary: keyboard },
+          { weight: 1, arbitrary: stray },
+        ),
+        { maxLength: 10 },
+      )
       .map((parts: Msg[][]): Case => ({ puzzle, msgs: parts.flat() })),
   );
 
@@ -154,6 +175,18 @@ describe("update properties", (): void => {
         expectBoard(puzzle, model.threads);
         expectBoard(puzzle, shownThreads(puzzle, model.threads, model.drag));
         if (model.drag) expectWellFormed(puzzle, model.drag);
+      }),
+    );
+  });
+
+  it("keeps the cursor on the end of a thread laid from the keyboard", (): void => {
+    fc.assert(
+      fc.property(cases, ({ puzzle, msgs }: Case): void => {
+        const model: Model = msgs.reduce<Model>(update, startLevel(puzzle, noProgress));
+        if (model.screen !== "game") throw new Error("only board messages are sent");
+        if (model.drag && model.cursorShown) {
+          expect(model.drag.squares.at(-1)).toEqual(model.cursor);
+        }
       }),
     );
   });

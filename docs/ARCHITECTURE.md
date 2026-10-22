@@ -54,6 +54,8 @@ Anything that isn't pure happens in `main.ts` or `view/`, and its result comes b
 
 Sound is read off the model the same way: on each dispatch `main.ts` passes the old and new model to `soundCues` (`src/app/sound-cues.ts`), a pure function that names what's worth hearing, and `src/view/speaker.ts` plays it. A message that changes nothing makes no sound.
 
+Screen reader narration of the board works the same way, through `narration` (`src/app/narration.ts`) into a live region (`src/view/board-narration.ts`). It also gets the message and runs before the unchanged-model early return, so a key that did nothing can say why.
+
 If an effect ever needs its result back, or can't be read off the model, `update` grows to return `[model, cmds]`: commands as plain data, carried out by `main.ts`, with results coming back as `Msg`s.
 
 Hints run the logic solver on the main thread. If they miss the 100 ms target in `DESIGN.md`, it moves to a Web Worker.

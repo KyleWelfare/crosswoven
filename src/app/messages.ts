@@ -26,6 +26,11 @@ export type ScreenMsg =
   | { readonly type: "BackPressed" }
   | { readonly type: "LevelStarted"; readonly puzzle: Puzzle };
 
+/** Arrows move the cursor, `lay` picks a thread up or lays it down, `shorten` takes back a square. */
+export type BoardKey = Arrow | "lay" | "drop" | "shorten";
+
+export type Arrow = "up" | "down" | "left" | "right";
+
 /** Only a level being played responds to these. */
 export type GameMsg =
   /** Squares are board coordinates. Only the first pointer down on the board sends these. */
@@ -33,6 +38,11 @@ export type GameMsg =
   | { readonly type: "SquareEntered"; readonly x: number; readonly y: number }
   | { readonly type: "PointerReleased" }
   | { readonly type: "PointerCancelled" }
+  /** Keyboard play, for players who can't use a pointer. */
+  | { readonly type: "BoardKeyPressed"; readonly key: BoardKey }
+  /** Only focus from the keyboard, not a press on the board. */
+  | { readonly type: "BoardFocused" }
+  | { readonly type: "BoardBlurred" }
   | { readonly type: "UndoPressed" }
   | { readonly type: "ClearPressed" }
   | { readonly type: "HowToPlayPressed" }

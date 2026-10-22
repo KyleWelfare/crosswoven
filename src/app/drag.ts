@@ -1,4 +1,4 @@
-import { pegAt, type Peg, type Point, type Puzzle } from "../core/puzzle.ts";
+import { onBoard, pegAt, type Peg, type Point, type Puzzle } from "../core/puzzle.ts";
 import type { Thread } from "../core/thread.ts";
 import { cutThreads } from "./cut.ts";
 import { endsAt, isTied } from "./tie.ts";
@@ -155,8 +155,4 @@ function indexOf(thread: Thread, square: Point): number {
 
 function samePoint(a: Point, b: Point): boolean {
   return a.x === b.x && a.y === b.y;
-}
-
-function onBoard(puzzle: Puzzle, square: Point): boolean {
-  return square.x >= 0 && square.y >= 0 && square.x < puzzle.width && square.y < puzzle.height;
 }

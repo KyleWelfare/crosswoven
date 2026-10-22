@@ -13,6 +13,7 @@ import "./styles/sound.css";
 import "./styles/tutorial.css";
 import type { Msg } from "./app/messages.ts";
 import { menu, type Model } from "./app/model.ts";
+import { narration } from "./app/narration.ts";
 import { decodeProgress, noProgress, type Progress } from "./app/progress.ts";
 import { soundCues } from "./app/sound-cues.ts";
 import { update } from "./app/update.ts";
@@ -27,7 +28,13 @@ import type { Puzzle } from "./core/puzzle.ts";
 import musicUrl from "./audio/heavenly-loop.flac?url";
 import { tourRecord } from "./how-it-works/record.ts";
 import order from "./levels/order.json";
-import { listenForDrags } from "./view/board-input.ts";
+import { listenForDrags, listenForKeys } from "./view/board-input.ts";
+import {
+  announce,
+  findBoardNarration,
+  renderBoardSummary,
+  type BoardNarration,
+} from "./view/board-narration.ts";
 import { drawBraid } from "./view/braid.ts";
 import { buildLevelList, renderLevelList } from "./view/level-list.ts";
 import { findMenu, listenToMenu, menuScene, renderMenu, type MenuControls } from "./view/menu.ts";
@@ -116,6 +123,7 @@ const heroScene: StepScene | undefined = menuScene(frames);
 // Separate from the tour's too, as the two boards are drawn at different sizes.
 const heroSprites: SpriteCache = createSpriteCache();
 const soundPanel: SoundPanel = findSoundPanel(document);
+const boardNarration: BoardNarration = findBoardNarration(document);
 const speaker: Speaker = createSpeaker(musicUrl, model.progress);
 
 let renderPending: boolean = false;
@@ -123,6 +131,8 @@ let ticking: boolean = false;
 
 function dispatch(msg: Msg): void {
   const next: Model = update(model, msg);
+  // Before the early return, so a key that changes nothing can still say why.
+  announce(boardNarration, narration(model, next, msg));
   if (next === model) return;
   if (next.progress !== model.progress) saveProgress(next.progress);
   setSettings(speaker, next.progress);
@@ -166,6 +176,7 @@ function scheduleRender(): void {
     if (model.screen === "tour") renderTour(tour, frames, model.step, model.elapsed, tourSprites);
     if (model.screen !== "game") return;
     drawStage(stage, model, sprites);
+    renderBoardSummary(boardNarration, model);
     renderPanels(panels, model, levels);
   });
 }
@@ -213,6 +224,7 @@ listenForDrags(
   (): Puzzle | undefined => (model.screen === "game" ? model.puzzle : undefined),
   dispatch,
 );
+listenForKeys(stage, dispatch);
 listenToPanels(panels, dispatch, nextLevel);
 listenToTutorial(tutorial, dispatch, (): TutorialStep | undefined =>
   model.screen === "game" ? currentStep(model) : undefined,

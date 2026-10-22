@@ -1,8 +1,9 @@
-import type { Point } from "../core/puzzle.ts";
+import { onBoard, type Point } from "../core/puzzle.ts";
 import { sameSolution, type Thread } from "../core/thread.ts";
 import { dragTo, releasedThreads, startDrag } from "./drag.ts";
-import type { GameMsg, Msg } from "./messages.ts";
+import type { Arrow, BoardKey, GameMsg, Msg } from "./messages.ts";
 import { levelList, menu, startLevel, type Game, type Model } from "./model.ts";
+import { isTied } from "./tie.ts";
 import {
   withCleared,
   withMuteToggled,
@@ -58,6 +59,9 @@ export function update(model: Model, msg: Msg): Model {
     case "SquareEntered":
     case "PointerReleased":
     case "PointerCancelled":
+    case "BoardKeyPressed":
+    case "BoardFocused":
+    case "BoardBlurred":
     case "UndoPressed":
     case "ClearPressed":
     case "HowToPlayPressed":
@@ -78,29 +82,25 @@ function withProgress(model: Model, progress: Progress): Model {
 function updateGame(game: Game, msg: GameMsg): Game {
   switch (msg.type) {
     case "SquarePressed": {
-      if (game.drag || game.solvedFor !== undefined || !isOpen(game, msg)) return game;
-      const drag: Thread | undefined = startDrag(game.puzzle, game.threads, msg);
-      return drag ? { ...game, drag } : game;
+      if (game.drag) return game;
+      const picked: Game = pickUp(game, msg);
+      return game.cursorShown ? { ...picked, cursorShown: false } : picked;
     }
-    case "SquareEntered": {
-      if (!game.drag) return game;
-      const drag: Thread = dragTo(game.puzzle, game.threads, game.drag, msg);
-      if (
-        drag === game.drag ||
-        !drag.squares.every((square: Point): boolean => isOpen(game, square))
-      ) {
-        return game;
-      }
-      return { ...game, drag };
-    }
+    case "SquareEntered":
+      return extend(game, msg);
     case "PointerReleased":
-      if (!game.drag) return game;
-      return withThreads(
-        { ...game, drag: undefined },
-        releasedThreads(game.puzzle, game.threads, game.drag),
-      );
+      return lay(game);
     case "PointerCancelled":
       return game.drag ? { ...game, drag: undefined } : game;
+    case "BoardKeyPressed":
+      // A key on a board pressed with the pointer shows the cursor first, so the player sees
+      // where the next key acts. Keys wait while the pointer is laying a thread.
+      if (!game.cursorShown) return game.drag ? game : { ...game, cursorShown: true };
+      return pressKey(game, msg.key);
+    case "BoardFocused":
+      return game.cursorShown || game.drag ? game : { ...game, cursorShown: true };
+    case "BoardBlurred":
+      return game.cursorShown ? { ...game, cursorShown: false, drag: undefined } : game;
     case "UndoPressed": {
       const previous: readonly Thread[] | undefined = game.history.at(-1);
       if (!previous || !isEditable(game)) return game;
@@ -116,6 +116,76 @@ function updateGame(game: Game, msg: GameMsg): Game {
       if (!isFading(game)) return game;
       return { ...game, solvedFor: Math.min((game.solvedFor ?? 0) + msg.dt, WIN_FADE) };
   }
+}
+
+function pickUp(game: Game, square: Point): Game {
+  if (game.drag || game.solvedFor !== undefined || !isOpen(game, square)) return game;
+  const drag: Thread | undefined = startDrag(game.puzzle, game.threads, square);
+  return drag ? { ...game, drag } : game;
+}
+
+function extend(game: Game, square: Point): Game {
+  if (!game.drag) return game;
+  const drag: Thread = dragTo(game.puzzle, game.threads, game.drag, square);
+  if (drag === game.drag || !drag.squares.every((laid: Point): boolean => isOpen(game, laid))) {
+    return game;
+  }
+  return { ...game, drag };
+}
+
+function lay(game: Game): Game {
+  if (!game.drag) return game;
+  return withThreads(
+    { ...game, drag: undefined },
+    releasedThreads(game.puzzle, game.threads, game.drag),
+  );
+}
+
+const ARROWS: Readonly<Record<Arrow, Point>> = {
+  up: { x: 0, y: -1 },
+  down: { x: 0, y: 1 },
+  left: { x: -1, y: 0 },
+  right: { x: 1, y: 0 },
+};
+
+/** May be off the board. */
+export function squareToward(square: Point, arrow: Arrow): Point {
+  return { x: square.x + ARROWS[arrow].x, y: square.y + ARROWS[arrow].y };
+}
+
+function pressKey(game: Game, key: BoardKey): Game {
+  switch (key) {
+    case "lay": {
+      if (game.drag) return lay(game);
+      const picked: Game = pickUp(game, game.cursor);
+      // A peg marked 1 is a whole thread, so one press ties it, as one tap does.
+      if (!picked.drag || !isTied(game.puzzle, picked.drag)) return picked;
+      const laid: Game = lay(picked);
+      return laid.threads === game.threads ? game : laid;
+    }
+    case "drop":
+      return game.drag ? { ...game, drag: undefined } : game;
+    case "shorten": {
+      if (!game.drag) return game;
+      const back: Point | undefined = game.drag.squares.at(-2);
+      return back ? moveCursor(game, back) : { ...game, drag: undefined };
+    }
+    case "up":
+    case "down":
+    case "left":
+    case "right":
+      return moveCursor(game, squareToward(game.cursor, key));
+  }
+}
+
+/** A thread being laid follows the cursor, which stops where the thread can't go. */
+function moveCursor(game: Game, square: Point): Game {
+  if (!onBoard(game.puzzle, square)) return game;
+  if (!game.drag) return { ...game, cursor: square };
+  const extended: Game = extend(game, square);
+  const head: Point | undefined = extended.drag?.squares.at(-1);
+  if (extended === game || head?.x !== square.x || head.y !== square.y) return game;
+  return { ...extended, cursor: square };
 }
 
 /**

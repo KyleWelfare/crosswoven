@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Msg } from "../src/app/messages.ts";
+import type { BoardKey, Msg } from "../src/app/messages.ts";
 import { levelList, menu, startLevel, type Game, type Model } from "../src/app/model.ts";
 import { noProgress, type Progress } from "../src/app/progress.ts";
 import { update } from "../src/app/update.ts";
@@ -7,7 +7,7 @@ import { WIN_FADE } from "../src/app/win.ts";
 import type { Puzzle } from "../src/core/puzzle.ts";
 import type { Thread } from "../src/core/thread.ts";
 import { onlySolution } from "./fixtures/all-solutions.ts";
-import { decoded } from "./fixtures/puzzle-of.ts";
+import { decoded, puzzleOf } from "./fixtures/puzzle-of.ts";
 import { turningCrossingLevel } from "./fixtures/reference-puzzles.ts";
 import { threadOf } from "./fixtures/thread-of.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
@@ -31,6 +31,10 @@ const cancel: Msg = { type: "PointerCancelled" };
 const undo: Msg = { type: "UndoPressed" };
 const clear: Msg = { type: "ClearPressed" };
 const tick = (dt: number): Msg => ({ type: "Tick", dt });
+const key = (pressed: BoardKey): Msg => ({ type: "BoardKeyPressed", key: pressed });
+const focus: Msg = { type: "BoardFocused" };
+const blur: Msg = { type: "BoardBlurred" };
+const repeat = (times: number, msg: Msg): Msg[] => Array.from({ length: times }, (): Msg => msg);
 
 describe("update", (): void => {
   it("starts a level with no threads, no drag and nothing to undo", (): void => {
@@ -43,6 +47,8 @@ describe("update", (): void => {
       history: [],
       solvedFor: undefined,
       rulesOpen: false,
+      cursor: { x: 0, y: 0 },
+      cursorShown: false,
     });
   });
 
@@ -105,6 +111,91 @@ describe("update", (): void => {
       threadOf("red", [1, 4], [1, 3], [1, 2]),
       threadOf("red", [2, 0], [1, 0], [1, 1]),
     ]);
+  });
+});
+
+describe("update: keyboard", (): void => {
+  const focused: Game = run(fresh, focus);
+  const holding: Game = run(focused, ...repeat(2, key("right")), key("lay"));
+
+  it("lays a thread from peg to peg a square at a time", (): void => {
+    const model: Game = run(holding, key("left"), ...repeat(4, key("down")), key("lay"));
+    expect(model.threads).toEqual([
+      threadOf("red", [2, 0], [1, 0], [1, 1], [1, 2], [1, 3], [1, 4]),
+    ]);
+    expect(model.drag).toBeUndefined();
+    expect(model.cursor).toEqual({ x: 1, y: 4 });
+  });
+
+  it("shows the cursor on keyboard focus, and hides it on blur or a press on the board", (): void => {
+    expect(focused.cursorShown).toBe(true);
+    expect(run(focused, blur).cursorShown).toBe(false);
+    expect(run(focused, press(0, 0)).cursorShown).toBe(false);
+  });
+
+  it("shows the cursor where it was on the first key after a press, without acting", (): void => {
+    const pressed: Game = run(focused, key("right"), press(0, 0));
+    expect(run(pressed, key("right"))).toEqual({ ...pressed, cursorShown: true });
+  });
+
+  it("keeps the cursor on the board", (): void => {
+    expect(update(focused, key("left"))).toBe(focused);
+    expect(update(focused, key("up"))).toBe(focused);
+  });
+
+  it("holds the cursor where the thread can't go", (): void => {
+    // (3, 0) is a red peg of another length.
+    expect(update(holding, key("right"))).toBe(holding);
+  });
+
+  it("takes back a square, and drops a thread taken back to its peg", (): void => {
+    const two: Game = run(holding, key("down"), key("shorten"));
+    expect(two.drag).toEqual(threadOf("red", [2, 0]));
+    expect(two.cursor).toEqual({ x: 2, y: 0 });
+    expect(run(two, key("shorten")).drag).toBeUndefined();
+  });
+
+  it("drops the thread on Escape or blur, keeping those laid", (): void => {
+    const laid: Game = run(holding, key("down"), key("lay"));
+    const lifted: Game = run(laid, key("lay"), key("left"));
+    expect(run(lifted, key("drop")).threads).toEqual(laid.threads);
+    expect(run(lifted, key("drop")).drag).toBeUndefined();
+    expect(run(lifted, blur).drag).toBeUndefined();
+  });
+
+  it("picks up a laid thread at the cursor", (): void => {
+    const laid: Game = run(holding, ...repeat(2, key("down")), key("lay"));
+    const lifted: Game = run(laid, key("up"), key("lay"));
+    expect(lifted.drag).toEqual(threadOf("red", [2, 0], [2, 1]));
+  });
+
+  it("ties a peg marked 1 in one press", (): void => {
+    const single: Game = startLevel(
+      puzzleOf(
+        ["YYY..", ".....", ".....", ".....", "....Y"],
+        [
+          [0, 0, 3],
+          [2, 0, 3],
+          [4, 4, 1],
+        ],
+      ),
+      noProgress,
+    );
+    const tied: Game = run(
+      single,
+      focus,
+      ...repeat(4, key("right")),
+      ...repeat(4, key("down")),
+      key("lay"),
+    );
+    expect(tied.threads).toEqual([threadOf("yellow", [4, 4])]);
+    expect(tied.drag).toBeUndefined();
+  });
+
+  it("leaves a thread laid with the pointer to the pointer", (): void => {
+    const dragging: Game = run(focused, press(2, 0));
+    expect(update(dragging, key("down"))).toBe(dragging);
+    expect(update(dragging, focus)).toBe(dragging);
   });
 });
 
@@ -313,6 +404,9 @@ describe("update: screens", (): void => {
       clear,
       howToPlay,
       rulesClosed,
+      key("lay"),
+      focus,
+      blur,
     ];
     for (const msg of levelMsgs) {
       expect(update(menu, msg)).toBe(menu);

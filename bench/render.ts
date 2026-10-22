@@ -86,5 +86,7 @@ function worstCase(size: number): Game {
     history: [],
     solvedFor: undefined,
     rulesOpen: false,
+    cursor: { x: 0, y: 0 },
+    cursorShown: false,
   };
 }

@@ -10,6 +10,9 @@ export interface Palette {
   /** On a tied peg; an untied one shows its number in its thread's colour. */
   readonly pegNumber: string;
   readonly weaveShadow: string;
+  /** The keyboard cursor: ink edged with the page colour, so it shows on any square. */
+  readonly cursor: string;
+  readonly cursorEdge: string;
   readonly font: string;
   /** Mixed colours dye both threads where they cross. */
   readonly thread: Readonly<Record<ThreadColour | MixedColour, string>>;
@@ -28,6 +31,8 @@ export function readPalette(element: Element): Palette {
     pegShine: css("--peg-shine"),
     pegRim: css("--peg-rim"),
     pegNumber: css("--peg-number"),
+    cursor: css("--ink"),
+    cursorEdge: css("--page"),
     weaveShadow: css("--weave-shadow"),
     font: css("--font-body"),
     thread: {

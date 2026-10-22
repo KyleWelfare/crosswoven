@@ -1,6 +1,36 @@
-import type { Msg } from "../app/messages.ts";
+import type { BoardKey, Msg } from "../app/messages.ts";
 import type { Point, Puzzle } from "../core/puzzle.ts";
 import { canvasLayout, squareAt } from "./board-layout.ts";
+
+const BOARD_KEYS: ReadonlyMap<string, BoardKey> = new Map<string, BoardKey>([
+  ["ArrowUp", "up"],
+  ["ArrowDown", "down"],
+  ["ArrowLeft", "left"],
+  ["ArrowRight", "right"],
+  ["Enter", "lay"],
+  [" ", "lay"],
+  ["Escape", "drop"],
+  ["Backspace", "shorten"],
+]);
+
+/**
+ * Keyboard play, for players who can't use a pointer. The cursor shows only for focus from the
+ * keyboard, since a press on the board focuses it too.
+ */
+export function listenForKeys(canvas: HTMLCanvasElement, dispatch: (msg: Msg) => void): void {
+  canvas.addEventListener("keydown", (event: KeyboardEvent): void => {
+    const key: BoardKey | undefined = BOARD_KEYS.get(event.key);
+    if (!key || event.altKey || event.ctrlKey || event.metaKey) return;
+    event.preventDefault();
+    dispatch({ type: "BoardKeyPressed", key });
+  });
+  canvas.addEventListener("focus", (): void => {
+    if (canvas.matches(":focus-visible")) dispatch({ type: "BoardFocused" });
+  });
+  canvas.addEventListener("blur", (): void => {
+    dispatch({ type: "BoardBlurred" });
+  });
+}
 
 /**
  * Turns presses and drags on the board into messages, for mouse, pen and touch alike. Only the

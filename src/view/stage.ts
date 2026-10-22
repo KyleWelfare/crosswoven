@@ -92,6 +92,26 @@ export function drawStage(
     }
     context.globalAlpha = 1;
   }
+  if (game.cursorShown) drawCursor(context, layout, game.cursor, palette);
+}
+
+function drawCursor(
+  context: CanvasRenderingContext2D,
+  layout: BoardLayout,
+  square: Point,
+  palette: Palette,
+): void {
+  const origin: Point = squareOrigin(layout, square);
+  const line: number = Math.max(2 * layout.ratio, Math.round(layout.cell / 16));
+  const inset: number = line * 1.5;
+  const size: number = layout.cell - 2 * inset;
+  // The page-coloured stroke underneath edges the ink on both sides.
+  context.lineWidth = line * 3;
+  context.strokeStyle = palette.cursorEdge;
+  context.strokeRect(origin.x + inset, origin.y + inset, size, size);
+  context.lineWidth = line;
+  context.strokeStyle = palette.cursor;
+  context.strokeRect(origin.x + inset, origin.y + inset, size, size);
 }
 
 function drawThreads(

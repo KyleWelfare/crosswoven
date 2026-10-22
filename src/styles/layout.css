@@ -152,6 +152,11 @@
   user-select: none;
 }
 
+/* The cursor square stage.ts draws is the board's focus ring. */
+.stage:focus {
+  outline: none;
+}
+
 .masthead,
 .dock {
   flex: none;

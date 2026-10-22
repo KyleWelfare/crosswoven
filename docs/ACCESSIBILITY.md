@@ -17,12 +17,16 @@ What the game supports for screen reader and keyboard users today, and what's st
 - Visible words are the accessible names, so voice control users can say what they see: How to Play is named "Rules" on narrow phones, where that's the word it shows. Decorative arrows on the back and Next level buttons use CSS alt text (`content: "‹" / ""`), so they aren't read out
 - The page declares its language
 
+## The board
+
+Mouse and touch are the intended controls, so the tutorial and How to Play teach only those. The keys exist for players who can't use a pointer, and are explained where they look: the board's description, read whenever it gets focus.
+
+- **Keyboard play.** The board is in the tab order. Arrow keys move a cursor square, Enter or Space picks up the thread at a peg (or a laid thread at that square) and lays it down again. A peg marked 1 ties in one press, as one tap does. While a thread is held, the arrows lay it a square at a time, Backspace takes back a square and Escape drops it. Moving focus off the board drops a held thread. Keys become `BoardKeyPressed` messages, so they go through the same rules as a drag and are unit tested in `tests/update.test.ts`
+- **Visible focus.** The cursor is drawn on the canvas as an ink square edged in the page colour, so it shows on every square in both themes. It appears only for keyboard focus, and a press on the board hides it again
+- **Screen readers.** The canvas has `role="application"`, so screen readers pass the arrow keys through, with `aria-roledescription="board"`. It's named by the level title and described by the key instructions and a summary: its size, pegs tied and coloured squares woven
+- **Narration.** A polite live region announces each square the cursor reaches (its colour, any peg with its number and whether it's tied, the threads through it, whether it's woven), how far a held thread has come, ties with a count of pegs tied, and why a key did nothing (the edge, a thread at full length or already tied, a square it can't enter). Undo and Clear are announced too. The text comes from `src/app/narration.ts`, a pure function of the old model, new model and message, tested in `tests/narration.test.ts`. A solve is left to the win message
+- Nothing about the board animates beyond the existing win fade, so reduced motion needs nothing new
+
 ## Not yet
 
-- The board is a canvas with no accessible name or text alternative, so a screen reader gets nothing from it
-- Threads can only be laid with a pointer: mouse, touch or pen. There's no way to play from the keyboard
-
-## Planned
-
-- [ ] Screen reader support for the board: the pattern, the pegs and their numbers, the threads laid and which squares are woven
-- [ ] Keyboard play: move between squares, start a thread at a peg and lay it a square at a time
+- [ ] Checked with a real screen reader (NVDA on Windows). So far the narration has only been read back from the live region in headless Chrome

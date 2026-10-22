@@ -1,9 +1,9 @@
-<h1 align="center">
+<p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/media/banner-dark.png">
     <img src="docs/media/banner-light.png" width="460" alt="Crosswoven">
   </picture>
-</h1>
+</p>
 
 A logic puzzle for the browser. Connect numbered pegs with coloured threads to weave a pixel-art picture. Where two threads cross, their colours mix.
 
@@ -27,7 +27,7 @@ Every level is generated from a picture and checked by a validator: exactly one 
   <img src="docs/media/solved-phone.png" width="24%" alt="A solved level on a phone">
 </p>
 
-## How it works
+### How it works
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/media/braid-dark.png">
@@ -53,7 +53,7 @@ The game walks through how a level is made:
 
 More in [docs/](docs/).
 
-## What playtesting showed
+### What playtesting showed
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/media/braid-dark.png">
@@ -64,7 +64,7 @@ The first levels were too easy. Measuring them backed that up: on most levels, 6
 
 Tuning the generator to aim each level at a difficulty target helped, but the bigger problem is the design: showing the colours tells you where every thread goes before you start.
 
-## How I built it
+### How I built it
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/media/braid-dark.png">
@@ -73,7 +73,7 @@ Tuning the generator to aim each level at a difficulty target helped, but the bi
 
 I made the design calls and Claude Code wrote most of the code. My job was deciding what to build, setting the rules it worked under, and checking its output: reviewing each change, and backing claims with tests and data rather than taking them on trust. The design docs and agent rules (`.claude/CLAUDE.md`) are in the repo.
 
-## Credits
+### Credits
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/media/braid-dark.png">
@@ -82,7 +82,7 @@ I made the design calls and Claude Code wrote most of the code. My job was decid
 
 Music: [Heavenly Loop](https://opengameart.org/content/heavenly-loop) by isaiah658, CC0. Sound effects are synthesised in the browser.
 
-## Development
+### Development
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/media/braid-dark.png">

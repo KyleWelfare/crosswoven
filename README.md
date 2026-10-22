@@ -5,7 +5,14 @@
   </picture>
 </p>
 
-<p align="center"><b><a href="https://kylewelfare.github.io/crosswoven/">Play it in your browser</a></b></p>
+<p align="center">
+  <a href="https://kylewelfare.github.io/crosswoven/">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="docs/media/play-button-dark.png">
+      <img src="docs/media/play-button-light.png" width="322" alt="Play in your browser">
+    </picture>
+  </a>
+</p>
 
 Draw a pixel-art picture, and the pipeline turns it into a puzzle with exactly one solution that you can reach without guessing. If a picture can't be made into one, it points to the squares at fault.
 

@@ -24,7 +24,7 @@ const RING_WIDTH: number = 3;
 
 // A playtester skipped straight away, taking Skip for the only thing to do, and never saw the
 // highlighted squares. Holding it back gives the board time to be noticed first.
-const SKIP_DELAY_MS: number = 10_000;
+const SKIP_DELAY_MS: number = 5_000;
 
 /** Milliseconds in the hand's loop. */
 const HAND_PRESS: number = 300;

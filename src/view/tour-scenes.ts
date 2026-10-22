@@ -1,4 +1,5 @@
 import { startLevel, type Game } from "../app/model.ts";
+import { noProgress } from "../app/progress.ts";
 import type { RecapStage, Scene, StepScene } from "../app/tour.ts";
 import { WIN_FADE } from "../app/win.ts";
 import type { Peg, Point, Puzzle } from "../core/puzzle.ts";
@@ -289,7 +290,7 @@ function draw(
   sprites: SpriteCache,
   pegs: "by-thread" | "tied" = "tied",
 ): void {
-  const game: Game = { ...startLevel(puzzle), threads, solvedFor };
+  const game: Game = { ...startLevel(puzzle, noProgress), threads, solvedFor };
   drawStage(canvas, game, sprites, pegs);
 }
 

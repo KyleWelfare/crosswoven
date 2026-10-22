@@ -2,6 +2,7 @@ import fc from "fast-check";
 import { describe, expect, it } from "vitest";
 import type { Msg } from "../src/app/messages.ts";
 import { startLevel, type Model } from "../src/app/model.ts";
+import { noProgress } from "../src/app/progress.ts";
 import { shownThreads } from "../src/app/drag.ts";
 import { update } from "../src/app/update.ts";
 import { pegAt, threadsThrough, type Peg, type Point, type Puzzle } from "../src/core/puzzle.ts";
@@ -134,7 +135,7 @@ describe("update properties", (): void => {
   it("never changes the model it's given", (): void => {
     fc.assert(
       fc.property(cases, ({ puzzle, msgs }: Case): void => {
-        let model: Model = startLevel(puzzle);
+        let model: Model = startLevel(puzzle, noProgress);
         for (const msg of msgs) {
           const before: Model = structuredClone(model);
           const next: Model = update(model, msg);
@@ -148,7 +149,7 @@ describe("update properties", (): void => {
   it("only lays and shows threads that break no rule of laying", (): void => {
     fc.assert(
       fc.property(cases, ({ puzzle, msgs }: Case): void => {
-        const model: Model = msgs.reduce<Model>(update, startLevel(puzzle));
+        const model: Model = msgs.reduce<Model>(update, startLevel(puzzle, noProgress));
         if (model.screen !== "game") throw new Error("only board messages are sent");
         expectBoard(puzzle, model.threads);
         expectBoard(puzzle, shownThreads(puzzle, model.threads, model.drag));

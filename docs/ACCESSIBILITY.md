@@ -5,7 +5,7 @@ What the game supports for screen reader and keyboard users today, and what's st
 ## Supported
 
 - Every control is a native button with a text label, so it works from the keyboard and shows a focus ring: the menu, the back buttons, How to Play, Undo, Clear and Next level (`src/styles/dock.css`), and the level tiles (`src/styles/level-list.css`)
-- Level tiles are named "Level 3, 7 by 7"; their pattern thumbnails are hidden from screen readers
+- Level tiles are named "Level 3, 7 by 7", with ", cleared" or ", locked" after. A locked tile uses `aria-disabled` rather than `disabled`, so it stays focusable and announced; its pattern thumbnail and padlock are hidden from screen readers
 - Each screen has its own `h1`. As a screen appears, focus moves to its heading (Play on the menu), so focus never stays on a button that just vanished (`src/view/screens.ts`)
 - How to Play opens from a button in each level's top bar. It's a native modal `<dialog>`: it traps focus, closes on Escape, and returns focus to the button that opened it
 - The win message sits in an `aria-live="polite"` region, so screen readers announce a solved level

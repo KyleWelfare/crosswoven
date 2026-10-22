@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Msg } from "../src/app/messages.ts";
 import { levelList, menu, startLevel, type Game, type Model } from "../src/app/model.ts";
+import { noProgress, type Progress } from "../src/app/progress.ts";
 import { update } from "../src/app/update.ts";
 import { WIN_FADE } from "../src/app/win.ts";
 import type { Puzzle } from "../src/core/puzzle.ts";
@@ -12,7 +13,7 @@ import { threadOf } from "./fixtures/thread-of.ts";
 import examplePuzzle from "./fixtures/example-puzzle.json";
 
 const lattice: Puzzle = decoded(examplePuzzle);
-const fresh: Game = startLevel(lattice);
+const fresh: Game = startLevel(lattice, noProgress);
 
 function run(model: Game, ...msgs: readonly Msg[]): Game {
   return played(msgs.reduce<Model>(update, model));
@@ -34,6 +35,7 @@ const tick = (dt: number): Msg => ({ type: "Tick", dt });
 describe("update", (): void => {
   it("starts a level with no threads, no drag and nothing to undo", (): void => {
     expect(fresh).toEqual({
+      progress: noProgress,
       screen: "game",
       puzzle: lattice,
       threads: [],
@@ -148,6 +150,16 @@ describe("update: winning", (): void => {
     expect(run(fresh, press(2, 0), enter(1, 0), release).solvedFor).toBeUndefined();
   });
 
+  it("clears the level once solved, and only then", (): void => {
+    expect(won.progress.cleared).toEqual([lattice.id]);
+    expect(run(fresh, press(2, 0), enter(1, 0), release).progress).toBe(noProgress);
+  });
+
+  it("keeps the progress as it was when solving a level cleared before", (): void => {
+    const progress: Progress = { cleared: [lattice.id], tipsSeen: [] };
+    expect(run({ ...almost, progress }, release).progress).toBe(progress);
+  });
+
   it("counts time once solved, up to the end of the fade", (): void => {
     expect(run(won, tick(100), tick(200)).solvedFor).toBe(300);
     expect(run(won, tick(5000)).solvedFor).toBe(WIN_FADE);
@@ -162,7 +174,9 @@ describe("update: winning", (): void => {
 
   it("starts the next level fresh", (): void => {
     const other: Puzzle = decoded(turningCrossingLevel);
-    expect(update(won, { type: "LevelStarted", puzzle: other })).toEqual(startLevel(other));
+    expect(update(won, { type: "LevelStarted", puzzle: other })).toEqual(
+      startLevel(other, won.progress),
+    );
   });
 });
 
@@ -205,14 +219,20 @@ describe("update: screens", (): void => {
 
   it("opens How the Puzzles Are Made from the menu and steps through it within its steps", (): void => {
     const opened: Model = update(menu, { type: "HowPuzzlesAreMadePressed", steps: 3 });
-    expect(opened).toEqual({ screen: "tour", step: 0, steps: 3, elapsed: 0 });
+    expect(opened).toEqual({ screen: "tour", step: 0, steps: 3, elapsed: 0, progress: noProgress });
     const next: Msg = { type: "NextStepPressed" };
     const previous: Msg = { type: "PreviousStepPressed" };
     expect(update(opened, previous)).toBe(opened);
     const last: Model = [next, next].reduce<Model>(update, opened);
-    expect(last).toEqual({ screen: "tour", step: 2, steps: 3, elapsed: 0 });
+    expect(last).toEqual({ screen: "tour", step: 2, steps: 3, elapsed: 0, progress: noProgress });
     expect(update(last, next)).toBe(last);
-    expect(update(last, previous)).toEqual({ screen: "tour", step: 1, steps: 3, elapsed: 0 });
+    expect(update(last, previous)).toEqual({
+      screen: "tour",
+      step: 1,
+      steps: 3,
+      elapsed: 0,
+      progress: noProgress,
+    });
     expect(update(last, back)).toEqual(menu);
   });
 
@@ -225,8 +245,29 @@ describe("update: screens", (): void => {
 
   it("runs the menu's clock on ticks, and restarts it on return", (): void => {
     const ticked: Model = [tick(100), tick(250)].reduce<Model>(update, menu);
-    expect(ticked).toEqual({ screen: "menu", elapsed: 350 });
+    expect(ticked).toEqual({ ...menu, elapsed: 350 });
     expect(update(update(ticked, play), back)).toEqual(menu);
+  });
+
+  it("carries progress from screen to screen", (): void => {
+    const progress: Progress = { cleared: ["key"], tipsSeen: ["drag"] };
+    const opened: Msg = { type: "HowPuzzlesAreMadePressed", steps: 3 };
+    const started: Msg = { type: "LevelStarted", puzzle: lattice };
+    const route: readonly Msg[] = [play, started, back, back, opened, back];
+    let model: Model = { ...menu, progress };
+    for (const msg of route) {
+      model = update(model, msg);
+      expect(model.progress).toBe(progress);
+    }
+  });
+
+  it("remembers a tip once seen, on any screen", (): void => {
+    const seen: Msg = { type: "TipSeen", tip: "drag" };
+    for (const model of [menu, levelList, fresh]) {
+      const after: Model = update(model, seen);
+      expect(after).toEqual({ ...model, progress: { cleared: [], tipsSeen: ["drag"] } });
+      expect(update(after, seen)).toBe(after);
+    }
   });
 
   it("ignores level messages outside a level", (): void => {

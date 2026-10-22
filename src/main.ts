@@ -11,6 +11,7 @@ import "./styles/tour.css";
 import "./styles/dock.css";
 import type { Msg } from "./app/messages.ts";
 import { menu, type Model } from "./app/model.ts";
+import { decodeProgress, noProgress, type Progress } from "./app/progress.ts";
 import { update } from "./app/update.ts";
 import { tourFrames, type StepScene, type TourFrame } from "./app/tour.ts";
 import { isFading } from "./app/win.ts";
@@ -21,7 +22,7 @@ import { tourRecord } from "./how-it-works/record.ts";
 import order from "./levels/order.json";
 import { listenForDrags } from "./view/board-input.ts";
 import { drawBraid } from "./view/braid.ts";
-import { buildLevelList } from "./view/level-list.ts";
+import { buildLevelList, renderLevelList } from "./view/level-list.ts";
 import { findMenu, listenToMenu, menuScene, renderMenu, type MenuControls } from "./view/menu.ts";
 import { findPanels, listenToPanels, renderPanels, type Panels } from "./view/panels.ts";
 import { requiredElement } from "./view/required-element.ts";
@@ -52,11 +53,33 @@ function shippedLevels(): readonly Puzzle[] {
   });
 }
 
+const PROGRESS_KEY: string = "crosswoven:progress";
+
+// Storage access throws when it's blocked (some private modes, disabled cookies) and writes throw
+// when it's full. The game plays on either way; progress just won't outlast the page.
+function loadProgress(): Progress {
+  try {
+    const saved: string | null = localStorage.getItem(PROGRESS_KEY);
+    return saved === null ? noProgress : decodeProgress(JSON.parse(saved));
+  } catch {
+    return noProgress;
+  }
+}
+
+function saveProgress(progress: Progress): void {
+  try {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+  } catch {
+    // See loadProgress.
+  }
+}
+
 const stage: HTMLCanvasElement = requiredElement(document, "#stage", HTMLCanvasElement);
 drawBraid(requiredElement(document, "#braid", SVGSVGElement));
 drawBraid(requiredElement(document, "#win-braid", SVGSVGElement));
 const levels: readonly Puzzle[] = shippedLevels();
-let model: Model = menu;
+const levelListElement: HTMLElement = requiredElement(document, "#level-list", HTMLElement);
+let model: Model = { ...menu, progress: loadProgress() };
 const sprites: SpriteCache = createSpriteCache();
 const screens: Screens = findScreens(document);
 const menuControls: MenuControls = findMenu(document);
@@ -75,6 +98,7 @@ let ticking: boolean = false;
 function dispatch(msg: Msg): void {
   const next: Model = update(model, msg);
   if (next === model) return;
+  if (next.progress !== model.progress) saveProgress(next.progress);
   model = next;
   scheduleRender();
   if (animating()) startTicking();
@@ -100,6 +124,7 @@ function scheduleRender(): void {
     // Screens first, so a canvas that has just appeared has a size to draw at.
     renderScreens(screens, model);
     renderMenu(menuControls, model, heroScene, heroSprites);
+    if (model.screen === "levels") renderLevelList(levelListElement, levels, model.progress);
     if (model.screen === "tour") renderTour(tour, frames, model.step, model.elapsed, tourSprites);
     if (model.screen !== "game") return;
     drawStage(stage, model, sprites);
@@ -137,7 +162,7 @@ function nextLevel(): Puzzle | undefined {
   return model.screen === "game" ? levels[levels.indexOf(model.puzzle) + 1] : undefined;
 }
 
-buildLevelList(requiredElement(document, "#level-list", HTMLElement), levels, dispatch);
+buildLevelList(levelListElement, levels, dispatch);
 listenToMenu(menuControls, dispatch, frames.length);
 buildTimeline(tour, frames);
 listenToTour(tour, dispatch);

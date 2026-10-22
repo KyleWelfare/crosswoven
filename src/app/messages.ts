@@ -1,6 +1,12 @@
 import type { Puzzle } from "../core/puzzle.ts";
 
-export type Msg = ScreenMsg | GameMsg;
+export type Msg = ScreenMsg | GameMsg | TipSeen;
+
+/** A tutorial tip was shown, so it isn't shown again. */
+export interface TipSeen {
+  readonly type: "TipSeen";
+  readonly tip: string;
+}
 
 /** Moves between screens. */
 export type ScreenMsg =

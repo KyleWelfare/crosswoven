@@ -19,9 +19,9 @@ The app uses a model-view-update architecture. State lives in one place, changes
 
 ## Model, update, view
 
-- **Model**: one plain-data object holding the whole app state (current screen, current level, threads, drag state, hint mode, progress). It's a union on `screen`: the menu, the level list, or a level being played (`Game`), and board messages only reach a `Game`. No class instances, no functions, no DOM references. It should survive `JSON.stringify` round trips.
+- **Model**: one plain-data object holding the whole app state (current screen, current level, threads, drag state, hint mode, progress). It's a union on `screen`: the menu, the level list, or a level being played (`Game`), and board messages only reach a `Game`. Every screen carries the progress, so it follows the player between them. No class instances, no functions, no DOM references. It should survive `JSON.stringify` round trips.
 - **Msg**: a discriminated union of every way the state can change, e.g. `{ type: "SquareEntered"; x: number; y: number }`. Name messages after what happened, not what to do.
-- **update**: `update(model, msg) → [model, cmds]`. Pure: no side effects, no reading the clock, no randomness, no mutation of the input. Same inputs, same output.
+- **update**: `update(model, msg) → model`. Pure: no side effects, no reading the clock, no randomness, no mutation of the input. Same inputs, same output.
 - **view**: renders the current model. It never changes state directly; input handlers dispatch `Msg`s and nothing else.
 
 The loop:
@@ -48,6 +48,8 @@ Anything that isn't pure happens in `main.ts` or `view/`, and its result comes b
 - Reading and saving progress in local storage
 - Resize, device pixel ratio
 
-`update` requests effects through the `cmds` it returns. Commands are plain data, e.g. `{ type: "SaveProgress"; progress }`. `main.ts` carries them out, and any result comes back as a `Msg`. Tests can assert which commands a message produces without running them.
+`update` stays pure and returns only the model; `main.ts` reacts to what changed. Progress is the only effect so far: `main.ts` loads it from local storage at start and saves it whenever `update` returns a new `progress` (`src/app/progress.ts` returns the same object when nothing changed). Blocked or full storage fails quietly, and a malformed save reads as no progress. Tests assert the progress in the model, without storage.
+
+If an effect ever needs its result back, or can't be read off the model, `update` grows to return `[model, cmds]`: commands as plain data, carried out by `main.ts`, with results coming back as `Msg`s.
 
 Hints run the logic solver on the main thread. If they miss the 100 ms target in `DESIGN.md`, it moves to a Web Worker.

@@ -2,6 +2,7 @@ import "../src/styles/tokens.css";
 import "../src/styles/base.css";
 import "../src/styles/layout.css";
 import type { Game } from "../src/app/model.ts";
+import { noProgress } from "../src/app/progress.ts";
 import type { Peg, Point, SquareColour } from "../src/core/puzzle.ts";
 import type { Thread } from "../src/core/thread.ts";
 import { drawStage } from "../src/view/stage.ts";
@@ -78,6 +79,7 @@ function worstCase(size: number): Game {
   );
   return {
     screen: "game",
+    progress: noProgress,
     puzzle: { id: "worst-case", title: "Worst case", width: size, height: size, pattern, pegs },
     threads,
     drag: undefined,

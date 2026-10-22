@@ -52,13 +52,13 @@ The game accepts any weave that follows the rules, so uniqueness isn't about whi
 - Hand-drawn picture puzzles, rising in difficulty, unlocked in order. 14 so far, listed in `pictures/`: two openers that teach threads and crossings, then pictures where crossings play a part, ending with ones whose crossing threads run on into open areas and take long chains of deduction. Each picture sets a target number of rounds (see Level pipeline), and the targets rise along the play order. `pictures/backlog/` holds pictures that don't ship, kept as development material: ones that give nearly every thread away, and broad single-colour ones that are hard but have no colour mixing, such as Red Giant
 - Grid sizes from 5×5 to 15×15. Larger grids are possible with numbered pegs, but 15×15 is the most a phone screen holds for version one
 - Each level shows its difficulty, Easy or Medium, rated by the hardest deduction it needs. A Hard tier waits on playtesting
-- Progress (cleared or not) is saved in local storage. No accounts, scores or sound
+- Cleared levels and tutorial tips seen are saved in local storage, and survive a reload. If storage is blocked the game plays on without saving. No accounts, scores or sound
 
 ## Menu
 
 The game opens on a menu:
 
-- **Play**: the level list. Each level is a numbered tile showing its pattern in the board's pale washes and its grid size. The title stays hidden, since it names the picture that solving reveals. Every level is open until progress is saved; then cleared levels are marked and the rest unlock in order
+- **Play**: the level list. Each level is a numbered tile showing its pattern in the board's pale washes and its grid size. The title stays hidden, since it names the picture that solving reveals. Only the first level is open at the start; each one after unlocks once the level before it is cleared. Cleared levels are ticked, and a locked level shows its loom still empty, with a padlock stitched on a cloth patch
 - **How the Puzzles Are Made**: a slideshow of how a level is made and proven
 - Each screen past the menu has a back button: a level goes back to the list, the list to the menu
 - **How to Play** isn't on the menu. A How to Play button in each level's top bar, opposite the back button, opens the rules as a modal over the board, where a player needs them

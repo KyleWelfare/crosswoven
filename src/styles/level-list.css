@@ -48,17 +48,86 @@
   opacity: 1;
 }
 
+.level-tile.is-cleared::after {
+  content: "✓";
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--page);
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
 .level-tile:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 2px;
 }
 
-.level-thumbnail {
+.level-art {
+  position: relative;
   grid-column: 1 / -1;
+  margin-bottom: var(--space-1);
+}
+
+.level-thumbnail {
   display: block;
   width: 100%;
   aspect-ratio: 1;
-  margin-bottom: var(--space-1);
+}
+
+/* A locked level shows its loom still empty, so the picture stays a surprise. */
+.level-tile.is-locked {
+  --loom-fill: var(--control);
+  color: var(--ink-muted);
+  cursor: default;
+}
+
+.level-tile.is-locked:hover {
+  border-color: var(--board-frame);
+}
+
+.level-tile.is-locked:hover::before {
+  opacity: 0;
+}
+
+.level-tile.is-locked .level-number {
+  background: var(--ink-muted);
+}
+
+.level-lock {
+  position: absolute;
+  inset: 0;
+  width: 44%;
+  height: 44%;
+  margin: auto;
+  overflow: visible;
+}
+
+.level-tile:not(.is-locked) .level-lock {
+  display: none;
+}
+
+.level-lock-patch {
+  fill: var(--surface);
+  stroke: var(--stitch);
+  stroke-width: 1;
+  stroke-dasharray: 2.5 2;
+}
+
+/* Running stitch: short dashes with round ends, as thread pulled through cloth. */
+.level-lock-stitch {
+  fill: none;
+  stroke: var(--ink-muted);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 2.2 1.8;
 }
 
 .level-number {

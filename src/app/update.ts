@@ -2,18 +2,17 @@ import { sameSolution, type Thread } from "../core/thread.ts";
 import { dragTo, releasedThreads, startDrag } from "./drag.ts";
 import type { GameMsg, Msg } from "./messages.ts";
 import { levelList, menu, startLevel, type Game, type Model } from "./model.ts";
+import { withCleared, withTipSeen, type Progress } from "./progress.ts";
 import { isFading, isSolved, WIN_FADE } from "./win.ts";
 
 /** Returns `model` itself when nothing changed, so the runtime can skip the redraw. */
-// TODO: return [model, cmds] as docs/ARCHITECTURE.md describes, once the first command
-// (SaveProgress) arrives.
 export function update(model: Model, msg: Msg): Model {
   switch (msg.type) {
     case "PlayPressed":
-      return model.screen === "menu" ? levelList : model;
+      return model.screen === "menu" ? { ...levelList, progress: model.progress } : model;
     case "HowPuzzlesAreMadePressed":
       return model.screen === "menu"
-        ? { screen: "tour", step: 0, steps: msg.steps, elapsed: 0 }
+        ? { screen: "tour", step: 0, steps: msg.steps, elapsed: 0, progress: model.progress }
         : model;
     case "NextStepPressed":
       return model.screen === "tour" && model.step < model.steps - 1
@@ -24,10 +23,16 @@ export function update(model: Model, msg: Msg): Model {
         ? { ...model, step: model.step - 1, elapsed: 0 }
         : model;
     case "BackPressed":
-      if (model.screen === "game") return levelList;
-      return model.screen === "levels" || model.screen === "tour" ? menu : model;
+      if (model.screen === "game") return { ...levelList, progress: model.progress };
+      return model.screen === "levels" || model.screen === "tour"
+        ? { ...menu, progress: model.progress }
+        : model;
     case "LevelStarted":
-      return startLevel(msg.puzzle);
+      return startLevel(msg.puzzle, model.progress);
+    case "TipSeen": {
+      const progress: Progress = withTipSeen(model.progress, msg.tip);
+      return progress === model.progress ? model : { ...model, progress };
+    }
     case "SquarePressed":
     case "SquareEntered":
     case "PointerReleased":
@@ -87,13 +92,13 @@ function isEditable(game: Game): boolean {
   return game.solvedFor === undefined && game.drag === undefined;
 }
 
-/** Keeps the board it replaces for Undo, unless nothing changed, and starts the win once solved. */
+/**
+ * Keeps the board it replaces for Undo, unless nothing changed, and starts the win and clears the
+ * level once solved.
+ */
 function withThreads(game: Game, threads: readonly Thread[]): Game {
   if (sameSolution(threads, game.threads)) return game;
-  return {
-    ...game,
-    threads,
-    history: [...game.history, game.threads],
-    solvedFor: isSolved(game.puzzle, threads) ? 0 : undefined,
-  };
+  const changed: Game = { ...game, threads, history: [...game.history, game.threads] };
+  if (!isSolved(game.puzzle, threads)) return changed;
+  return { ...changed, solvedFor: 0, progress: withCleared(game.progress, game.puzzle.id) };
 }

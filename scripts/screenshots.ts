@@ -32,6 +32,8 @@ interface Options {
 
 interface Shot {
   readonly name: string;
+  /** Levels saved as cleared before the page loads, which unlocks the level after each. */
+  readonly cleared?: readonly string[];
   readonly reach: (devTools: DevTools) => Promise<void>;
 }
 
@@ -166,6 +168,12 @@ async function takeAll(
       const folder: string = join(out, theme, viewport.name);
       mkdirSync(folder, { recursive: true });
       for (const shot of shots) {
+        // Shots that solve a level save it, which would tick it in later shots of the level list.
+        await devTools.send("Storage.clearDataForOrigin", {
+          origin: new URL(base).origin,
+          storageTypes: "local_storage",
+        });
+        if (shot.cleared) await save(devTools, base, shot.cleared);
         await load(devTools, base, READY);
         await shot.reach(devTools);
         await settle(devTools);
@@ -196,6 +204,7 @@ function allShots(tourSteps: number): readonly Shot[] {
       await click(devTools, "#play");
       await click(devTools, `#level-list li:nth-child(${String(order.indexOf(id) + 1)}) button`);
     };
+  const before = (id: string): readonly string[] => order.slice(0, order.indexOf(id));
   return [
     { name: "01-menu", reach: async (): Promise<void> => {} },
     {
@@ -207,6 +216,8 @@ function allShots(tourSteps: number): readonly Shot[] {
     },
     {
       name: "03-levels",
+      // Some cleared, the next open and the rest locked, so every kind of tile shows.
+      cleared: order.slice(0, 3),
       reach: async (devTools: DevTools): Promise<void> => {
         await click(devTools, "#play");
       },
@@ -229,12 +240,13 @@ function allShots(tourSteps: number): readonly Shot[] {
     },
     {
       name: "07-game-large-partway",
+      cleared: before(LARGE_LEVEL),
       reach: async (devTools: DevTools): Promise<void> => {
         await open(LARGE_LEVEL)(devTools);
         await lay(devTools, large, half(largeSolution));
       },
     },
-    { name: "08-game-tall", reach: open(TALL_LEVEL) },
+    { name: "08-game-tall", cleared: before(TALL_LEVEL), reach: open(TALL_LEVEL) },
     ...Array.from({ length: tourSteps }, (_: unknown, step: number): Shot => ({
       name: `${String(9 + step).padStart(2, "0")}-tour-step-${String(step + 1)}`,
       reach: async (devTools: DevTools): Promise<void> => {
@@ -243,6 +255,16 @@ function allShots(tourSteps: number): readonly Shot[] {
       },
     })),
   ];
+}
+
+/** Storage belongs to the page's origin, so a page has to be open to write it. */
+async function save(devTools: DevTools, base: string, cleared: readonly string[]): Promise<void> {
+  await load(devTools, base, READY);
+  const progress: string = JSON.stringify({ cleared, tipsSeen: [] });
+  await evaluate(
+    devTools,
+    `localStorage.setItem("crosswoven:progress", ${JSON.stringify(progress)})`,
+  );
 }
 
 function level(id: string): Puzzle {

@@ -20,6 +20,19 @@ The 4× throttle is generous to old hardware: a budget Chromebook or a 2017 phon
 | First frame, building tiles       | The first draw, which also builds every sprite. It happens again on resize and on a theme change                              |
 | Frame interval median / p90 / max | Time between animation frames while redrawing every frame, after 20 warm-up frames. Vsync floors it at about 16.7 ms (60 fps) |
 
+## Tour benchmark
+
+`npm run bench` also plays every step of How the Puzzles Are Made, from `bench/tour.html`, in the same Chrome setups and at the same phone size. That screen redraws every frame for as long as it is open, and each frame of a step draws something different, so each step is sampled at 120 moments spread evenly across one loop of its animation. The page copies the tour's markup and fills in each step's heading and caption, so the canvas gets its real size.
+
+| Column                            | Meaning                                                                                                                                |
+| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Canvas calls / frame              | Averaged over the sampled frames                                                                                                       |
+| Issue commands mean / max         | CPU time for one frame, including the style and layout reads it forces. The max catches sprites built mid-loop as threads first appear |
+| First frame                       | The step's first draw, which builds the board and whatever sprites its opening moment needs                                            |
+| Frame interval median / p90 / max | As for the board                                                                                                                       |
+
+`npm run bench -- board` or `npm run bench -- tour` runs one suite.
+
 It needs Chrome or Edge. If neither is in a usual place, set `CHROME_PATH`. To try a real device, `npm run dev -- --host` serves the dev build on the local network.
 
 ## Results
@@ -83,6 +96,25 @@ Squares whose threads match the pattern switch to a stronger colour, so the pict
 | CPU only | 15×15 | 4×  |                  569 |                3.33 |                             66.4 |                     16.7 / 16.7 / 16.8 |
 
 Every case still holds 60 fps. Issuing a throttled 15×15 frame now takes about 3.3 ms of the 16.7 ms budget, almost all of it the extra copies: counting threads per square in flat typed arrays instead of a map per square made no measurable difference.
+
+### How the Puzzles Are Made
+
+Measured 2026-10-21 on the same desktop. Every step holds 60 fps in every setup. The slowest setup, CPU-only raster at 4× throttling:
+
+| Step                         | Scene   | Canvas calls / frame | Issue commands mean / max (ms) | First frame (ms) | Frame interval median / p90 / max (ms) |
+| ---------------------------- | ------- | -------------------: | -----------------------------: | ---------------: | -------------------------------------: |
+| 1. Start from a picture      | paint   |                   27 |                    0.25 / 0.80 |             44.5 |                     16.7 / 16.7 / 16.8 |
+| 2. Lay threads               | lay     |                   82 |                    0.67 / 1.50 |             42.4 |                     16.7 / 16.7 / 16.8 |
+| 3. Find a second solution    | compare |                  138 |                    0.84 / 1.60 |             97.0 |                     16.7 / 16.7 / 16.8 |
+| 4. Split a thread            | split   |                  123 |                    0.84 / 1.60 |             96.9 |                     16.7 / 16.7 / 16.8 |
+| 5. Exactly one solution      | search  |                   71 |                    0.62 / 1.60 |             50.8 |                     16.7 / 16.7 / 16.8 |
+| 6. The obvious threads first | deduce  |                  132 |                    0.70 / 1.40 |             48.4 |                     16.7 / 16.8 / 16.8 |
+| 7. Pegs with one partner     | deduce  |                  104 |                    0.76 / 1.50 |             91.1 |                     16.7 / 16.7 / 16.8 |
+| 8. Squares a thread must use | deduce  |                  120 |                    0.84 / 1.60 |             97.3 |                     16.7 / 16.7 / 16.8 |
+| 9. Certified                 | reveal  |                   78 |                    0.56 / 1.40 |             96.0 |                     16.7 / 16.7 / 16.8 |
+| 10. Start to finish          | recap   |                   93 |                    0.69 / 1.40 |             44.0 |                     16.7 / 16.7 / 16.8 |
+
+The tour board is 7×7, so a frame takes well under a millisecond of the 16.7 ms budget even when throttled. The cost is in a step's first frame: up to about 97 ms where its opening moment already shows crossings, which drops a frame or two as the player presses Next. In this run the GPU setups read a frame interval median of about 17.5 ms, on the board suite too. That comes from headless Chrome's frame pacing on this machine, not from drawing.
 
 ## Open
 

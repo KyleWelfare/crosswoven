@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crosswoven tour benchmark</title>
+  </head>
+  <body>
+    <!-- The tour's own markup, so the canvas gets the size it has in the game. -->
+    <main class="page">
+      <section class="screen tour">
+        <header class="screen-bar">
+          <button class="button button-back" type="button">Menu</button>
+          <h1 class="screen-title">How the Puzzles Are Made</h1>
+        </header>
+        <div class="tour-body">
+          <ol class="tour-timeline"></ol>
+          <div class="tour-show">
+            <p id="tour-badge" class="tour-badge"></p>
+            <canvas id="tour-stage" class="stage tour-stage"></canvas>
+            <div class="tour-text">
+              <p id="tour-actor" class="tour-actor"></p>
+              <h2 id="tour-heading" class="tour-heading"></h2>
+              <p id="tour-caption" class="tour-caption"></p>
+            </div>
+            <div class="tour-nav">
+              <button class="button" type="button">Back</button>
+              <span class="tour-count">1 / 1</span>
+              <button class="button button-primary" type="button">Next</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="./tour.ts"></script>
+  </body>
+</html>

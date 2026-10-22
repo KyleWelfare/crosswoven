@@ -22,4 +22,5 @@ Project docs live in `docs/`. Read the ones that apply before starting work. Whe
 - `npm run build`: production build in `dist/`
 - `npm run levels`: turns each picture in `pictures/` into a certified level in `src/levels/`
 - `npm run difficulty`: how each shipped level plays (given threads, rivals, rounds of deduction), printed as a markdown table
-- `npm run bench`: render benchmark in headless Chrome, printed as a markdown table. See `docs/PERFORMANCE.md`
+- `npm run bench`: render benchmark of the board and How the Puzzles Are Made in headless Chrome, printed as markdown tables. `-- board` or `-- tour` runs one. See `docs/PERFORMANCE.md`
+- `npm run screenshots`: every screen at desktop, phone portrait and phone landscape size in `screenshots/`, with a layout audit in `manifest.md`. `--theme dark|both`, `--only <names>`

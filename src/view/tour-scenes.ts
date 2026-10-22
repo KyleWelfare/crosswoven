@@ -74,8 +74,13 @@ export function echoedStep(scene: Scene, elapsed: number, still: boolean): numbe
   return recapMoment(scene.stages, sceneTime(scene, elapsed, still))?.step;
 }
 
+/** Milliseconds before the scene repeats. */
+export function sceneLoop(scene: Scene): number {
+  return scene.kind === "recap" ? recapLoop(scene.stages) : LOOPS[scene.kind];
+}
+
 function sceneTime(scene: Scene, elapsed: number, still: boolean): number {
-  const loop: number = scene.kind === "recap" ? recapLoop(scene.stages) : LOOPS[scene.kind];
+  const loop: number = sceneLoop(scene);
   return still ? loop - 1 : elapsed % loop;
 }
 

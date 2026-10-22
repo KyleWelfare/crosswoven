@@ -27,3 +27,6 @@ dist-ssr
 
 # Agent worktrees live inside the checkout
 .claude/worktrees/
+
+# npm run screenshots
+screenshots/

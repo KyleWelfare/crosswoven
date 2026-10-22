@@ -1,7 +1,6 @@
 import type { Msg } from "../app/messages.ts";
-import type { Game } from "../app/model.ts";
+import { levelNumber, nextLevel, type Game } from "../app/model.ts";
 import { winProgress } from "../app/win.ts";
-import type { Puzzle } from "../core/puzzle.ts";
 import { requiredElement } from "./required-element.ts";
 
 // TODO: progress and hint mode.
@@ -31,12 +30,7 @@ export function findPanels(root: ParentNode): Panels {
   };
 }
 
-/** `next` is the level after this one, if there is one. */
-export function listenToPanels(
-  panels: Panels,
-  dispatch: (msg: Msg) => void,
-  next: () => Puzzle | undefined,
-): void {
+export function listenToPanels(panels: Panels, dispatch: (msg: Msg) => void): void {
   panels.howToPlay.addEventListener("click", (): void => {
     dispatch({ type: "HowToPlayPressed" });
   });
@@ -51,8 +45,7 @@ export function listenToPanels(
     dispatch({ type: "ClearPressed" });
   });
   panels.next.addEventListener("click", (): void => {
-    const puzzle: Puzzle | undefined = next();
-    if (puzzle) dispatch({ type: "LevelStarted", puzzle });
+    dispatch({ type: "NextLevelPressed" });
   });
 }
 
@@ -60,17 +53,16 @@ export function listenToPanels(
  * The win panel fades in as the threads fade out, in the place the controls leave. The rules are
  * a modal dialog, which traps focus and hands it back to How to Play when it closes.
  */
-export function renderPanels(panels: Panels, game: Game, levels: readonly Puzzle[]): void {
+export function renderPanels(panels: Panels, game: Game): void {
   if (game.rulesOpen && !panels.rules.open) panels.rules.showModal();
   if (!game.rulesOpen && panels.rules.open) panels.rules.close();
   const solved: boolean = game.solvedFor !== undefined;
-  const number: number = levels.indexOf(game.puzzle) + 1;
-  panels.title.textContent = `Level ${String(number)}`;
+  panels.title.textContent = `Level ${String(levelNumber(game))}`;
   panels.controls.classList.toggle("is-hidden", solved);
   panels.undo.disabled = game.history.length === 0;
   panels.clear.disabled = game.threads.length === 0;
   panels.win.classList.toggle("is-hidden", !solved);
   panels.win.style.opacity = String(winProgress(game));
   panels.winTitle.textContent = game.puzzle.title;
-  panels.next.hidden = number === levels.length;
+  panels.next.hidden = !nextLevel(game);
 }

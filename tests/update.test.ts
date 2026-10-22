@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { BoardKey, Msg } from "../src/app/messages.ts";
-import { levelList, menu, startLevel, type Game, type Model } from "../src/app/model.ts";
+import {
+  levelList,
+  levelNumber,
+  menu,
+  nextLevel,
+  startLevel,
+  type Game,
+  type Model,
+} from "../src/app/model.ts";
 import { noProgress, type Progress } from "../src/app/progress.ts";
 import { update } from "../src/app/update.ts";
 import { WIN_FADE } from "../src/app/win.ts";
@@ -40,6 +48,7 @@ describe("update", (): void => {
   it("starts a level with no threads, no drag and nothing to undo", (): void => {
     expect(fresh).toEqual({
       progress: noProgress,
+      levels: [lattice],
       screen: "game",
       puzzle: lattice,
       threads: [],
@@ -263,11 +272,23 @@ describe("update: winning", (): void => {
     expect(update(won, clear)).toBe(won);
   });
 
-  it("starts the next level fresh", (): void => {
+  it("starts the next level fresh, once solved and while there is one", (): void => {
     const other: Puzzle = decoded(turningCrossingLevel);
-    expect(update(won, { type: "LevelStarted", puzzle: other })).toEqual(
-      startLevel(other, won.progress),
-    );
+    const levels: readonly Puzzle[] = [lattice, other];
+    const next: Msg = { type: "NextLevelPressed" };
+    expect(update({ ...won, levels }, next)).toEqual(startLevel(other, won.progress, levels));
+    const unsolved: Game = { ...fresh, levels };
+    expect(update(unsolved, next)).toBe(unsolved);
+    expect(update(won, next)).toBe(won);
+  });
+
+  it("keeps its place among the levels through JSON", (): void => {
+    const other: Puzzle = decoded(turningCrossingLevel);
+    const revive = (game: Game): Game => JSON.parse(JSON.stringify(game)) as Game;
+    const first: Game = revive({ ...won, levels: [lattice, other] });
+    expect(levelNumber(first)).toBe(1);
+    expect(nextLevel(first)?.id).toBe(other.id);
+    expect(levelNumber(revive({ ...won, levels: [other, lattice] }))).toBe(2);
   });
 });
 
@@ -284,14 +305,15 @@ describe("update: screens", (): void => {
   });
 
   it("opens a level from the list and leaves it for the list", (): void => {
-    expect(update(levelList, { type: "LevelStarted", puzzle: lattice })).toEqual(fresh);
+    const list: Model = { ...levelList, levels: [lattice] };
+    expect(update(list, { type: "LevelStarted", puzzle: lattice })).toEqual(fresh);
     const laid: Game = run(fresh, press(2, 0), enter(1, 0), release);
-    expect(update(laid, back)).toEqual(levelList);
+    expect(update(laid, back)).toEqual(list);
   });
 
   it("leaves a level mid-drag without laying the thread", (): void => {
     const left: Model = [back, release].reduce<Model>(update, run(fresh, press(2, 0)));
-    expect(left).toEqual(levelList);
+    expect(left).toEqual({ ...levelList, levels: [lattice] });
   });
 
   it("opens and closes the rules over a level, keeping the board", (): void => {
@@ -309,21 +331,16 @@ describe("update: screens", (): void => {
   });
 
   it("opens How the Puzzles Are Made from the menu and steps through it within its steps", (): void => {
+    const onStep = (step: number): Model => ({ ...menu, screen: "tour", step, steps: 3 });
     const opened: Model = update(menu, { type: "HowPuzzlesAreMadePressed", steps: 3 });
-    expect(opened).toEqual({ screen: "tour", step: 0, steps: 3, elapsed: 0, progress: noProgress });
+    expect(opened).toEqual(onStep(0));
     const next: Msg = { type: "NextStepPressed" };
     const previous: Msg = { type: "PreviousStepPressed" };
     expect(update(opened, previous)).toBe(opened);
     const last: Model = [next, next].reduce<Model>(update, opened);
-    expect(last).toEqual({ screen: "tour", step: 2, steps: 3, elapsed: 0, progress: noProgress });
+    expect(last).toEqual(onStep(2));
     expect(update(last, next)).toBe(last);
-    expect(update(last, previous)).toEqual({
-      screen: "tour",
-      step: 1,
-      steps: 3,
-      elapsed: 0,
-      progress: noProgress,
-    });
+    expect(update(last, previous)).toEqual(onStep(1));
     expect(update(last, back)).toEqual(menu);
   });
 
@@ -358,12 +375,9 @@ describe("update: screens", (): void => {
     }
   });
 
-  it("remembers a tip once seen, on any screen", (): void => {
-    const seen: Msg = { type: "TipSeen", tip: "drag" };
+  it("ignores a tip dismissed where no tip is shown", (): void => {
     for (const model of [menu, levelList, fresh]) {
-      const after: Model = update(model, seen);
-      expect(after).toEqual({ ...model, progress: { ...noProgress, tipsSeen: ["drag"] } });
-      expect(update(after, seen)).toBe(after);
+      expect(update(model, { type: "TipDismissed" })).toBe(model);
     }
   });
 

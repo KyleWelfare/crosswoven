@@ -119,7 +119,7 @@ describe("tutorial in play", (): void => {
     const third: Game = run(second, press(7, 3), release);
     expect(currentStep(third)?.id).toBe("finish");
     expect(update(third, press(0, 1))).toBe(third);
-    const done: Game = run(third, { type: "TipSeen", tip: "finish" });
+    const done: Game = run(third, { type: "TipDismissed" });
     expect(currentStep(done)).toBeUndefined();
     expect(run(done, press(0, 1)).drag).toBeDefined();
   });

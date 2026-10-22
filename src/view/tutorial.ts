@@ -39,18 +39,12 @@ export function findTutorial(root: ParentNode): TutorialView {
   };
 }
 
-/** `step` is the step on screen when OK is pressed. */
-export function listenToTutorial(
-  view: TutorialView,
-  dispatch: (msg: Msg) => void,
-  step: () => TutorialStep | undefined,
-): void {
+export function listenToTutorial(view: TutorialView, dispatch: (msg: Msg) => void): void {
   view.skip.addEventListener("click", (): void => {
     dispatch({ type: "TutorialSkipped" });
   });
   view.ok.addEventListener("click", (): void => {
-    const shown: TutorialStep | undefined = step();
-    if (shown) dispatch({ type: "TipSeen", tip: shown.id });
+    dispatch({ type: "TipDismissed" });
   });
 }
 

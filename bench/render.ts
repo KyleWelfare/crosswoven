@@ -80,6 +80,7 @@ function worstCase(size: number): Game {
   return {
     screen: "game",
     progress: noProgress,
+    levels: [],
     puzzle: { id: "worst-case", title: "Worst case", width: size, height: size, pattern, pegs },
     threads,
     drag: undefined,

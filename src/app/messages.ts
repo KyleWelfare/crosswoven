@@ -4,9 +4,8 @@ import type { Theme } from "./theme.ts";
 
 export type Msg = ScreenMsg | GameMsg | TutorialMsg | SettingMsg;
 
-/** Tutorial steps, once seen, are saved and never shown again. */
-export type TutorialMsg =
-  { readonly type: "TipSeen"; readonly tip: string } | { readonly type: "TutorialSkipped" };
+/** Tutorial steps, once dismissed, are saved and never shown again. */
+export type TutorialMsg = { readonly type: "TipDismissed" } | { readonly type: "TutorialSkipped" };
 
 /** Saved with the progress, and heard on every screen. */
 export type SettingMsg =
@@ -24,7 +23,8 @@ export type ScreenMsg =
   | { readonly type: "PreviousStepPressed" }
   /** Leaves the level for the list, and the list or How the Puzzles Are Made for the menu. */
   | { readonly type: "BackPressed" }
-  | { readonly type: "LevelStarted"; readonly puzzle: Puzzle };
+  | { readonly type: "LevelStarted"; readonly puzzle: Puzzle }
+  | { readonly type: "NextLevelPressed" };
 
 /** Arrows move the cursor, `lay` picks a thread up or lays it down, `shorten` takes back a square. */
 export type BoardKey = Arrow | "lay" | "drop" | "shorten";

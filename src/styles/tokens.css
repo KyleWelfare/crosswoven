@@ -37,6 +37,7 @@
 
   --board-frame: #e2dacb;
   --board-shadow: rgb(70 50 20 / 0.18);
+  --tutorial-shade: rgb(20 15 5 / 0.5);
 
   --wash-blank: #fcfaf5;
   --wash-red: #f7dcd8;
@@ -83,6 +84,7 @@
 
     --board-frame: #0c0b0a;
     --board-shadow: rgb(0 0 0 / 0.6);
+    --tutorial-shade: rgb(0 0 0 / 0.68);
 
     --wash-blank: #24221f;
     --wash-red: #4a2a27;

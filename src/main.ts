@@ -9,11 +9,13 @@ import "./styles/rules.css";
 import "./styles/level-list.css";
 import "./styles/tour.css";
 import "./styles/dock.css";
+import "./styles/tutorial.css";
 import type { Msg } from "./app/messages.ts";
 import { menu, type Model } from "./app/model.ts";
 import { decodeProgress, noProgress, type Progress } from "./app/progress.ts";
 import { update } from "./app/update.ts";
 import { tourFrames, type StepScene, type TourFrame } from "./app/tour.ts";
+import { currentStep, type TutorialStep } from "./app/tutorial.ts";
 import { isFading } from "./app/win.ts";
 import { decodeLevel, type DecodeResult } from "./core/level-decoder.ts";
 import { decodeOrder, type OrderResult } from "./core/level-order.ts";
@@ -30,6 +32,12 @@ import { findScreens, listenForBack, renderScreens, type Screens } from "./view/
 import { drawStage } from "./view/stage.ts";
 import { createSpriteCache, setGeneration, type SpriteCache } from "./view/sprite-cache.ts";
 import { buildTimeline, findTour, listenToTour, renderTour, type TourView } from "./view/tour.ts";
+import {
+  findTutorial,
+  listenToTutorial,
+  renderTutorial,
+  type TutorialView,
+} from "./view/tutorial.ts";
 
 const levelFiles: Readonly<Record<string, unknown>> = import.meta.glob(
   ["./levels/*.json", "!./levels/order.json"],
@@ -85,6 +93,8 @@ const screens: Screens = findScreens(document);
 const menuControls: MenuControls = findMenu(document);
 const panels: Panels = findPanels(document);
 const tour: TourView = findTour(document);
+const tutorial: TutorialView = findTutorial(document);
+const gameBar: HTMLElement = requiredElement(document, "#game .screen-bar", HTMLElement);
 const frames: readonly TourFrame[] = tourFrames(tourRecord);
 // The tour board shows a different puzzle, so it keeps its own sprites.
 const tourSprites: SpriteCache = createSpriteCache();
@@ -124,6 +134,13 @@ function scheduleRender(): void {
     // Screens first, so a canvas that has just appeared has a size to draw at.
     renderScreens(screens, model);
     renderMenu(menuControls, model, heroScene, heroSprites);
+    renderTutorial(
+      tutorial,
+      model.screen === "game" ? model : undefined,
+      stage,
+      panels.controls,
+      gameBar,
+    );
     if (model.screen === "levels") renderLevelList(levelListElement, levels, model.progress);
     if (model.screen === "tour") renderTour(tour, frames, model.step, model.elapsed, tourSprites);
     if (model.screen !== "game") return;
@@ -173,6 +190,9 @@ listenForDrags(
   dispatch,
 );
 listenToPanels(panels, dispatch, nextLevel);
+listenToTutorial(tutorial, dispatch, (): TutorialStep | undefined =>
+  model.screen === "game" ? currentStep(model) : undefined,
+);
 new ResizeObserver(scheduleRender).observe(stage);
 new ResizeObserver(scheduleRender).observe(tour.canvas);
 new ResizeObserver(scheduleRender).observe(menuControls.board);

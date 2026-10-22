@@ -1,0 +1,87 @@
+.tutorial {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.tutorial[hidden] {
+  display: none;
+}
+
+/* Drawn in its text colour, so the shade can follow the theme. */
+.tutorial-shade {
+  display: block;
+  width: 100%;
+  height: 100%;
+  color: var(--tutorial-shade);
+  animation: fade-in 200ms ease-out;
+}
+
+.tutorial-card {
+  position: absolute;
+  width: min(100vw - 32px, 300px);
+  padding: var(--space-3) var(--space-3) var(--space-2);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--lifted-shadow);
+  pointer-events: auto;
+  animation: rise 220ms ease-out;
+}
+
+/* Sewn in from the edge, like the rules. */
+.tutorial-card::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px dashed var(--stitch);
+  pointer-events: none;
+}
+
+.tutorial-text {
+  margin: 0 0 var(--space-2);
+  font-weight: 600;
+  line-height: 1.4;
+  text-wrap: pretty;
+}
+
+.tutorial-actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.tutorial-skip {
+  padding: var(--space-1) 0;
+  border: 0;
+  background: none;
+  color: var(--ink-muted);
+  font: inherit;
+  font-size: 0.8125rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.tutorial-skip:hover {
+  color: var(--ink);
+}
+
+.tutorial-skip:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.tutorial-actions .button[hidden] {
+  display: none;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}

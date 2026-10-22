@@ -8,6 +8,7 @@ What the game supports for screen reader and keyboard users today, and what's st
 - Level tiles are named "Level 3, 7 by 7", with ", cleared" or ", locked" after. A locked tile uses `aria-disabled` rather than `disabled`, so it stays focusable and announced; its pattern thumbnail and padlock are hidden from screen readers
 - Each screen has its own `h1`. As a screen appears, focus moves to its heading (Play on the menu), so focus never stays on a button that just vanished (`src/view/screens.ts`)
 - How to Play opens from a button in each level's top bar. It's a native modal `<dialog>`: it traps focus, closes on Escape, and returns focus to the button that opened it
+- The tutorial card's text sits in an `aria-live="polite"` region, so each step is announced. Skip tutorial and OK are native buttons, and the controls under the shade are made `inert`
 - The win message sits in an `aria-live="polite"` region, so screen readers announce a solved level
 - How the Puzzles Are Made steps with Back and Next or the arrow keys. Its actor, heading and caption sit in an `aria-live="polite"` region, and the timeline marks the current step with `aria-current="step"`. The board and the badge that counts along with each animation are hidden from screen readers, since the caption describes the step. With reduced motion set, every animation shows its final frame, still
 - The masthead braid and the menu's weaving board are decorative and hidden from screen readers. With reduced motion set, the menu board shows its finished weave, still

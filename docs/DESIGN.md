@@ -54,6 +54,20 @@ The game accepts any weave that follows the rules, so uniqueness isn't about whi
 - Each level shows its difficulty, Easy or Medium, rated by the hardest deduction it needs. A Hard tier waits on playtesting
 - Cleared levels and tutorial tips seen are saved in local storage, and survive a reload. If storage is blocked the game plays on without saving. No accounts, scores or sound
 
+### Tutorial
+
+The first two levels teach the rules one step at a time, at the moment each matters (`src/app/tutorial.ts`). Each step shades the page below the top bar, leaving a window over the squares it's about, with a one-line card just beside the window. The board ignores presses outside the window and Undo and Clear are locked, so the player makes exactly the move the card asks for, and making it moves on to the next step. A step that only explains something shades the whole board and waits for OK. Back and How to Play stay usable, and Skip tutorial on every card ends it for good.
+
+1. Key: join the two yellow 3s
+2. Key: join the two 5s, a thread that turns, whose number is its length
+3. Key: tap the peg marked 1
+4. Key: finish the picture (OK)
+5. Ladder: lay the red rail
+6. Ladder: cross it with yellow, making orange
+7. Ladder: the other two mixes (OK)
+
+Each finished step is saved, so leaving a level partway resumes at the next step, and the tutorial never repeats.
+
 ## Menu
 
 The game opens on a menu:

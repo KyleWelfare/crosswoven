@@ -1,8 +1,16 @@
+import type { Point } from "../core/puzzle.ts";
 import { sameSolution, type Thread } from "../core/thread.ts";
 import { dragTo, releasedThreads, startDrag } from "./drag.ts";
 import type { GameMsg, Msg } from "./messages.ts";
 import { levelList, menu, startLevel, type Game, type Model } from "./model.ts";
 import { withCleared, withTipSeen, type Progress } from "./progress.ts";
+import {
+  advanceTutorial,
+  currentStep,
+  inWindow,
+  skipTutorial,
+  type TutorialStep,
+} from "./tutorial.ts";
 import { isFading, isSolved, WIN_FADE } from "./win.ts";
 
 /** Returns `model` itself when nothing changed, so the runtime can skip the redraw. */
@@ -29,10 +37,10 @@ export function update(model: Model, msg: Msg): Model {
         : model;
     case "LevelStarted":
       return startLevel(msg.puzzle, model.progress);
-    case "TipSeen": {
-      const progress: Progress = withTipSeen(model.progress, msg.tip);
-      return progress === model.progress ? model : { ...model, progress };
-    }
+    case "TipSeen":
+      return withProgress(model, withTipSeen(model.progress, msg.tip));
+    case "TutorialSkipped":
+      return withProgress(model, skipTutorial(model.progress));
     case "SquarePressed":
     case "SquareEntered":
     case "PointerReleased":
@@ -50,17 +58,27 @@ export function update(model: Model, msg: Msg): Model {
   }
 }
 
+function withProgress(model: Model, progress: Progress): Model {
+  return progress === model.progress ? model : { ...model, progress };
+}
+
 function updateGame(game: Game, msg: GameMsg): Game {
   switch (msg.type) {
     case "SquarePressed": {
-      if (game.drag || game.solvedFor !== undefined) return game;
+      if (game.drag || game.solvedFor !== undefined || !isOpen(game, msg)) return game;
       const drag: Thread | undefined = startDrag(game.puzzle, game.threads, msg);
       return drag ? { ...game, drag } : game;
     }
     case "SquareEntered": {
       if (!game.drag) return game;
       const drag: Thread = dragTo(game.puzzle, game.threads, game.drag, msg);
-      return drag === game.drag ? game : { ...game, drag };
+      if (
+        drag === game.drag ||
+        !drag.squares.every((square: Point): boolean => isOpen(game, square))
+      ) {
+        return game;
+      }
+      return { ...game, drag };
     }
     case "PointerReleased":
       if (!game.drag) return game;
@@ -87,18 +105,31 @@ function updateGame(game: Game, msg: GameMsg): Game {
   }
 }
 
-/** A solved board is locked, and one mid-drag waits for the drag to finish. */
+/**
+ * A solved board is locked, one mid-drag waits for the drag to finish, and a tutorial step keeps
+ * the board as the step left it.
+ */
 function isEditable(game: Game): boolean {
-  return game.solvedFor === undefined && game.drag === undefined;
+  return game.solvedFor === undefined && game.drag === undefined && !currentStep(game);
+}
+
+/** A tutorial step opens only its window; a tip that's read and dismissed opens nothing. */
+function isOpen(game: Game, square: Point): boolean {
+  const step: TutorialStep | undefined = currentStep(game);
+  return !step || inWindow(step, square);
 }
 
 /**
- * Keeps the board it replaces for Undo, unless nothing changed, and starts the win and clears the
- * level once solved.
+ * Keeps the board it replaces for Undo, unless nothing changed, moves the tutorial on, and starts
+ * the win and clears the level once solved.
  */
 function withThreads(game: Game, threads: readonly Thread[]): Game {
   if (sameSolution(threads, game.threads)) return game;
-  const changed: Game = { ...game, threads, history: [...game.history, game.threads] };
+  const changed: Game = advanceTutorial({
+    ...game,
+    threads,
+    history: [...game.history, game.threads],
+  });
   if (!isSolved(game.puzzle, threads)) return changed;
-  return { ...changed, solvedFor: 0, progress: withCleared(game.progress, game.puzzle.id) };
+  return { ...changed, solvedFor: 0, progress: withCleared(changed.progress, game.puzzle.id) };
 }

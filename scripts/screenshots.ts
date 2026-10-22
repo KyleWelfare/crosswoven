@@ -12,7 +12,7 @@ import { join, relative } from "node:path";
 import { parseArgs } from "node:util";
 import { createServer, type ViteDevServer } from "vite";
 import { decodeLevel, type DecodeResult } from "../src/core/level-decoder.ts";
-import type { Point, Puzzle } from "../src/core/puzzle.ts";
+import type { Point, Puzzle, ThreadColour } from "../src/core/puzzle.ts";
 import { findSolutions, type SearchResult } from "../src/core/search-solver.ts";
 import type { Thread } from "../src/core/thread.ts";
 import { evaluate, load, withChrome, type DevTools } from "./chrome.ts";
@@ -69,6 +69,7 @@ const VIEWPORTS: readonly Viewport[] = [
 ];
 /** The first level, wide and short, and a 15×15, the densest board a phone has to fit. */
 const FIRST_LEVEL: string = "key";
+const SECOND_LEVEL: string = "ladder";
 const LARGE_LEVEL: string = "sailboat";
 const TALL_LEVEL: string = "rocket";
 /** WIN_FADE in src/app/win.ts, with room to spare. */
@@ -198,12 +199,21 @@ function allShots(tourSteps: number): readonly Shot[] {
   const firstSolution: readonly Thread[] = solve(first);
   const large: Puzzle = level(LARGE_LEVEL);
   const largeSolution: readonly Thread[] = solve(large);
+  const openWithTutorial = async (devTools: DevTools, id: string): Promise<void> => {
+    await click(devTools, "#play");
+    await click(devTools, `#level-list li:nth-child(${String(order.indexOf(id) + 1)}) button`);
+  };
+  // The tutorial blocks the board, so shots of play skip it.
   const open =
     (id: string): ((devTools: DevTools) => Promise<void>) =>
     async (devTools: DevTools): Promise<void> => {
-      await click(devTools, "#play");
-      await click(devTools, `#level-list li:nth-child(${String(order.indexOf(id) + 1)}) button`);
+      await openWithTutorial(devTools, id);
+      if (await evaluate(devTools, "!document.querySelector('#tutorial').hidden")) {
+        await click(devTools, "#tutorial-skip");
+      }
     };
+  const tutorialShot = (n: number, name: string): string =>
+    `${String(9 + tourSteps + n).padStart(2, "0")}-tutorial-${name}`;
   const before = (id: string): readonly string[] => order.slice(0, order.indexOf(id));
   return [
     { name: "01-menu", reach: async (): Promise<void> => {} },
@@ -254,7 +264,51 @@ function allShots(tourSteps: number): readonly Shot[] {
         for (let i: number = 0; i < step; i++) await click(devTools, "#tour-next");
       },
     })),
+    {
+      name: tutorialShot(0, "first-thread"),
+      reach: async (devTools: DevTools): Promise<void> => {
+        await openWithTutorial(devTools, FIRST_LEVEL);
+      },
+    },
+    {
+      name: tutorialShot(1, "tip"),
+      reach: async (devTools: DevTools): Promise<void> => {
+        await openWithTutorial(devTools, FIRST_LEVEL);
+        await lay(devTools, first, [
+          straight("yellow", [1, 0], [3, 0]),
+          {
+            colour: "yellow",
+            squares: [...straight("yellow", [5, 2], [8, 2]).squares, { x: 8, y: 3 }],
+          },
+          straight("yellow", [7, 3], [7, 3]),
+        ]);
+      },
+    },
+    {
+      name: tutorialShot(2, "crossing"),
+      cleared: [FIRST_LEVEL],
+      reach: async (devTools: DevTools): Promise<void> => {
+        await openWithTutorial(devTools, SECOND_LEVEL);
+        await lay(devTools, level(SECOND_LEVEL), [straight("red", [1, 0], [1, 3])]);
+      },
+    },
   ];
+}
+
+/** A thread along one row or column, from one square to another. */
+function straight(
+  colour: ThreadColour,
+  [x1, y1]: readonly [number, number],
+  [x2, y2]: readonly [number, number],
+): Thread {
+  const length: number = Math.abs(x2 - x1) + Math.abs(y2 - y1) + 1;
+  return {
+    colour,
+    squares: Array.from({ length }, (_: unknown, i: number): Point => ({
+      x: x1 + i * Math.sign(x2 - x1),
+      y: y1 + i * Math.sign(y2 - y1),
+    })),
+  };
 }
 
 /** Storage belongs to the page's origin, so a page has to be open to write it. */

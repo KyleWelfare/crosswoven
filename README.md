@@ -1,6 +1,6 @@
 # Crosswoven
 
-A logic puzzle in the browser. Lay coloured threads between pegs so the woven cloth matches a pattern. Where two threads cross, their colours mix, and the finished cloth is a pixel-art picture.
+A logic puzzle for the browser. Connect numbered pegs with coloured threads to weave a pixel-art picture. Where two threads cross, their colours mix.
 
 <p align="center">
   <picture>
@@ -9,11 +9,9 @@ A logic puzzle in the browser. Lay coloured threads between pegs so the woven cl
   </picture>
 </p>
 
-Every puzzle is generated from a picture and certified by a validator: exactly one solution, reachable by deduction alone.
+It's based on Link-a-Pix (also called Paint by Pairs), where you join matching numbers with a path that many squares long. Colour mixing is the twist.
 
-Crosswoven builds on number-link picture puzzles, known as Link-a-Pix or Paint by Pairs, where you join pairs of matching numbers with paths of that length to reveal a picture. Its twist is colour mixing where threads cross.
-
-## Screens
+Every level is generated from a picture and checked by a validator: exactly one solution, and you never have to guess.
 
 <p align="center">
   <img src="docs/media/menu.png" width="49%" alt="The title screen, with a woven anchor puzzle beside the Play button">
@@ -24,9 +22,9 @@ Crosswoven builds on number-link picture puzzles, known as Link-a-Pix or Paint b
   <img src="docs/media/solved-phone.png" width="24%" alt="A solved level on a phone">
 </p>
 
-## How it's built
+## How it works
 
-The game can show its own pipeline. How the Puzzles Are Made steps through every stage of making one level, then replays them all:
+The game walks through how a level is made:
 
 <p align="center">
   <picture>
@@ -35,40 +33,29 @@ The game can show its own pipeline. How the Puzzles Are Made steps through every
   </picture>
 </p>
 
-- **Levels are generated, then proven.** I draw each picture as a small text grid. A seeded generator covers it with threads and puts numbered pegs at their ends. A search solver proves the puzzle has exactly one solution, and a logic solver proves a player can reach it by deduction alone, without guessing. Where two solutions differ, the generator splits threads there and tries again. CI regenerates every shipped level, so a solver change can't silently alter one.
-- **Two independent solvers check each other.** Property tests run thousands of random puzzles: the search solver never misses or invents a solution, the logic solver only ever deduces what's true, and both always agree.
-- **Model-view-update.** Game state is one plain object, changed only by a pure `update` function, so undo is a list of past boards and every rule is unit tested without a browser. The board is a canvas drawn from cached sprites, benchmarked (`npm run bench`) to hold 60 fps on a worst-case 15×15 board at phone size, even with the GPU off and the CPU throttled 4×, where the first version managed 10.
+- Each picture is a small text grid. A generator covers it with threads and puts numbered pegs at the ends
+- A search solver checks there's only one solution. If it finds a second, the generator splits a thread where the two differ and tries again
+- A logic solver plays it like a person, one deduction at a time, to prove it never needs a guess
+- Property tests run both solvers on thousands of random puzzles and check they agree
+- CI regenerates every level, so a solver change can't quietly break one
+- Game state is one object, changed only by a pure `update` function, so undo is just a list of past boards and the rules are tested without a browser
+- The board is a hand-drawn canvas, no libraries. It holds 60 fps on a 15×15 board at phone size with the CPU throttled 4× (the first version got 10)
 
-More in [docs/](docs/): design, architecture, testing, performance and accessibility.
+More in [docs/](docs/).
 
-## What playtesting taught me
+## What playtesting showed
 
-The first pack of 16 levels played too easy, and got boring. So I set out to measure why.
+The first levels were too easy. Measuring them backed that up: on most levels, 69% or more of the pegs could only go one way, and none took more than 3 rounds of deduction.
 
-**Measuring difficulty.** The usual rating, "the hardest rule the solver needed", said almost nothing. I added a solve profile (`npm run difficulty`): how many pegs the board gives away (only one possible path), how many could pair more than one way, and how many rounds of deduction the solve takes. On 13 of the 16 levels, 69% or more of the pegs were given away, and every level solved in 3 rounds or fewer.
+Tuning the generator to aim each level at a difficulty target helped, but the bigger problem is the design: showing the colours tells you where every thread goes before you start.
 
-**Turning the dials.** The generator now aims each level at a target number of rounds, keeping the best of 30 seeds, so the pack rises in difficulty instead of landing wherever the first seed fell. Two levers proved to matter:
+## How I built it
 
-- Giving nearby threads the same number gives pegs rival partners. On broad pictures it took the hardest reachable puzzle from 4 rounds to 12, but on thin outlines it barely moved, because a thin shape leaves one route however the numbers fall.
-- Crossings were the surprise. A two-colour square fixes both of its threads, so a band of crossings is read, not solved. Crossings only joined the puzzle when many threads crossed a thin band and carried on into open space, and not in consecutive rows: crossings stacked row after row run straight like the rungs of a ladder. A redrawn, broken reflection fixed one level that a playtest showed was solved at a glance.
-
-**Modelling an expert.** Rounds measure the solver's proof, and a player skips a proof whenever the obvious move is right. So I modelled what an experienced player sees without thinking: moves into traps, moves that leave no matching number in reach, squares that only one thread could fill. A property test checks the model is never wrong. By its rules, 20 of the 22 levels needed no real deduction at all. I could still generate a puzzle needing 9 rounds of real deduction, but it was a plain red disc with no colour mixing: hard, and dull.
-
-**The diagnosis.** The board shows every square's colour, and that pins each thread to its colour's region before the player starts. The classic form of the puzzle hides the picture: only the numbered pegs show, and the picture appears when solved. My colour mixing was meant to make the genre feel new, but showing the colours took away the space where the puzzle lives.
-
-## What I prototyped next
-
-Hide the picture. Show only the pegs, plus a mark on each two-colour square saying which two colours cross there. Every other square becomes open field, and the picture appears when solved.
-
-It's working on the `hidden-picture` branch, and the architecture took it with less change than I expected. The generator still lays threads over a picture, and the validator still proves uniqueness, now against only what the player sees. Both modes share one slot model: an unmarked hidden square is a single slot any colour can fill, and both solvers stay an exact-cover search. Every shipped level still regenerates byte for byte.
-
-The measurements say it fixes the core problem. With the colours shown, each colour is a separate puzzle and no deduction ever crosses between them. The three hidden 15×15 levels need 5, 11 and 13 rounds of it, and 4 to 16% of their deductions rule out a thread of another colour. The crossing marks matter less than I hoped, since a mark still fixes the threads through it, but a lone crossing no longer says which colour runs across. That's the honest verdict: hidden mode makes a much better puzzle, but one that lands close to classic Link-a-Pix, because colour mixing is too small a rule to carry a game on its own. If I pursued it, I'd hide the peg colours too and let the crossing marks be the only colour information, so working out which colour each thread is becomes its own layer of logic.
-
-What it still needs before it ships: a playtest (peg colours may sketch the picture enough for players to guess regions, which my player model doesn't do), a gentle ramp of hidden levels to teach it, and a clearer crossing mark.
+Designed and reviewed by me, implemented with Claude Code. The agent rules (`.claude/CLAUDE.md`) and design docs are in the repo.
 
 ## Credits
 
-Music: [Heavenly Loop](https://opengameart.org/content/heavenly-loop) by isaiah658, CC0. The sound effects are synthesised in the browser.
+Music: [Heavenly Loop](https://opengameart.org/content/heavenly-loop) by isaiah658, CC0. Sound effects are synthesised in the browser.
 
 ## Development
 

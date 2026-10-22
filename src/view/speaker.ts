@@ -28,9 +28,9 @@ interface Graph {
 // plucks.
 const MASTER_GAIN: number = 0.7;
 // The loop is mastered quietly, peaking at a quarter of full scale, so it needs more gain than
-// the plucks to sit level with the softest of them.
+// the plucks.
 const MUSIC_GAIN: number = 0.5;
-const EFFECTS_GAIN: number = 0.6;
+const EFFECTS_GAIN: number = 0.3;
 const MUSIC_FADE_IN_S: number = 3;
 const EFFECTS_LOWPASS_HZ: number = 3200;
 

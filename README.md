@@ -18,6 +18,8 @@ Draw a pixel-art picture, and the pipeline turns it into a puzzle with exactly o
 
 The puzzle is a logic game: connect numbered pegs with coloured threads to weave the picture. Where two threads cross, their colours mix. It's based on Link-a-Pix (also called Paint by Pairs), where you join matching numbers with a path that many squares long. Colour mixing is what's new.
 
+<br>
+
 ### How a level is made
 
 <picture>
@@ -35,6 +37,8 @@ Some pictures can't be woven at all. A purple square on the edge of the grid has
 On 71,421 random puzzles with one solution, the deduction rules solved all but 15 without guessing. The numbered pegs are what make this work: without them I couldn't find a single 15×15 puzzle with only one solution, and with them most random layouts had one. 15×15 is the limit because of phone screens, not the solvers.
 
 CI regenerates every shipped level, so a solver or generator change can't quietly break one. The game also replays this whole process step by step, under How the Puzzles Are Made on the menu.
+
+<br>
 
 ### The game
 
@@ -67,6 +71,8 @@ All the game's state lives in one object, and only a pure `update` function chan
 
 More in [docs/](docs/).
 
+<br>
+
 ### How I built it
 
 <picture>
@@ -85,6 +91,8 @@ I made the design calls and Claude Code wrote most of the code. Before it wrote 
 
 That setup is why I could move fast without reading every line on faith. When Claude changed something, I trusted a green check, a passing property test or a clean screenshot audit, not its own say-so.
 
+<br>
+
 ### Credits
 
 <picture>
@@ -93,6 +101,8 @@ That setup is why I could move fast without reading every line on faith. When Cl
 </picture>
 
 Music: [Heavenly Loop](https://opengameart.org/content/heavenly-loop) by isaiah658, CC0. Sound effects are synthesised in the browser.
+
+<br>
 
 ### Development
 

@@ -7,15 +7,10 @@
   background: var(--surface);
   color: var(--ink);
   box-shadow: var(--lifted-shadow);
-}
-
-/* Sewn in from the edge, like a label. */
-.rules::before {
-  content: "";
-  position: absolute;
-  inset: 10px;
-  border: 1px dashed var(--stitch);
-  pointer-events: none;
+  /* Sewn in from the edge, like a label. An outline rather than a pseudo-element, so it stays put
+     when the rules scroll on a short screen. */
+  outline: 1px dashed var(--stitch);
+  outline-offset: -11px;
 }
 
 .rules[open] {
@@ -25,6 +20,11 @@
 .rules::backdrop {
   background: rgb(20 15 5 / 0.45);
   backdrop-filter: blur(3px);
+}
+
+/* Focused as the dialog opens, so it opens at the top rather than scrolled to a control. */
+.rules-title:focus {
+  outline: none;
 }
 
 .rules-title {
@@ -132,6 +132,96 @@
 
 .swatch-green {
   background: var(--thread-green);
+}
+
+/* Collapsed by default: mouse and touch are the taught controls, so the keys stay out of the way. */
+.rules-keys {
+  margin: 0 0 var(--space-4);
+  border-top: 1px dashed var(--stitch);
+}
+
+.rules-keys summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  color: var(--ink-muted);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+}
+
+.rules-keys summary::-webkit-details-marker {
+  display: none;
+}
+
+.rules-keys summary::after {
+  content: "›" / "";
+  font-size: 1.25rem;
+  line-height: 1;
+  transform: rotate(90deg);
+  transition: transform 140ms ease;
+}
+
+.rules-keys[open] summary::after {
+  transform: rotate(-90deg);
+}
+
+.rules-keys summary:hover {
+  color: var(--ink);
+}
+
+.rules-keys summary:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+.key-list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2) var(--space-3);
+  margin: var(--space-1) 0 0;
+  font-size: 0.9375rem;
+}
+
+/* Rows keep each key beside its action while the columns line up. */
+.key-list > div {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+}
+
+.key-list dt {
+  color: var(--ink-muted);
+  font-size: 0.8125rem;
+}
+
+.key-list dd {
+  margin: 0;
+}
+
+/* A phone has no room for two columns, so each key sits above its action. */
+@media (max-width: 480px) {
+  .key-list,
+  .key-list > div {
+    grid-template-columns: 1fr;
+  }
+
+  .key-list > div {
+    gap: var(--space-1);
+  }
+}
+
+.key-list kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1px solid var(--stitch);
+  border-radius: var(--radius);
+  background: var(--control);
+  color: var(--ink);
+  font: 700 0.8125rem/1.2 var(--font-body);
 }
 
 .rules form {

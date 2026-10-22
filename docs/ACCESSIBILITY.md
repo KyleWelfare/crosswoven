@@ -7,7 +7,7 @@ What the game supports for screen reader and keyboard users today, and what's st
 - Every control is a native button with a text label, so it works from the keyboard and shows a focus ring: the menu, the back buttons, How to Play, Undo, Clear and Next level (`src/styles/dock.css`), and the level tiles (`src/styles/level-list.css`)
 - Level tiles are named "Level 3, 7 by 7", with ", cleared" or ", locked" after. A locked tile uses `aria-disabled` rather than `disabled`, so it stays focusable and announced; its pattern thumbnail and padlock are hidden from screen readers
 - Each screen has its own `h1`. As a screen appears, focus moves to its heading (Play on the menu), so focus never stays on a button that just vanished (`src/view/screens.ts`)
-- How to Play opens from a button in each level's top bar. It's a native modal `<dialog>`: it traps focus, closes on Escape, and returns focus to the button that opened it
+- How to Play opens from a button in each level's top bar. It's a native modal `<dialog>`: it focuses its heading as it opens, so it starts at the top on a short screen, traps focus, closes on Escape, and returns focus to the button that opened it
 - The tutorial card's text sits in an `aria-live="polite"` region, so each step is announced. Skip tutorial and OK are native buttons, and the controls under the shade are made `inert`
 - The win message sits in an `aria-live="polite"` region, so screen readers announce a solved level
 - How the Puzzles Are Made steps with Back and Next or the arrow keys. Its actor, heading and caption sit in an `aria-live="polite"` region, and the timeline marks the current step with `aria-current="step"`. The board and the badge that counts along with each animation are hidden from screen readers, since the caption describes the step. With reduced motion set, every animation shows its final frame, still
@@ -19,7 +19,7 @@ What the game supports for screen reader and keyboard users today, and what's st
 
 ## The board
 
-Mouse and touch are the intended controls, so the tutorial and How to Play teach only those. The keys exist for players who can't use a pointer, and are explained where they look: the board's description, read whenever it gets focus.
+Mouse and touch are the intended controls, so the tutorial teaches only those, and How to Play keeps the keys in a Keyboard controls section that starts collapsed (a native `<details>`). The board's description, read whenever it gets focus, explains them too.
 
 - **Keyboard play.** The board is in the tab order. Arrow keys move a cursor square, Enter or Space picks up the thread at a peg (or a laid thread at that square) and lays it down again. A peg marked 1 ties in one press, as one tap does. While a thread is held, the arrows lay it a square at a time, Backspace takes back a square and Escape drops it. Moving focus off the board drops a held thread. Keys become `BoardKeyPressed` messages, so they go through the same rules as a drag and are unit tested in `tests/update.test.ts`
 - **Visible focus.** The cursor is drawn on the canvas as an ink square edged in the page colour, so it shows on every square in both themes. It appears only for keyboard focus, and a press on the board hides it again

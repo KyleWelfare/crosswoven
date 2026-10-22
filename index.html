@@ -116,7 +116,7 @@
             </button>
           </div>
         </header>
-        <!-- Keys are for players who can't use a pointer, so they're explained here, not in How to Play. -->
+        <!-- Read whenever the board gets focus, so the keys are explained where a screen reader user arrives. -->
         <canvas
           id="stage"
           class="stage"
@@ -213,7 +213,7 @@
     </div>
 
     <dialog id="rules" class="rules" aria-labelledby="rules-title">
-      <h2 id="rules-title" class="rules-title">How to Play</h2>
+      <h2 id="rules-title" class="rules-title" tabindex="-1" autofocus>How to Play</h2>
       <ul class="rules-list">
         <li>Lay threads between the pegs so the woven cloth matches the pattern.</li>
         <li>
@@ -253,6 +253,31 @@
         </li>
         <li>Drag back along a thread to shorten it. Tap a peg to clear its thread.</li>
       </ul>
+      <details class="rules-keys">
+        <summary>Keyboard controls</summary>
+        <dl class="key-list">
+          <div>
+            <dt><kbd>Tab</kbd></dt>
+            <dd>Move to the board</dd>
+          </div>
+          <div>
+            <dt><kbd>Arrows</kbd></dt>
+            <dd>Move between squares, or lay a held thread a square at a time</dd>
+          </div>
+          <div>
+            <dt><kbd>Enter</kbd> or <kbd>Space</kbd></dt>
+            <dd>Pick up the thread at a peg or under the cursor, then lay it down</dd>
+          </div>
+          <div>
+            <dt><kbd>Backspace</kbd></dt>
+            <dd>Take back a square</dd>
+          </div>
+          <div>
+            <dt><kbd>Esc</kbd></dt>
+            <dd>Drop the thread</dd>
+          </div>
+        </dl>
+      </details>
       <form method="dialog">
         <button class="button button-primary" type="submit">Got it</button>
       </form>

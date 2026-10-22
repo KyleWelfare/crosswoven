@@ -57,25 +57,25 @@ describe("cutThreads", (): void => {
     expect(cutThreads(onPurple, [blueTied], redDown)).toEqual([blueTied]);
   });
 
-  it("cuts a thread the square doesn't show before one it does, however early it was laid", (): void => {
-    const yellowIn: Thread = threadOf("yellow", [1, 1], [1, 2], [2, 2]);
-    expect(cutThreads(threeColours, [yellowIn, blueIn], redDown)).toEqual([
-      threadOf("yellow", [1, 1], [1, 2]),
-      blueIn,
+  it("cuts a thread crossed by one turning on a two-colour square", (): void => {
+    const redTurning: Thread = threadOf("red", [2, 0], [2, 1], [2, 2], [3, 2]);
+    expect(cutThreads(onPurple, [blueTied], redTurning)).toEqual([
+      threadOf("blue", [0, 2], [1, 2]),
     ]);
   });
 
-  it("cuts the later laid of two threads the square shows", (): void => {
+  it("cuts a thread running the same way through a two-colour square", (): void => {
+    const redTied: Thread = threadOf("red", [2, 0], [2, 1], [2, 2], [2, 3], [2, 4]);
+    const blueUp: Thread = threadOf("blue", [2, 3], [2, 2]);
+    expect(cutThreads(onPurple, [redTied], blueUp)).toEqual([threadOf("red", [2, 0], [2, 1])]);
+  });
+
+  it("cuts the thread running a third colour's way out of a full crossing", (): void => {
     const yellowIn: Thread = threadOf("yellow", [1, 3], [1, 2], [2, 2]);
     const redTied: Thread = threadOf("red", [2, 0], [2, 1], [2, 2], [2, 3], [2, 4]);
     expect(cutThreads(threeColours, [blueIn, redTied], yellowIn)).toEqual([
-      blueIn,
-      threadOf("red", [2, 0], [2, 1]),
-      threadOf("red", [2, 4], [2, 3]),
-    ]);
-    expect(cutThreads(threeColours, [redTied, blueIn], yellowIn)).toEqual([
-      redTied,
       threadOf("blue", [4, 2], [3, 2]),
+      redTied,
     ]);
   });
 });

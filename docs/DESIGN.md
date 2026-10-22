@@ -78,7 +78,7 @@ The visitor steps through it with Back and Next (or the arrow keys). It takes a 
 7. **Certified**: the threads fade back to leave the picture, as when a level is won
 8. **Start to finish**: every step before it replays in order at 2.5 times speed, then holds on the certified picture. The badge names the step being replayed, and on a wide screen that step lights up on the timeline, so the run reads as one pipeline
 
-Beside the board (above it on a phone) a timeline has one entry per step, named for who does the work: the picture, the generator, the search solver, the logic solver or the validator, each in its own colour, so the two solvers read as separate. The current step is lit, ones already seen are half lit, and ones ahead are greyed. A badge above the board counts along with the animation ("Solution 2 of 2", "Weighing route 8 of 20"). With reduced motion set, each step shows its final frame, still.
+Beside the board (above it on a phone, and left out on a landscape phone, which has no height for it) a timeline has one entry per step, named for who does the work: the picture, the generator, the search solver, the logic solver or the validator, each in its own colour, so the two solvers read as separate. The current step is lit, ones already seen are half lit, and ones ahead are greyed. A badge above the board counts along with the animation ("Solution 2 of 2", "Weighing route 8 of 20"). With reduced motion set, each step shows its final frame, still.
 
 Not built yet: playing by itself. The search proves this picture unique after trying only 13 paths, because it always takes the most constrained choice first, so the steps quote the paths it weighed rather than a large count of combinations.
 

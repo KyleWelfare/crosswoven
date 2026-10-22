@@ -4,6 +4,7 @@
 }
 
 .tour-body {
+  --tour-badge-height: 2.125rem;
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
@@ -108,9 +109,11 @@
 }
 
 .tour-badge {
-  min-height: 1.5em;
+  display: flex;
+  align-items: center;
+  height: var(--tour-badge-height);
   margin: 0;
-  padding: 4px var(--space-4);
+  padding: 0 var(--space-4);
   border-radius: 999px;
   background: var(--control);
   color: var(--ink);
@@ -187,10 +190,15 @@
     gap: var(--space-5);
   }
 
+  /*
+   * Starts level with the board rather than the badge above it: past the badge, the gap below it,
+   * and the margin the board keeps inside its canvas (BOARD_MARGIN in board-layout.ts).
+   */
   .tour-timeline {
     flex-direction: column;
     gap: 6px;
     overflow: auto;
+    margin-top: calc(var(--tour-badge-height) + var(--space-2) + 12px);
     padding: 0 var(--space-1) 0 0;
   }
 
@@ -214,6 +222,49 @@
 
   .tour-entry.is-current {
     transform: translateX(6px);
+  }
+}
+
+/*
+ * A landscape phone has no height for the timeline, so it goes, leaving the step count to say
+ * where the visitor is, and the board sits beside its caption as a level sits beside its controls.
+ */
+@media (orientation: landscape) and (max-height: 520px) {
+  .tour-body {
+    display: flex;
+  }
+
+  .tour-timeline {
+    display: none;
+  }
+
+  .tour-show {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-2) var(--space-5);
+  }
+
+  .tour-badge {
+    grid-area: 1 / 1;
+    justify-self: center;
+  }
+
+  .tour-show .stage {
+    grid-area: 2 / 1 / 4;
+    justify-self: center;
+    width: auto;
+    max-width: 100%;
+    height: 100%;
+  }
+
+  .tour-text {
+    grid-area: 1 / 2 / 3;
+  }
+
+  .tour-nav {
+    grid-area: 3 / 2;
   }
 }
 

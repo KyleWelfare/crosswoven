@@ -56,7 +56,7 @@ The game accepts any weave that follows the rules, so uniqueness isn't about whi
 
 ### Tutorial
 
-The first two levels teach the rules one step at a time, at the moment each matters (`src/app/tutorial.ts`). Each step shades the page below the top bar, leaving a window over the squares it's about, with a one-line card just beside the window. The board ignores presses outside the window and Undo and Clear are locked, so the player makes exactly the move the card asks for, and making it moves on to the next step. A step that only explains something shades the whole board and waits for OK. Back and How to Play stay usable, and Skip tutorial on every card ends it for good.
+The first two levels teach the rules one step at a time, at the moment each matters (`src/app/tutorial.ts`). Each step shades the page below the top bar, leaving a window over the squares it's about, with a one-line card just beside the window. The board ignores presses outside the window and Undo and Clear are locked, so the player makes exactly the move the card asks for, and making it moves on to the next step. A step that only explains something shades the whole board and waits for OK. A ringed window and a fingertip tracing the move make clear what to do; Skip tutorial appears on each card only after 10 seconds, as a playtester took it for the only option. Back and How to Play stay usable, and Skip tutorial ends the tutorial for good.
 
 1. Key: join the two yellow 3s
 2. Key: join the two 5s, a thread that turns, whose number is its length

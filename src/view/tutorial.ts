@@ -8,6 +8,7 @@ import { requiredElement } from "./required-element.ts";
 export interface TutorialView {
   readonly root: HTMLElement;
   readonly shade: HTMLCanvasElement;
+  readonly hand: HTMLElement;
   readonly card: HTMLElement;
   readonly text: HTMLElement;
   readonly skip: HTMLButtonElement;
@@ -19,6 +20,18 @@ const WINDOW_PADDING: number = 4;
 const WINDOW_RADIUS: number = 8;
 const CARD_GAP: number = 14;
 const VIEWPORT_MARGIN: number = 16;
+const RING_WIDTH: number = 3;
+
+// A playtester skipped straight away, taking Skip for the only thing to do, and never saw the
+// highlighted squares. Holding it back gives the board time to be noticed first.
+const SKIP_DELAY_MS: number = 10_000;
+
+/** Milliseconds in the hand's loop. */
+const HAND_PRESS: number = 300;
+const HAND_HOLD: number = 200;
+const HAND_STEP: number = 350;
+const HAND_LIFT: number = 600;
+const HAND_REST: number = 900;
 
 /** A rectangle in CSS pixels, relative to the viewport. */
 interface Box {
@@ -32,6 +45,7 @@ export function findTutorial(root: ParentNode): TutorialView {
   return {
     root: requiredElement(root, "#tutorial", HTMLElement),
     shade: requiredElement(root, "#tutorial-shade", HTMLCanvasElement),
+    hand: requiredElement(root, "#tutorial-hand", HTMLElement),
     card: requiredElement(root, "#tutorial-card", HTMLElement),
     text: requiredElement(root, "#tutorial-text", HTMLElement),
     skip: requiredElement(root, "#tutorial-skip", HTMLButtonElement),
@@ -72,12 +86,14 @@ export function renderTutorial(
       animation.cancel();
       animation.play();
     });
+    holdBack(view.skip);
   }
   view.ok.hidden = step.tie.length > 0;
   const windows: readonly Box[] = step.window.map((square: Point): Box =>
     squareBox(stage, game, square),
   );
   drawShade(view.shade, barArea(bar, stage), windows);
+  traceMove(view.hand, windows.map(centre), game.drag !== undefined);
   if (windows.length > 0) placeCard(view.card, bounds(windows));
   else centreCard(view.card, stage.getBoundingClientRect());
 }
@@ -109,7 +125,6 @@ function drawShade(canvas: HTMLCanvasElement, bar: Box, windows: readonly Box[])
   context.fillStyle = getComputedStyle(canvas).color;
   context.fillRect(0, 0, canvas.clientWidth, canvas.clientHeight);
   context.clearRect(bar.left, bar.top, bar.right - bar.left, bar.bottom - bar.top);
-  context.globalCompositeOperation = "destination-out";
   // Padded squares overlap their neighbours, so a run of them opens as one window.
   context.beginPath();
   for (const box of windows) {
@@ -121,7 +136,68 @@ function drawShade(canvas: HTMLCanvasElement, bar: Box, windows: readonly Box[])
       WINDOW_RADIUS,
     );
   }
+  // Clearing the window afterwards wipes the stroke's inner half and the lines between squares,
+  // leaving a ring around the outside only.
+  context.strokeStyle = getComputedStyle(canvas).getPropertyValue("--tutorial-ring");
+  context.lineWidth = 2 * RING_WIDTH;
+  context.stroke();
+  context.globalCompositeOperation = "destination-out";
+  // Opaque, as the shade's own translucent colour would only half clear the window.
+  context.fillStyle = "#000";
   context.fill();
+}
+
+/** Hides Skip tutorial for a while after each new card, without moving the card's layout. */
+function holdBack(skip: HTMLButtonElement): void {
+  skip.getAnimations().forEach((animation: Animation): void => {
+    animation.cancel();
+  });
+  // Script animations aren't caught by the reduced-motion rule, which would show Skip at once.
+  skip.animate([{ visibility: "hidden" }, { visibility: "hidden" }], { duration: SKIP_DELAY_MS });
+}
+
+/**
+ * Loops a fingertip pressing the first square and dragging through the rest, in the window's
+ * order. Hidden while the player drags, and under reduced motion, where the ring has to do.
+ */
+function traceMove(hand: HTMLElement, path: readonly Point[], dragging: boolean): void {
+  hand.hidden =
+    path.length === 0 || dragging || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const key: string = JSON.stringify(path);
+  if (hand.dataset.path === key) return;
+  hand.dataset.path = key;
+  hand.getAnimations().forEach((animation: Animation): void => {
+    animation.cancel();
+  });
+  const [first, ...rest]: readonly Point[] = path;
+  if (!first) return;
+  const last: Point = rest.at(-1) ?? first;
+  const pressed: number = HAND_PRESS + HAND_HOLD;
+  const lifted: number = pressed + rest.length * HAND_STEP + HAND_LIFT;
+  const total: number = lifted + HAND_REST;
+  const at = (point: Point, time: number, opacity: number, scale: number): Keyframe => ({
+    transform: `translate(${String(point.x)}px, ${String(point.y)}px) scale(${String(scale)})`,
+    opacity,
+    offset: time / total,
+  });
+  hand.animate(
+    [
+      at(first, 0, 0, 1.4),
+      at(first, HAND_PRESS, 1, 1),
+      at(first, pressed, 1, 1),
+      ...rest.map((point: Point, i: number): Keyframe =>
+        at(point, pressed + (i + 1) * HAND_STEP, 1, 1),
+      ),
+      at(last, lifted - HAND_LIFT / 2, 1, 1),
+      at(last, lifted, 0, 1.4),
+      at(last, total, 0, 1.4),
+    ],
+    { duration: total, iterations: Infinity },
+  );
+}
+
+function centre(box: Box): Point {
+  return { x: (box.left + box.right) / 2, y: (box.top + box.bottom) / 2 };
 }
 
 /** Below the window if the card fits there, otherwise above, kept inside the viewport. */

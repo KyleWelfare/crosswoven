@@ -78,6 +78,21 @@ describe("tutorial steps", (): void => {
       }
     }
   });
+
+  it("each window runs from a peg to tie, one neighbouring square at a time", (): void => {
+    for (const step of tutorialSteps) {
+      const [first]: readonly Point[] = step.window;
+      if (!first) continue;
+      expect(step.tie, `${step.id} starts at a peg`).toContainEqual(first);
+      step.window.slice(1).forEach((square: Point, i: number): void => {
+        const before: Point = step.window[i] ?? first;
+        expect(
+          Math.abs(square.x - before.x) + Math.abs(square.y - before.y),
+          `${step.id} square ${String(i + 1)}`,
+        ).toBe(1);
+      });
+    }
+  });
 });
 
 describe("tutorial in play", (): void => {

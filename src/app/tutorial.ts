@@ -8,7 +8,10 @@ export interface TutorialStep {
   readonly id: string;
   readonly level: string;
   readonly text: string;
-  /** The only squares the player can touch. Empty for a tip that's read and dismissed. */
+  /**
+   * The only squares the player can touch, in the order the thread runs through them, as the
+   * tutorial's hand traces them. Empty for a tip that's read and dismissed.
+   */
   readonly window: readonly Point[];
   /** Pegs to tie to finish the step. Empty for a tip that's read and dismissed. */
   readonly tie: readonly Point[];

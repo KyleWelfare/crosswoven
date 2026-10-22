@@ -18,6 +18,25 @@
   animation: fade-in 200ms ease-out;
 }
 
+/* A fingertip that traces the move the card asks for. */
+.tutorial-hand {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 30px;
+  height: 30px;
+  margin: -15px 0 0 -15px;
+  border: 2px solid var(--ink);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--tutorial-ring) 60%, transparent);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.3);
+  opacity: 0;
+}
+
+.tutorial-hand[hidden] {
+  display: none;
+}
+
 .tutorial-card {
   position: absolute;
   width: min(100vw - 32px, 300px);

@@ -58,10 +58,10 @@ export interface TourFrame {
 }
 
 const ruleReasons: Readonly<Record<Rule, string>> = {
-  partner: "a peg can reach only one matching number",
-  "only-path": "a thread has one path left",
-  shared: "squares every path of a peg uses are closed to other threads",
-  "only-reach": "a square only one peg can reach must be on its thread",
+  partner: "a peg has only one partner in reach with its colour and number",
+  "only-path": "a thread has only one way left to go",
+  shared: "if every route a thread could take crosses a square, that square is taken",
+  "only-reach": "a square only one peg can reach must be on that peg's thread",
 };
 
 const difficultyNames: Readonly<Record<Difficulty, string>> = { easy: "Easy", medium: "Medium" };
@@ -78,7 +78,7 @@ export function tourFrames(record: PipelineRecord): readonly TourFrame[] {
       actor: "picture",
       heading: "Start from a picture",
       caption:
-        "Every level starts as a picture. Each square names the threads that pass through it, and an orange square needs a red thread and a yellow one crossing.",
+        "Every level starts as a picture, and the player weaves it from coloured threads. Where two threads cross, their colours mix: an orange square needs a red thread and a yellow one crossing.",
       scene: { kind: "paint", puzzle, threads: record.solution },
     },
     ...record.layings.flatMap((_laying: RecordedLaying, i: number): TourFrame[] =>
@@ -88,7 +88,7 @@ export function tourFrames(record: PipelineRecord): readonly TourFrame[] {
     {
       actor: "validator",
       heading: "Certified",
-      caption: `Exactly one solution, reached without guessing, and rated ${difficultyNames[record.difficulty]} by the hardest rule it needed. The two solvers agree, so the level ships.`,
+      caption: `Exactly one solution, so every move can be worked out and none has to be guessed. Rated ${difficultyNames[record.difficulty]} by the hardest rule it needed. Both solvers agree, so the level ships.`,
       scene: { kind: "reveal", puzzle, threads: record.solution },
     },
   ];
@@ -103,13 +103,13 @@ function layingFrames(record: PipelineRecord, index: number): TourFrame[] {
     ? {
         actor: "generator",
         heading: "Split a thread",
-        caption: `The generator cuts a thread where the two solutions differed, putting a new peg at each cut end: ${count}.`,
+        caption: `The generator cuts a thread where the two solutions split, and the new pegs at the cut ends settle which way it runs. Now ${count}.`,
         scene: splitScene(previous, laying),
       }
     : {
         actor: "generator",
         heading: "Lay threads",
-        caption: `The generator covers each colour with threads and puts a numbered peg at each end: ${count}.`,
+        caption: `The generator covers the picture with threads and puts a peg at each end. A peg's number is its thread's length, and the pegs are all a player gets to see. ${count}.`,
         scene: { kind: "lay", puzzle: laying.puzzle, threads: laying.threads },
       };
   if (laying.outcome === "accepted") {
@@ -118,7 +118,7 @@ function layingFrames(record: PipelineRecord, index: number): TourFrame[] {
       {
         actor: "search",
         heading: "Exactly one solution",
-        caption: `The search solver weighs all ${String(record.candidates.length)} paths these pegs could be joined by. Only one way of choosing them weaves the picture.`,
+        caption: `The search solver weighs all ${String(record.candidates.length)} routes these pegs could be joined by, and only one combination weaves the picture. There's no fork left where two answers both work.`,
         scene: {
           kind: "search",
           puzzle: laying.puzzle,
@@ -134,8 +134,8 @@ function layingFrames(record: PipelineRecord, index: number): TourFrame[] {
       actor: "search",
       heading: previous ? "Still two solutions" : "Find a second solution",
       caption: previous
-        ? "The search solver still finds a second way to weave these pegs, somewhere else, so the generator goes again."
-        : "The search solver looks for every way to weave these pegs and finds two. They differ in the outlined squares, so the puzzle isn't unique yet.",
+        ? "There's still a second way to weave these pegs, somewhere else, so the generator cuts again."
+        : "The search solver tries every way to weave these pegs and finds two. They split in the outlined squares, where no amount of logic could tell a player which way to go.",
       scene: compareScene(laying),
     },
   ];
@@ -145,16 +145,16 @@ function layingFrames(record: PipelineRecord, index: number): TourFrame[] {
 function solveFrames(record: PipelineRecord, puzzle: Puzzle): TourFrame[] {
   const given: TourFrame = {
     actor: "logic",
-    heading: "Threads with one path",
-    caption: `Now the logic solver plays it like a person, with no search allowed. ${plural(record.given.length, "thread has", "threads have")} only one possible path from the start.`,
+    heading: "The obvious threads first",
+    caption: `Now a second solver plays it the way a person would: one deduction at a time, no trial and error. ${plural(record.given.length, "thread has", "threads have")} only one possible path, so they go in first.`,
     scene: { kind: "deduce", puzzle, known: [], ruledOut: [], settled: record.given },
   };
   let known: readonly Thread[] = record.given;
   const rounds: TourFrame[] = record.rounds.map((round: RecordedRound, i: number): TourFrame => {
     const frame: TourFrame = {
       actor: "logic",
-      heading: `Deduction, round ${String(i + 1)}`,
-      caption: `${capitalised(round.rules.map((rule: Rule): string => ruleReasons[rule]).join(", and "))}. That rules out ${plural(round.ruledOut.length, "path", "paths")} and settles ${plural(round.settled.length, "more thread", "more threads")}.`,
+      heading: `Round ${String(i + 1)} of ${String(record.rounds.length)}`,
+      caption: `${capitalised(round.rules.map((rule: Rule): string => ruleReasons[rule]).join(", and "))}. That crosses off ${plural(round.ruledOut.length, "possible route", "possible routes")} and locks in ${plural(round.settled.length, "more thread", "more threads")}.`,
       scene: { kind: "deduce", puzzle, known, ruledOut: round.ruledOut, settled: round.settled },
     };
     known = [...known, ...round.settled];

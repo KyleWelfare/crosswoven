@@ -142,6 +142,17 @@
   margin: 0 auto;
 }
 
+.tour-legend {
+  justify-content: center;
+  text-align: left;
+  margin-top: var(--space-3);
+  font-size: 0.8125rem;
+}
+
+.tour-legend[hidden] {
+  display: none;
+}
+
 .tour-nav {
   display: flex;
   justify-content: center;

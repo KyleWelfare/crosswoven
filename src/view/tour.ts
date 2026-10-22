@@ -11,6 +11,7 @@ export interface TourView {
   readonly actor: HTMLElement;
   readonly heading: HTMLElement;
   readonly caption: HTMLElement;
+  readonly legend: HTMLElement;
   readonly count: HTMLElement;
   readonly previous: HTMLButtonElement;
   readonly next: HTMLButtonElement;
@@ -32,6 +33,7 @@ export function findTour(root: ParentNode): TourView {
     actor: requiredElement(root, "#tour-actor", HTMLElement),
     heading: requiredElement(root, "#tour-heading", HTMLElement),
     caption: requiredElement(root, "#tour-caption", HTMLElement),
+    legend: requiredElement(root, "#tour-legend", HTMLElement),
     count: requiredElement(root, "#tour-count", HTMLElement),
     previous: requiredElement(root, "#tour-previous", HTMLButtonElement),
     next: requiredElement(root, "#tour-next", HTMLButtonElement),
@@ -87,6 +89,7 @@ export function renderTour(
   setText(view.actor, actorNames[frame.actor]);
   setText(view.heading, frame.heading);
   setText(view.caption, frame.caption);
+  view.legend.hidden = frame.scene.kind !== "paint";
   setText(view.count, `${String(step + 1)} / ${String(frames.length)}`);
   view.previous.disabled = step === 0;
   view.next.disabled = step === frames.length - 1;

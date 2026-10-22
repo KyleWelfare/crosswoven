@@ -165,7 +165,7 @@ function search(
       const candidate: Thread | undefined = scene.candidates[position - back];
       if (candidate) ghost(canvas, scene.puzzle, candidate, back === 0 ? 0.9 : 0.2);
     }
-    return `Weighing path ${String(Math.min(position + 1, count))} of ${String(count)}`;
+    return `Weighing route ${String(Math.min(position + 1, count))} of ${String(count)}`;
   }
   const fraction: number = easeOutCubic(progress(time, scanEnd, 1000));
   draw(

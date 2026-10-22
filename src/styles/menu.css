@@ -60,7 +60,8 @@
 
 .swatches {
   display: flex;
-  gap: 3px;
+  align-items: center;
+  gap: var(--space-1);
 }
 
 .swatch {
@@ -69,8 +70,11 @@
   border-radius: 50%;
 }
 
-.swatch-mix {
-  margin-left: var(--space-2);
+.swatch-op {
+  color: var(--ink-muted);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .swatch-red {

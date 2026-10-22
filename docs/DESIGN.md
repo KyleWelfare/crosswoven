@@ -34,6 +34,8 @@ The numbers keep each thread within reach of its pegs, so deductions stay local 
 
 Every shipped puzzle has exactly one solution, and it can be reached by deduction alone, without guessing. The validator proves both for every level (see Validation).
 
+The game accepts any weave that follows the rules, so uniqueness isn't about which answer counts. A second solution means a fork no deduction can settle. If the two solutions differ in places that depend on each other, a player can take one thread from each and reach a dead end, which is guessing and backtracking. Uniqueness is the simplest way to rule that out.
+
 ## Play
 
 - Drag from a peg to lay a thread. Drag back along it to take steps off. Drag from any square of an existing thread to reroute it from there; where two threads cross, that picks up the one laid last. Dragging from a peg that already has a thread starts that thread again, and tapping it clears the thread
@@ -67,15 +69,15 @@ The validator is the heart of the project, but a player never sees it. How the P
 
 The visitor steps through it with Back and Next (or the arrow keys). It takes a 9×9 sailboat kept in `pictures/how-it-works/`, outside the level pack: its red mast runs down through the yellow sail as an orange stripe and on into the hull, so the crossing reads as part of the object. Its first laying has a second solution, which is what it needs. Each step is a looping animation, drawn on the game's own board renderer as a pure function of time (`src/view/tour-scenes.ts`, eased by `tween.ts`), and `src/app/tour.ts` builds the steps from the record:
 
-1. **Start from a picture**: the picture paints itself in along the threads that will weave it
+1. **Start from a picture**: the picture paints itself in along the threads that will weave it, with the colour mixes from How to Play listed under the caption
 2. **Lay threads**: the generator's threads grow out of their pegs one after another, each peg popping in as its thread starts
 3. **Find a second solution**: the search solver's two solutions swap back and forth, the differing threads unweaving and reweaving, with the squares where they differ outlined
 4. **Split a thread**: the thread to cut pulses, then snaps into two pieces whose ends pop. The pair would repeat while there's a second solution
 5. **Exactly one solution**: the search flickers through every path the pegs could be joined by, then the one weave that works locks in
-6. **Threads with one path, then each round of deduction**: the paths each round of the logic solver rules out flash as dashed ghosts and fade, then the threads it settles grow in
+6. **The obvious threads first, then each round of deduction**: the paths each round of the logic solver rules out flash as dashed ghosts and fade, then the threads it settles grow in
 7. **Certified**: the threads fade back to leave the picture, as when a level is won
 
-Beside the board (above it on a phone) a timeline has one entry per step, named for who does the work: the picture, the generator, the search solver, the logic solver or the validator, each in its own colour, so the two solvers read as separate. The current step is lit, ones already seen are half lit, and ones ahead are greyed. A badge above the board counts along with the animation ("Solution 2 of 2", "Weighing path 8 of 20"). With reduced motion set, each step shows its final frame, still.
+Beside the board (above it on a phone) a timeline has one entry per step, named for who does the work: the picture, the generator, the search solver, the logic solver or the validator, each in its own colour, so the two solvers read as separate. The current step is lit, ones already seen are half lit, and ones ahead are greyed. A badge above the board counts along with the animation ("Solution 2 of 2", "Weighing route 8 of 20"). With reduced motion set, each step shows its final frame, still.
 
 Not built yet: playing by itself, and a closing animation of the whole pipeline end to end. The search proves this picture unique after trying only 13 paths, because it always takes the most constrained choice first, so the steps quote the paths it weighed rather than a large count of combinations.
 

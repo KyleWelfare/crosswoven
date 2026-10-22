@@ -2,11 +2,38 @@
 
 A logic puzzle in the browser. Lay coloured threads between pegs so the woven cloth matches a pattern. Where two threads cross, their colours mix, and the finished cloth is a pixel-art picture.
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/media/play-dark.gif">
+    <img src="docs/media/play.gif" width="420" alt="Solving a level: red and blue threads are dragged between numbered pegs, turning purple where they cross, until the gift picture is complete">
+  </picture>
+</p>
+
 Every puzzle is generated from a picture and certified by a validator: exactly one solution, reachable by deduction alone.
 
 Crosswoven builds on number-link picture puzzles, known as Link-a-Pix or Paint by Pairs, where you join pairs of matching numbers with paths of that length to reveal a picture. Its twist is colour mixing where threads cross.
 
+## Screens
+
+<p align="center">
+  <img src="docs/media/menu.png" width="49%" alt="The title screen, with a woven anchor puzzle beside the Play button">
+  <img src="docs/media/game-large-dark.png" width="49%" alt="A 15×15 sailboat level partway solved, in the dark theme">
+</p>
+<p align="center">
+  <img src="docs/media/levels-phone.png" width="24%" alt="The level list on a phone, with cleared, open and locked levels">
+  <img src="docs/media/solved-phone.png" width="24%" alt="A solved level on a phone">
+</p>
+
 ## How it's built
+
+The game can show its own pipeline. How the Puzzles Are Made steps through every stage of making one level, then replays them all:
+
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/media/pipeline-dark.gif">
+    <img src="docs/media/pipeline.gif" width="720" alt="The pipeline replayed on an anchor picture: threads laid, a second solution found, a thread split, then solved by deduction and certified">
+  </picture>
+</p>
 
 - **Levels are generated, then proven.** I draw each picture as a small text grid. A seeded generator covers it with threads and puts numbered pegs at their ends. A search solver proves the puzzle has exactly one solution, and a logic solver proves a player can reach it by deduction alone, without guessing. Where two solutions differ, the generator splits threads there and tries again. CI regenerates every shipped level, so a solver change can't silently alter one.
 - **Two independent solvers check each other.** Property tests run thousands of random puzzles: the search solver never misses or invents a solution, the logic solver only ever deduces what's true, and both always agree.

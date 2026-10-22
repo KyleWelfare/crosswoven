@@ -76,10 +76,11 @@ The visitor steps through it with Back and Next (or the arrow keys). It takes a 
 5. **Exactly one solution**: the search flickers through every path the pegs could be joined by, then the one weave that works locks in
 6. **The obvious threads first, then each round of deduction**: the paths each round of the logic solver rules out flash as dashed ghosts and fade, then the threads it settles grow in
 7. **Certified**: the threads fade back to leave the picture, as when a level is won
+8. **Start to finish**: every step before it replays in order at 2.5 times speed, then holds on the certified picture. The badge names the step being replayed, and on a wide screen that step lights up on the timeline, so the run reads as one pipeline
 
 Beside the board (above it on a phone) a timeline has one entry per step, named for who does the work: the picture, the generator, the search solver, the logic solver or the validator, each in its own colour, so the two solvers read as separate. The current step is lit, ones already seen are half lit, and ones ahead are greyed. A badge above the board counts along with the animation ("Solution 2 of 2", "Weighing route 8 of 20"). With reduced motion set, each step shows its final frame, still.
 
-Not built yet: playing by itself, and a closing animation of the whole pipeline end to end. The search proves this picture unique after trying only 13 paths, because it always takes the most constrained choice first, so the steps quote the paths it weighed rather than a large count of combinations.
+Not built yet: playing by itself. The search proves this picture unique after trying only 13 paths, because it always takes the most constrained choice first, so the steps quote the paths it weighed rather than a large count of combinations.
 
 The slideshow is drawn live on the canvas with the game's own board renderer, from the record `npm run levels` saves (`src/core/pipeline-record.ts`, written to `src/how-it-works/record.ts` as a typed module). The browser doesn't run the generator or search solver, so the shipped game still includes only the logic solver, and the demo can't fail while someone is watching. A test regenerates the record, so it can't drift from the pipeline.
 

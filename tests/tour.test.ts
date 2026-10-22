@@ -17,7 +17,7 @@ describe("tourFrames", (): void => {
   it("runs from the picture through the generator and both solvers to the verdict", (): void => {
     const actors: readonly Actor[] = frames.map((frame: TourFrame): Actor => frame.actor);
     expect(actors[0]).toBe("picture");
-    expect(actors.at(-1)).toBe("validator");
+    expect(actors.at(-2)).toBe("validator");
     expect(actors.indexOf("search")).toBeLessThan(actors.indexOf("logic"));
     expect(actors.lastIndexOf("generator")).toBeLessThan(actors.indexOf("logic"));
   });
@@ -64,6 +64,19 @@ describe("tourFrames", (): void => {
     const last: Extract<Scene, { kind: "deduce" }> | undefined = deductions.at(-1);
     expect(toSolution([...(last?.known ?? []), ...(last?.settled ?? [])], 9)).toEqual(
       tourRecord.solution,
+    );
+  });
+
+  it("closes by replaying every step before it, in order", (): void => {
+    const last: TourFrame | undefined = frames.at(-1);
+    const scene: Scene | undefined = last?.scene;
+    expect(scene?.kind).toBe("recap");
+    if (scene?.kind !== "recap") return;
+    expect(scene.stages).toEqual(
+      frames.slice(0, -1).map((frame: TourFrame): { heading: string; scene: Scene } => ({
+        heading: frame.heading,
+        scene: frame.scene,
+      })),
     );
   });
 

@@ -1,5 +1,5 @@
 import { startLevel, type Game } from "../app/model.ts";
-import type { Scene } from "../app/tour.ts";
+import type { RecapStage, Scene, StepScene } from "../app/tour.ts";
 import { WIN_FADE } from "../app/win.ts";
 import type { Peg, Point, Puzzle } from "../core/puzzle.ts";
 import type { Thread } from "../core/thread.ts";
@@ -9,7 +9,7 @@ import { drawStage } from "./stage.ts";
 import { easeInOutCubic, easeOutBack, easeOutCubic, progress, pulse } from "./tween.ts";
 
 /** Milliseconds each kind of scene takes before it loops, holding its end for the last stretch. */
-const LOOPS: Readonly<Record<Scene["kind"], number>> = {
+const LOOPS: Readonly<Record<StepScene["kind"], number>> = {
   paint: 4600,
   lay: 4800,
   compare: 6400,
@@ -18,6 +18,10 @@ const LOOPS: Readonly<Record<Scene["kind"], number>> = {
   deduce: 5200,
   reveal: 4800,
 };
+
+/** The recap plays each step this many times faster, then holds on the certified picture. */
+const RECAP_SPEED: number = 2.5;
+const RECAP_HOLD: number = 2400;
 
 /** Fractions of a square. */
 const OUTLINE_WIDTH: number = 0.07;
@@ -39,8 +43,13 @@ export function drawScene(
   still: boolean,
   sprites: SpriteCache,
 ): Badge {
-  const loop: number = LOOPS[scene.kind];
-  const time: number = still ? loop - 1 : elapsed % loop;
+  const time: number = sceneTime(scene, elapsed, still);
+  if (scene.kind === "recap") {
+    const moment: RecapMoment | undefined = recapMoment(scene.stages, time);
+    if (!moment) return "";
+    drawScene(canvas, moment.stage.scene, moment.time, false, sprites);
+    return `${String(moment.step + 1)} · ${moment.stage.heading}`;
+  }
   switch (scene.kind) {
     case "paint":
       return paint(canvas, scene, time, sprites);
@@ -57,6 +66,46 @@ export function drawScene(
     case "reveal":
       return reveal(canvas, scene, time, sprites);
   }
+}
+
+/** The step the recap is replaying at this moment, so the timeline can light it. */
+export function echoedStep(scene: Scene, elapsed: number, still: boolean): number | undefined {
+  if (scene.kind !== "recap") return undefined;
+  return recapMoment(scene.stages, sceneTime(scene, elapsed, still))?.step;
+}
+
+function sceneTime(scene: Scene, elapsed: number, still: boolean): number {
+  const loop: number = scene.kind === "recap" ? recapLoop(scene.stages) : LOOPS[scene.kind];
+  return still ? loop - 1 : elapsed % loop;
+}
+
+function recapLoop(stages: readonly RecapStage[]): number {
+  return (
+    stages.reduce(
+      (sum: number, stage: RecapStage): number => sum + LOOPS[stage.scene.kind] / RECAP_SPEED,
+      0,
+    ) + RECAP_HOLD
+  );
+}
+
+interface RecapMoment {
+  readonly step: number;
+  readonly stage: RecapStage;
+  /** Into the stage's own loop. */
+  readonly time: number;
+}
+
+/** Past the last stage the recap holds on that stage's final frame. */
+function recapMoment(stages: readonly RecapStage[], time: number): RecapMoment | undefined {
+  let start: number = 0;
+  for (const [step, stage] of stages.entries()) {
+    const loop: number = LOOPS[stage.scene.kind];
+    const end: number = start + loop / RECAP_SPEED;
+    if (time < end) return { step, stage, time: (time - start) * RECAP_SPEED };
+    start = end;
+  }
+  const last: RecapStage | undefined = stages.at(-1);
+  return last && { step: stages.length - 1, stage: last, time: LOOPS[last.scene.kind] - 1 };
 }
 
 /** The picture fills in square by square, in reading order. */
@@ -208,7 +257,8 @@ function deduce(
   });
   outline(canvas, scene.puzzle, squaresOf(scene.settled), progress(time, fadeEnd + 800, 400));
   if (time < fadeEnd && scene.ruledOut.length > 0) {
-    return `${String(scene.ruledOut.length)} paths ruled out`;
+    const count: number = scene.ruledOut.length;
+    return `${String(count)} ${count === 1 ? "route" : "routes"} crossed off`;
   }
   return `${String(scene.settled.length)} settled`;
 }

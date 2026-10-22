@@ -58,6 +58,10 @@
   --actor: var(--thread-green);
 }
 
+.tour-entry[data-actor="pipeline"] {
+  --actor: var(--ink);
+}
+
 .tour-entry.is-seen {
   opacity: 0.72;
 }
@@ -66,6 +70,12 @@
   opacity: 1;
   background: var(--surface);
   box-shadow: 0 4px 14px var(--board-shadow);
+}
+
+/* The step the closing recap is replaying. */
+.tour-entry.is-echo {
+  opacity: 1;
+  background: var(--surface);
 }
 
 .tour-entry-actor {
@@ -100,11 +110,11 @@
 .tour-badge {
   min-height: 1.5em;
   margin: 0;
-  padding: 2px var(--space-3);
+  padding: 4px var(--space-4);
   border-radius: 999px;
   background: var(--control);
   color: var(--ink);
-  font-size: 0.875rem;
+  font-size: 1.0625rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -143,14 +153,16 @@
 }
 
 .tour-legend {
+  display: flex;
   justify-content: center;
-  text-align: left;
-  margin-top: var(--space-3);
-  font-size: 0.8125rem;
+  gap: var(--space-5);
+  margin-top: var(--space-2);
 }
 
+/* Keeps its row on every step, so the board doesn't change size when it shows. */
 .tour-legend[hidden] {
-  display: none;
+  display: flex;
+  visibility: hidden;
 }
 
 .tour-nav {
@@ -189,6 +201,9 @@
     padding: 6px var(--space-2) 6px var(--space-3);
   }
 
+  .tour-entry.is-echo {
+    transform: translateX(6px);
+  }
   .tour-entry-actor {
     font-size: 0.6875rem;
   }

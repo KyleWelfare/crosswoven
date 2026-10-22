@@ -2,7 +2,7 @@ import type { Msg } from "../app/messages.ts";
 import type { Actor, TourFrame } from "../app/tour.ts";
 import { requiredElement } from "./required-element.ts";
 import type { SpriteCache } from "./sprite-cache.ts";
-import { drawScene, type Badge } from "./tour-scenes.ts";
+import { drawScene, echoedStep, type Badge } from "./tour-scenes.ts";
 
 export interface TourView {
   readonly canvas: HTMLCanvasElement;
@@ -23,6 +23,7 @@ const actorNames: Readonly<Record<Actor, string>> = {
   search: "Search solver",
   logic: "Logic solver",
   validator: "Validator",
+  pipeline: "Pipeline",
 };
 
 export function findTour(root: ParentNode): TourView {
@@ -93,10 +94,12 @@ export function renderTour(
   setText(view.count, `${String(step + 1)} / ${String(frames.length)}`);
   view.previous.disabled = step === 0;
   view.next.disabled = step === frames.length - 1;
+  const echo: number | undefined = echoedStep(frame.scene, elapsed, still);
   [...view.timeline.children].forEach((item: Element, i: number): void => {
     const current: boolean = i === step;
     item.classList.toggle("is-current", current);
     item.classList.toggle("is-seen", i < step);
+    item.classList.toggle("is-echo", i === echo);
     if (current && item.getAttribute("aria-current") !== "step") {
       item.setAttribute("aria-current", "step");
       item.scrollIntoView({

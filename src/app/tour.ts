@@ -1,17 +1,26 @@
-import type { Difficulty, Rule } from "../core/logic-solver.ts";
+import { RULES, type Difficulty, type Rule } from "../core/logic-solver.ts";
 import type { PipelineRecord, RecordedLaying, RecordedRound } from "../core/pipeline-record.ts";
 import type { Point, Puzzle } from "../core/puzzle.ts";
 import { threadKey, type Thread } from "../core/thread.ts";
 
 /** Who does the work on a step, named on the timeline so the two solvers read as separate. */
-export type Actor = "picture" | "generator" | "search" | "logic" | "validator";
+export type Actor = "picture" | "generator" | "search" | "logic" | "validator" | "pipeline";
 
 /**
  * What a step animates, as data. The view loops each one: the picture painting in, threads
  * growing out of their pegs, one solution unweaving into another, a thread splitting, the search
- * flickering through every path, a round of deduction, the picture revealed.
+ * flickering through every path, a round of deduction, the picture revealed, then all of them
+ * replayed in a row.
  */
-export type Scene =
+export type Scene = StepScene | { readonly kind: "recap"; readonly stages: readonly RecapStage[] };
+
+/** A step the closing recap replays. Stages run in step order, so a stage's index is its step's. */
+export interface RecapStage {
+  readonly heading: string;
+  readonly scene: StepScene;
+}
+
+export type StepScene =
   | { readonly kind: "paint"; readonly puzzle: Puzzle; readonly threads: readonly Thread[] }
   | { readonly kind: "lay"; readonly puzzle: Puzzle; readonly threads: readonly Thread[] }
   | {
@@ -57,6 +66,14 @@ export interface TourFrame {
   readonly scene: Scene;
 }
 
+/** A round is named after the easiest rule it uses; the caption gives every rule. */
+const ruleHeadings: Readonly<Record<Rule, string>> = {
+  partner: "Pegs with one partner",
+  "only-path": "Threads with one way left",
+  shared: "Squares a thread must use",
+  "only-reach": "Squares only one peg reaches",
+};
+
 const ruleReasons: Readonly<Record<Rule, string>> = {
   partner: "a peg has only one partner in reach with its colour and number",
   "only-path": "a thread has only one way left to go",
@@ -66,14 +83,17 @@ const ruleReasons: Readonly<Record<Rule, string>> = {
 
 const difficultyNames: Readonly<Record<Difficulty, string>> = { easy: "Easy", medium: "Medium" };
 
-/** The picture, each laying the generator tried, the solve round by round, then the verdict. */
+/**
+ * The picture, each laying the generator tried, the solve round by round, the verdict, then all of
+ * it again at speed.
+ */
 export function tourFrames(record: PipelineRecord): readonly TourFrame[] {
   const accepted: RecordedLaying | undefined = record.layings.at(-1);
   if (!accepted || accepted.outcome !== "accepted") {
     throw new Error("the record has no accepted laying");
   }
   const puzzle: Puzzle = accepted.puzzle;
-  return [
+  const steps: readonly TourFrame[] = [
     {
       actor: "picture",
       heading: "Start from a picture",
@@ -90,6 +110,21 @@ export function tourFrames(record: PipelineRecord): readonly TourFrame[] {
       heading: "Certified",
       caption: `Exactly one solution, so every move can be worked out and none has to be guessed. Rated ${difficultyNames[record.difficulty]} by the hardest rule it needed. Both solvers agree, so the level ships.`,
       scene: { kind: "reveal", puzzle, threads: record.solution },
+    },
+  ];
+  return [
+    ...steps,
+    {
+      actor: "pipeline",
+      heading: "Start to finish",
+      caption:
+        "The whole run again, one picture in and one certified puzzle out. Every level in the game was made this way.",
+      scene: {
+        kind: "recap",
+        stages: steps.flatMap((step: TourFrame): RecapStage[] =>
+          step.scene.kind === "recap" ? [] : [{ heading: step.heading, scene: step.scene }],
+        ),
+      },
     },
   ];
 }
@@ -153,8 +188,8 @@ function solveFrames(record: PipelineRecord, puzzle: Puzzle): TourFrame[] {
   const rounds: TourFrame[] = record.rounds.map((round: RecordedRound, i: number): TourFrame => {
     const frame: TourFrame = {
       actor: "logic",
-      heading: `Round ${String(i + 1)} of ${String(record.rounds.length)}`,
-      caption: `${capitalised(round.rules.map((rule: Rule): string => ruleReasons[rule]).join(", and "))}. That crosses off ${plural(round.ruledOut.length, "possible route", "possible routes")} and locks in ${plural(round.settled.length, "more thread", "more threads")}.`,
+      heading: roundHeading(round),
+      caption: `In round ${String(i + 1)} of ${String(record.rounds.length)}, ${round.rules.map((rule: Rule): string => ruleReasons[rule]).join(", and ")}. That crosses off ${plural(round.ruledOut.length, "possible route", "possible routes")} and locks in ${plural(round.settled.length, "more thread", "more threads")}.`,
       scene: { kind: "deduce", puzzle, known, ruledOut: round.ruledOut, settled: round.settled },
     };
     known = [...known, ...round.settled];
@@ -213,6 +248,9 @@ function plural(count: number, one: string, many: string): string {
   return `${String(count)} ${count === 1 ? one : many}`;
 }
 
-function capitalised(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1);
+function roundHeading(round: RecordedRound): string {
+  const rule: Rule | undefined = RULES.find((candidate: Rule): boolean =>
+    round.rules.includes(candidate),
+  );
+  return rule ? ruleHeadings[rule] : "Deduce";
 }

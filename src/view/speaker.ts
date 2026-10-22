@@ -1,3 +1,4 @@
+import type { Progress } from "../app/progress.ts";
 import type { SoundCue } from "../app/sound-cues.ts";
 import type { ThreadColour } from "../core/puzzle.ts";
 
@@ -9,9 +10,11 @@ import type { ThreadColour } from "../core/puzzle.ts";
 export interface Speaker {
   readonly musicUrl: string | undefined;
   graph: Graph | undefined;
-  muted: boolean;
+  settings: SoundSettings;
   hidden: boolean;
 }
+
+export type SoundSettings = Pick<Progress, "muted" | "volume">;
 
 interface Graph {
   readonly context: AudioContext;
@@ -21,8 +24,8 @@ interface Graph {
   readonly plucks: readonly AudioBuffer[];
 }
 
-// No volume control, so these are the whole mix: music well under the effects, and nothing near
-// full scale, as a phone speaker distorts loud plucks.
+// The mix with both sliders at full: nothing near full scale, as a phone speaker distorts loud
+// plucks.
 const MASTER_GAIN: number = 0.7;
 // The loop is mastered quietly, peaking at a quarter of full scale, so it needs more gain than
 // the plucks to sit level with the softest of them.
@@ -39,8 +42,8 @@ const SCALE_HZ: readonly number[] = [
 /** Each colour starts a step higher, so red, blue and yellow threads are told apart by ear. */
 const COLOUR_OFFSET: Readonly<Record<ThreadColour, number>> = { red: 0, blue: 1, yellow: 2 };
 
-export function createSpeaker(musicUrl: string | undefined, muted: boolean): Speaker {
-  return { musicUrl, graph: undefined, muted, hidden: document.hidden };
+export function createSpeaker(musicUrl: string | undefined, settings: SoundSettings): Speaker {
+  return { musicUrl, graph: undefined, settings, hidden: document.hidden };
 }
 
 /**
@@ -50,7 +53,7 @@ export function createSpeaker(musicUrl: string | undefined, muted: boolean): Spe
 export function wakeOnGesture(speaker: Speaker): void {
   const wake = (): void => {
     if (!speaker.graph) {
-      speaker.graph = buildGraph();
+      speaker.graph = buildGraph(speaker.settings);
       void startMusic(speaker, speaker.graph);
     }
     applyState(speaker);
@@ -68,15 +71,30 @@ export function wakeOnGesture(speaker: Speaker): void {
 
 const GESTURES: readonly string[] = ["pointerdown", "touchend", "click", "keydown"];
 
-export function setMuted(speaker: Speaker, muted: boolean): void {
-  if (speaker.muted === muted) return;
-  speaker.muted = muted;
-  applyState(speaker);
+export function setSettings(speaker: Speaker, settings: SoundSettings): void {
+  const before: SoundSettings = speaker.settings;
+  speaker.settings = settings;
+  if (before.muted !== settings.muted) applyState(speaker);
+  if (before.volume !== settings.volume && speaker.graph) {
+    const now: number = speaker.graph.context.currentTime;
+    // A short glide, so dragging a slider doesn't click.
+    speaker.graph.effects.gain.setTargetAtTime(effectsGain(settings), now, 0.03);
+    speaker.graph.music.gain.setTargetAtTime(musicGain(settings), now, 0.03);
+  }
+}
+
+/** Squared, as loudness follows gain far from linearly: halfway on a slider then sounds halfway. */
+function effectsGain(settings: SoundSettings): number {
+  return EFFECTS_GAIN * settings.volume.effects ** 2;
+}
+
+function musicGain(settings: SoundSettings): number {
+  return MUSIC_GAIN * settings.volume.music ** 2;
 }
 
 export function play(speaker: Speaker, cues: readonly SoundCue[]): void {
   const graph: Graph | undefined = speaker.graph;
-  if (!graph || speaker.muted || graph.context.state !== "running") return;
+  if (!graph || speaker.settings.muted || graph.context.state !== "running") return;
   for (const cue of cues) {
     for (const note of notesFor(cue)) pluck(graph, note);
   }
@@ -117,6 +135,8 @@ function notesFor(cue: SoundCue): readonly Note[] {
         delay: i * 0.09,
         gain: 0.26,
       }));
+    case "preview":
+      return [{ step: 5, delay: 0, gain: 0.2 }];
   }
 }
 
@@ -136,7 +156,7 @@ function pluck(graph: Graph, note: Note): void {
   source.start(graph.context.currentTime + note.delay);
 }
 
-function buildGraph(): Graph {
+function buildGraph(settings: SoundSettings): Graph {
   const context: AudioContext = new AudioContext();
   const master: GainNode = context.createGain();
   master.gain.value = MASTER_GAIN;
@@ -146,7 +166,7 @@ function buildGraph(): Graph {
   soften.frequency.value = EFFECTS_LOWPASS_HZ;
   soften.connect(master);
   const effects: GainNode = context.createGain();
-  effects.gain.value = EFFECTS_GAIN;
+  effects.gain.value = effectsGain(settings);
   effects.connect(soften);
   const music: GainNode = context.createGain();
   music.gain.value = 0;
@@ -170,7 +190,7 @@ async function startMusic(speaker: Speaker, graph: Graph): Promise<void> {
     source.start();
     const now: number = graph.context.currentTime;
     graph.music.gain.setValueAtTime(0, now);
-    graph.music.gain.linearRampToValueAtTime(MUSIC_GAIN, now + MUSIC_FADE_IN_S);
+    graph.music.gain.linearRampToValueAtTime(musicGain(speaker.settings), now + MUSIC_FADE_IN_S);
   } catch {
     // The game plays on silently if the loop can't load.
   }
@@ -180,7 +200,7 @@ async function startMusic(speaker: Speaker, graph: Graph): Promise<void> {
 function applyState(speaker: Speaker): void {
   const context: AudioContext | undefined = speaker.graph?.context;
   if (!context) return;
-  if (speaker.muted || speaker.hidden) void context.suspend();
+  if (speaker.settings.muted || speaker.hidden) void context.suspend();
   else void context.resume();
 }
 

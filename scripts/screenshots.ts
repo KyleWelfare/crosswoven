@@ -292,6 +292,19 @@ function allShots(tourSteps: number): readonly Shot[] {
         await lay(devTools, level(SECOND_LEVEL), [straight("red", [1, 0], [1, 3])]);
       },
     },
+    {
+      name: `${String(12 + tourSteps).padStart(2, "0")}-sound-menu`,
+      reach: async (devTools: DevTools): Promise<void> => {
+        await click(devTools, "#menu [data-sound]");
+      },
+    },
+    {
+      name: `${String(13 + tourSteps).padStart(2, "0")}-sound-game`,
+      reach: async (devTools: DevTools): Promise<void> => {
+        await open(FIRST_LEVEL)(devTools);
+        await click(devTools, "#game [data-sound]");
+      },
+    },
   ];
 }
 

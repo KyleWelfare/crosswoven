@@ -9,6 +9,7 @@ import "./styles/rules.css";
 import "./styles/level-list.css";
 import "./styles/tour.css";
 import "./styles/dock.css";
+import "./styles/sound.css";
 import "./styles/tutorial.css";
 import type { Msg } from "./app/messages.ts";
 import { menu, type Model } from "./app/model.ts";
@@ -35,8 +36,13 @@ import { requiredElement } from "./view/required-element.ts";
 import { findScreens, listenForBack, renderScreens, type Screens } from "./view/screens.ts";
 import { drawStage } from "./view/stage.ts";
 import { createSpriteCache, setGeneration, type SpriteCache } from "./view/sprite-cache.ts";
-import { findSoundToggles, listenToSoundToggles, renderSoundToggles } from "./view/sound-toggle.ts";
-import { createSpeaker, play, setMuted, wakeOnGesture, type Speaker } from "./view/speaker.ts";
+import {
+  findSoundPanel,
+  listenToSoundPanel,
+  renderSoundPanel,
+  type SoundPanel,
+} from "./view/sound-panel.ts";
+import { createSpeaker, play, setSettings, wakeOnGesture, type Speaker } from "./view/speaker.ts";
 import { findThemePicker, listenToThemePicker, renderTheme } from "./view/theme-picker.ts";
 import { buildTimeline, findTour, listenToTour, renderTour, type TourView } from "./view/tour.ts";
 import {
@@ -109,8 +115,8 @@ const tourSprites: SpriteCache = createSpriteCache();
 const heroScene: StepScene | undefined = menuScene(frames);
 // Separate from the tour's too, as the two boards are drawn at different sizes.
 const heroSprites: SpriteCache = createSpriteCache();
-const soundToggles: readonly HTMLButtonElement[] = findSoundToggles(document);
-const speaker: Speaker = createSpeaker(musicUrl, model.progress.muted);
+const soundPanel: SoundPanel = findSoundPanel(document);
+const speaker: Speaker = createSpeaker(musicUrl, model.progress);
 
 let renderPending: boolean = false;
 let ticking: boolean = false;
@@ -119,7 +125,7 @@ function dispatch(msg: Msg): void {
   const next: Model = update(model, msg);
   if (next === model) return;
   if (next.progress !== model.progress) saveProgress(next.progress);
-  setMuted(speaker, next.progress.muted);
+  setSettings(speaker, next.progress);
   play(speaker, soundCues(model, next));
   model = next;
   scheduleRender();
@@ -145,7 +151,7 @@ function scheduleRender(): void {
     renderPending = false;
     // The canvases read their colours from the theme's tokens.
     renderTheme(themePicker, model.progress.theme);
-    renderSoundToggles(soundToggles, model.progress.muted);
+    renderSoundPanel(soundPanel, model.progress);
     // Screens first, so a canvas that has just appeared has a size to draw at.
     renderScreens(screens, model);
     renderMenu(menuControls, model, heroScene, heroSprites);
@@ -197,7 +203,7 @@ function nextLevel(): Puzzle | undefined {
 buildLevelList(levelListElement, levels, dispatch);
 listenToMenu(menuControls, dispatch, frames.length);
 listenToThemePicker(themePicker, dispatch);
-listenToSoundToggles(soundToggles, dispatch);
+listenToSoundPanel(soundPanel, dispatch);
 wakeOnGesture(speaker);
 buildTimeline(tour, frames);
 listenToTour(tour, dispatch);

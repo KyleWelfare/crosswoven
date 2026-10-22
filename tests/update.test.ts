@@ -250,7 +250,13 @@ describe("update: screens", (): void => {
   });
 
   it("carries progress from screen to screen", (): void => {
-    const progress: Progress = { cleared: ["key"], tipsSeen: ["drag"], theme: "dark", muted: true };
+    const progress: Progress = {
+      cleared: ["key"],
+      tipsSeen: ["drag"],
+      theme: "dark",
+      muted: true,
+      volume: { effects: 0.5, music: 0.2 },
+    };
     const opened: Msg = { type: "HowPuzzlesAreMadePressed", steps: 3 };
     const started: Msg = { type: "LevelStarted", puzzle: lattice };
     const route: readonly Msg[] = [play, started, back, back, opened, back];
@@ -285,6 +291,15 @@ describe("update: screens", (): void => {
       const muted: Model = update(model, toggled);
       expect(muted).toEqual({ ...model, progress: { ...noProgress, muted: true } });
       expect(update(muted, toggled)).toEqual(model);
+    }
+  });
+
+  it("changes a volume on any screen", (): void => {
+    const changed: Msg = { type: "VolumeChanged", channel: "music", volume: 0.25 };
+    for (const model of [menu, levelList, fresh]) {
+      const after: Model = update(model, changed);
+      expect(after.progress.volume).toEqual({ effects: 1, music: 0.25 });
+      expect(update(after, changed)).toBe(after);
     }
   });
 

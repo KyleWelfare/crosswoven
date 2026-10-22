@@ -63,9 +63,9 @@
           <button
             class="sound-toggle"
             type="button"
-            aria-label="Mute"
-            aria-pressed="false"
-            data-mute
+            aria-label="Sound"
+            popovertarget="sound-panel"
+            data-sound
           >
             <svg viewBox="0 0 24 24" aria-hidden="true">
               <path class="sound-body" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" />
@@ -109,9 +109,9 @@
             <button
               class="sound-toggle"
               type="button"
-              aria-label="Mute"
-              aria-pressed="false"
-              data-mute
+              aria-label="Sound"
+              popovertarget="sound-panel"
+              data-sound
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path class="sound-body" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" />
@@ -245,6 +245,18 @@
         <button class="button button-primary" type="submit">Got it</button>
       </form>
     </dialog>
+
+    <div id="sound-panel" class="sound-panel" popover aria-label="Sound">
+      <label class="sound-mute"><input id="mute" type="checkbox" /> Mute</label>
+      <label class="volume">
+        Effects
+        <input id="effects-volume" type="range" min="0" max="1" step="0.05" />
+      </label>
+      <label class="volume">
+        Music
+        <input id="music-volume" type="range" min="0" max="1" step="0.05" />
+      </label>
+    </div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

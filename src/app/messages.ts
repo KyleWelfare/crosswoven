@@ -1,4 +1,5 @@
 import type { Puzzle } from "../core/puzzle.ts";
+import type { SoundChannel } from "./progress.ts";
 import type { Theme } from "./theme.ts";
 
 export type Msg = ScreenMsg | GameMsg | TutorialMsg | SettingMsg;
@@ -9,7 +10,10 @@ export type TutorialMsg =
 
 /** Saved with the progress, and heard on every screen. */
 export type SettingMsg =
-  { readonly type: "ThemeChosen"; readonly theme: Theme } | { readonly type: "MuteToggled" };
+  | { readonly type: "ThemeChosen"; readonly theme: Theme }
+  | { readonly type: "MuteToggled" }
+  /** `volume` is the slider's position, 0 to 1. */
+  | { readonly type: "VolumeChanged"; readonly channel: SoundChannel; readonly volume: number };
 
 /** Moves between screens. */
 export type ScreenMsg =

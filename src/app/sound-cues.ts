@@ -10,7 +10,9 @@ export type SoundCue =
   | { readonly kind: "tie"; readonly colour: ThreadColour; readonly length: number }
   | { readonly kind: "undo" }
   | { readonly kind: "clear" }
-  | { readonly kind: "solve" };
+  | { readonly kind: "solve" }
+  /** Plays at the new level as the effects slider moves, so the player hears what they set. */
+  | { readonly kind: "preview" };
 
 /**
  * Read off the models rather than the messages, so a sound only plays when the board really
@@ -18,6 +20,8 @@ export type SoundCue =
  * reaches its peg, not on release, so letting go makes no second sound.
  */
 export function soundCues(before: Model, after: Model): readonly SoundCue[] {
+  if (before.progress.volume.effects !== after.progress.volume.effects)
+    return [{ kind: "preview" }];
   if (before.screen !== "game" || after.screen !== "game" || before.puzzle !== after.puzzle) {
     return [];
   }

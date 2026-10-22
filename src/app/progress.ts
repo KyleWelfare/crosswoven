@@ -1,14 +1,24 @@
 import { isTheme, type Theme } from "./theme.ts";
 
-/** What survives a reload: levels cleared and tutorial tips seen, by id, the theme and mute. */
+/** What survives a reload: levels cleared and tutorial tips seen, by id, and the settings. */
 export interface Progress {
   readonly cleared: readonly string[];
   readonly tipsSeen: readonly string[];
   readonly theme: Theme;
   readonly muted: boolean;
+  /** Where each volume slider sits, 0 to 1. Full is the game's own mix. */
+  readonly volume: Readonly<Record<SoundChannel, number>>;
 }
 
-export const noProgress: Progress = { cleared: [], tipsSeen: [], theme: "system", muted: false };
+export type SoundChannel = "effects" | "music";
+
+export const noProgress: Progress = {
+  cleared: [],
+  tipsSeen: [],
+  theme: "system",
+  muted: false,
+  volume: { effects: 1, music: 1 },
+};
 
 /** Returns `progress` itself when the level was already cleared. */
 export function withCleared(progress: Progress, levelId: string): Progress {
@@ -31,6 +41,13 @@ export function withMuteToggled(progress: Progress): Progress {
   return { ...progress, muted: !progress.muted };
 }
 
+/** Clamped to 0 to 1. Returns `progress` itself when the volume is unchanged. */
+export function withVolume(progress: Progress, channel: SoundChannel, volume: number): Progress {
+  const clamped: number = Math.min(Math.max(volume, 0), 1);
+  if (progress.volume[channel] === clamped) return progress;
+  return { ...progress, volume: { ...progress.volume, [channel]: clamped } };
+}
+
 /** The first level is always open; each one after opens once the level before it is cleared. */
 export function isUnlocked(progress: Progress, order: readonly string[], index: number): boolean {
   if (index === 0) return true;
@@ -50,7 +67,18 @@ export function decodeProgress(json: unknown): Progress {
     tipsSeen: strings(saved.tipsSeen),
     theme: isTheme(saved.theme) ? saved.theme : "system",
     muted: saved.muted === true,
+    volume: volumes(saved.volume),
   };
+}
+
+function volumes(value: unknown): Progress["volume"] {
+  const saved: Partial<Record<SoundChannel, unknown>> =
+    typeof value === "object" && value !== null ? value : {};
+  return { effects: level(saved.effects), music: level(saved.music) };
+}
+
+function level(value: unknown): number {
+  return typeof value === "number" && value >= 0 && value <= 1 ? value : 1;
 }
 
 function strings(value: unknown): readonly string[] {

@@ -63,6 +63,15 @@ describe("soundCues", (): void => {
     expect(soundCues(almost, update(almost, release))).toEqual([{ kind: "solve" }]);
   });
 
+  it("previews the effects volume as its slider moves, on any screen, but not the music's", (): void => {
+    const effects: Msg = { type: "VolumeChanged", channel: "effects", volume: 0.5 };
+    const music: Msg = { type: "VolumeChanged", channel: "music", volume: 0.5 };
+    for (const model of [menu, levelList, fresh]) {
+      expect(soundCues(model, update(model, effects))).toEqual([{ kind: "preview" }]);
+      expect(soundCues(model, update(model, music))).toEqual([]);
+    }
+  });
+
   it("stays quiet off the board and when a new level starts", (): void => {
     expect(soundCues(menu, levelList)).toEqual([]);
     expect(soundCues(levelList, fresh)).toEqual([]);

@@ -133,48 +133,6 @@
   }
 }
 
-.sound-toggle {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius);
-  background: none;
-  color: var(--ink-muted);
-  cursor: pointer;
-  transition: color 140ms ease;
-}
-
-.sound-toggle:hover {
-  color: var(--ink);
-}
-
-.sound-toggle:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 2px;
-}
-
-.sound-toggle svg {
-  width: 22px;
-  height: 22px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.sound-toggle .sound-body {
-  fill: currentColor;
-}
-
-.sound-toggle[aria-pressed="true"] .sound-on,
-.sound-toggle[aria-pressed="false"] .sound-off {
-  display: none;
-}
-
 .button-back::before {
   content: "‹";
   margin-right: var(--space-1);

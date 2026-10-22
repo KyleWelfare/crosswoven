@@ -7,26 +7,27 @@ import {
   withMuteToggled,
   withTheme,
   withTipSeen,
+  withVolume,
   type Progress,
 } from "../src/app/progress.ts";
 
 describe("progress", (): void => {
   it("adds a cleared level once", (): void => {
     const cleared: Progress = withCleared(noProgress, "key");
-    expect(cleared).toEqual({ cleared: ["key"], tipsSeen: [], theme: "system", muted: false });
+    expect(cleared).toEqual({ ...noProgress, cleared: ["key"] });
     expect(withCleared(cleared, "key")).toBe(cleared);
     expect(noProgress.cleared).toEqual([]);
   });
 
   it("adds a seen tip once", (): void => {
     const seen: Progress = withTipSeen(noProgress, "drag");
-    expect(seen).toEqual({ cleared: [], tipsSeen: ["drag"], theme: "system", muted: false });
+    expect(seen).toEqual({ ...noProgress, tipsSeen: ["drag"] });
     expect(withTipSeen(seen, "drag")).toBe(seen);
   });
 
   it("changes the theme only when it differs", (): void => {
     const dark: Progress = withTheme(noProgress, "dark");
-    expect(dark).toEqual({ cleared: [], tipsSeen: [], theme: "dark", muted: false });
+    expect(dark).toEqual({ ...noProgress, theme: "dark" });
     expect(withTheme(dark, "dark")).toBe(dark);
   });
 
@@ -50,6 +51,7 @@ describe("progress", (): void => {
       tipsSeen: ["drag"],
       theme: "light",
       muted: true,
+      volume: { effects: 0.4, music: 0 },
     };
     expect(decodeProgress(JSON.parse(JSON.stringify(progress)))).toEqual(progress);
   });
@@ -66,6 +68,7 @@ describe("progress", (): void => {
       tipsSeen: [],
       theme: "system",
       muted: false,
+      volume: { effects: 1, music: 1 },
     });
     expect(decodeProgress({})).toEqual(noProgress);
   });
@@ -86,5 +89,22 @@ describe("progress", (): void => {
     for (const muted of [false, "true", 1, undefined]) {
       expect(decodeProgress({ muted }).muted).toBe(false);
     }
+  });
+
+  it("sets a volume, clamped to 0 to 1, and returns the same progress when unchanged", (): void => {
+    const quieter: Progress = withVolume(noProgress, "effects", 0.5);
+    expect(quieter.volume).toEqual({ effects: 0.5, music: 1 });
+    expect(withVolume(quieter, "effects", 0.5)).toBe(quieter);
+    expect(withVolume(noProgress, "music", -1).volume.music).toBe(0);
+    expect(withVolume(noProgress, "music", 3)).toBe(noProgress);
+  });
+
+  it("reads a missing or out-of-range volume as full, so an older save keeps the game's mix", (): void => {
+    expect(decodeProgress({}).volume).toEqual({ effects: 1, music: 1 });
+    expect(decodeProgress({ volume: { effects: 0.3, music: 2 } }).volume).toEqual({
+      effects: 0.3,
+      music: 1,
+    });
+    expect(decodeProgress({ volume: "loud" }).volume).toEqual({ effects: 1, music: 1 });
   });
 });

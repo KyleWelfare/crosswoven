@@ -59,7 +59,12 @@ export function renderSoundPanel(view: SoundPanel, settings: SoundSettings): voi
       slider.value = String(settings.volume[channel]);
     }
   }
-  for (const opener of view.openers) opener.toggleAttribute("data-muted", settings.muted);
+  // The crossed-out icon only shows muted, so the name says it too.
+  const name: string = settings.muted ? "Sound, muted" : "Sound";
+  for (const opener of view.openers) {
+    opener.toggleAttribute("data-muted", settings.muted);
+    if (opener.ariaLabel !== name) opener.ariaLabel = name;
+  }
 }
 
 /** Right-aligned under the button, and kept on screen when the button sits near the left edge. */

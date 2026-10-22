@@ -13,7 +13,8 @@ What the game supports for screen reader and keyboard users today, and what's st
 - How the Puzzles Are Made steps with Back and Next or the arrow keys. Its actor, heading and caption sit in an `aria-live="polite"` region, and the timeline marks the current step with `aria-current="step"`. The board and the badge that counts along with each animation are hidden from screen readers, since the caption describes the step. With reduced motion set, every animation shows its final frame, still
 - The masthead braid and the menu's weaving board are decorative and hidden from screen readers. With reduced motion set, the menu board shows its finished weave, still
 - The Theme picker is a native `<select>` inside its `<label>`, so it is named "Theme" and works from the keyboard
-- The speaker buttons are named "Sound" and open a native popover, which closes on Escape and announces itself as expanded. Inside, Mute is a checkbox and each volume is a range input inside its `<label>`, so all three work from the keyboard. How to Play keeps its name when narrow phones show it as "Rules"
+- The speaker buttons are named "Sound", or "Sound, muted", since the crossed-out icon only shows it. They open the sound panel, a native popover with `role="dialog"` named "Sound", which closes on Escape and announces itself as expanded. Inside, Mute is a checkbox and each volume is a range input inside its `<label>`, so all three work from the keyboard
+- Visible words are the accessible names, so voice control users can say what they see: How to Play is named "Rules" on narrow phones, where that's the word it shows. Decorative arrows on the back and Next level buttons use CSS alt text (`content: "‹" / ""`), so they aren't read out
 - The page declares its language
 
 ## Not yet

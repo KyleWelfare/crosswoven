@@ -97,13 +97,8 @@
           <button class="button button-back" type="button" data-back>Levels</button>
           <h1 id="game-title" class="screen-title" tabindex="-1" data-focus></h1>
           <div class="bar-actions">
-            <!-- Labelled so the name stays How to Play when narrow phones show the short word. -->
-            <button
-              id="how-to-play"
-              class="button button-help"
-              type="button"
-              aria-label="How to Play"
-            >
+            <!-- Named by whichever label shows, so voice control users can say the word they see. -->
+            <button id="how-to-play" class="button button-help" type="button">
               <span class="label-long">How to Play</span><span class="label-short">Rules</span>
             </button>
             <button
@@ -246,7 +241,7 @@
       </form>
     </dialog>
 
-    <div id="sound-panel" class="sound-panel" popover aria-label="Sound">
+    <div id="sound-panel" class="sound-panel" popover role="dialog" aria-label="Sound">
       <label class="sound-mute"><input id="mute" type="checkbox" /> Mute</label>
       <label class="volume">
         Effects

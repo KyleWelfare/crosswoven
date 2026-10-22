@@ -33,8 +33,8 @@
   grid-column: 2;
   font-family: var(--font-display);
   font-size: clamp(1.125rem, 5vw, 1.375rem);
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  letter-spacing: -0.03em;
   text-align: center;
   text-wrap: balance;
 }
@@ -106,16 +106,6 @@
   .game .controls {
     flex-direction: column;
     align-self: center;
-  }
-
-  .menu {
-    flex-direction: row;
-    align-items: center;
-    gap: var(--space-5);
-  }
-
-  .menu-actions {
-    margin: 0;
   }
 }
 

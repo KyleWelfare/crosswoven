@@ -8,7 +8,12 @@
   color-scheme: light dark;
 
   --font-body: "Figtree Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Fraunces Variable", Georgia, serif;
+  /* Headings stay in Figtree, set heavy and tight; Fraunces is kept for names, the game's and each picture's. */
+  --font-display: var(--font-body);
+  --font-name: "Fraunces Variable", Georgia, serif;
+
+  /* Square, like the board's squares, rather than an app's pills and soft cards. */
+  --radius: 3px;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -27,6 +32,8 @@
   --hairline: rgb(70 50 20 / 0.1);
   --raised-shadow: 0 1px 2px rgb(70 50 20 / 0.06), 0 4px 14px rgb(70 50 20 / 0.07);
   --lifted-shadow: 0 2px 4px rgb(70 50 20 / 0.08), 0 12px 28px rgb(70 50 20 / 0.12);
+  --linen: rgb(70 50 20 / 0.035);
+  --stitch: rgb(70 50 20 / 0.32);
 
   --board-frame: #e2dacb;
   --board-shadow: rgb(70 50 20 / 0.18);
@@ -71,6 +78,8 @@
     --hairline: rgb(255 245 225 / 0.07);
     --raised-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 14px rgb(0 0 0 / 0.3);
     --lifted-shadow: 0 2px 4px rgb(0 0 0 / 0.4), 0 12px 28px rgb(0 0 0 / 0.45);
+    --linen: rgb(255 240 210 / 0.022);
+    --stitch: rgb(255 240 210 / 0.3);
 
     --board-frame: #0c0b0a;
     --board-shadow: rgb(0 0 0 / 0.6);

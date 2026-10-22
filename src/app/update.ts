@@ -40,7 +40,9 @@ export function update(model: Model, msg: Msg): Model {
     case "ClearPressed":
       return model.screen === "game" ? updateGame(model, msg) : model;
     case "Tick":
-      if (model.screen === "tour") return { ...model, elapsed: model.elapsed + msg.dt };
+      if (model.screen === "tour" || model.screen === "menu") {
+        return { ...model, elapsed: model.elapsed + msg.dt };
+      }
       return model.screen === "game" ? updateGame(model, msg) : model;
   }
 }

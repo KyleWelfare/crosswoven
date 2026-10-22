@@ -11,7 +11,7 @@ import "./styles/dock.css";
 import type { Msg } from "./app/messages.ts";
 import { menu, type Model } from "./app/model.ts";
 import { update } from "./app/update.ts";
-import { tourFrames, type TourFrame } from "./app/tour.ts";
+import { tourFrames, type StepScene, type TourFrame } from "./app/tour.ts";
 import { isFading } from "./app/win.ts";
 import { decodeLevel, type DecodeResult } from "./core/level-decoder.ts";
 import { decodeOrder, type OrderResult } from "./core/level-order.ts";
@@ -21,7 +21,7 @@ import order from "./levels/order.json";
 import { listenForDrags } from "./view/board-input.ts";
 import { drawBraid } from "./view/braid.ts";
 import { buildLevelList } from "./view/level-list.ts";
-import { findMenu, listenToMenu, renderMenu, type MenuControls } from "./view/menu.ts";
+import { findMenu, listenToMenu, menuScene, renderMenu, type MenuControls } from "./view/menu.ts";
 import { findPanels, listenToPanels, renderPanels, type Panels } from "./view/panels.ts";
 import { requiredElement } from "./view/required-element.ts";
 import { findScreens, listenForBack, renderScreens, type Screens } from "./view/screens.ts";
@@ -64,6 +64,9 @@ const tour: TourView = findTour(document);
 const frames: readonly TourFrame[] = tourFrames(tourRecord);
 // The tour board shows a different puzzle, so it keeps its own sprites.
 const tourSprites: SpriteCache = createSpriteCache();
+const heroScene: StepScene | undefined = menuScene(frames);
+// Separate from the tour's too, as the two boards are drawn at different sizes.
+const heroSprites: SpriteCache = createSpriteCache();
 
 let renderPending: boolean = false;
 let ticking: boolean = false;
@@ -95,7 +98,7 @@ function scheduleRender(): void {
     renderPending = false;
     // Screens first, so a canvas that has just appeared has a size to draw at.
     renderScreens(screens, model);
-    renderMenu(menuControls, model);
+    renderMenu(menuControls, model, heroScene, heroSprites);
     if (model.screen === "tour") renderTour(tour, frames, model.step, model.elapsed, tourSprites);
     if (model.screen !== "game") return;
     drawStage(stage, model, sprites);
@@ -103,9 +106,16 @@ function scheduleRender(): void {
   });
 }
 
-/** The win fades in, and How the Puzzles Are Made loops its scenes for as long as it's open. */
+/**
+ * The win fades in, and How the Puzzles Are Made loops its scenes for as long as it's open, as
+ * the menu does its board unless motion is reduced, when it shows the finished weave still.
+ */
 function animating(): boolean {
-  return (model.screen === "game" && isFading(model)) || model.screen === "tour";
+  return (
+    (model.screen === "game" && isFading(model)) ||
+    model.screen === "tour" ||
+    (model.screen === "menu" && !matchMedia("(prefers-reduced-motion: reduce)").matches)
+  );
 }
 
 /** Sends a Tick each animation frame for as long as something animates. */
@@ -139,12 +149,15 @@ listenForDrags(
 listenToPanels(panels, dispatch, nextLevel);
 new ResizeObserver(scheduleRender).observe(stage);
 new ResizeObserver(scheduleRender).observe(tour.canvas);
+new ResizeObserver(scheduleRender).observe(menuControls.board);
 watchPixelRatio();
+if (animating()) startTicking();
 // The palette comes from CSS custom properties that switch with the colour scheme.
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", scheduleRender);
 // Peg numbers drawn before the web font arrived would stay in the fallback font in cached sprites.
 void document.fonts.ready.then((): void => {
   setGeneration(sprites, "");
   setGeneration(tourSprites, "");
+  setGeneration(heroSprites, "");
   scheduleRender();
 });

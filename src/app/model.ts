@@ -7,6 +7,8 @@ export type Model = Menu | LevelList | Game | Tour;
 export interface Menu {
   readonly screen: "menu";
   readonly rulesOpen: boolean;
+  /** Milliseconds on the menu, which drives the board weaving itself beside the title. */
+  readonly elapsed: number;
 }
 
 export interface LevelList {
@@ -36,7 +38,7 @@ export interface Tour {
   readonly elapsed: number;
 }
 
-export const menu: Menu = { screen: "menu", rulesOpen: false };
+export const menu: Menu = { screen: "menu", rulesOpen: false, elapsed: 0 };
 
 export const levelList: LevelList = { screen: "levels" };
 

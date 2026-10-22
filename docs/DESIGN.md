@@ -207,8 +207,10 @@ Kept from the prototype and refined later:
 - Squares show a pale wash of their target colour, deeper once the threads there match. The colour alone names a two-colour square's threads, with no other mark, to keep the board calm
 - Pegs show their number, and are hollow until tied
 - Light and dark themes
-- Fraunces, with its softened serifs, for headings, and Figtree for everything else, peg numbers included. Both are bundled rather than fetched from a font service
-- The level list is a gallery: each tile shows its picture in woven colours, which tells nothing the board doesn't already show
+- The page outside the board takes its look from cloth rather than from an app: a faint linen weave behind everything, square corners like the board's squares, and buttons, tags and the How to Play card stitched just inside their edges like woven labels. Colour comes only from the threads and the pictures; the rest stays undyed linen and ink
+- Fraunces, with its softened serifs, is kept for names: the game's and each picture's when it's solved. Figtree, heavy and tight, sets every heading and everything else, peg numbers included. Both are bundled rather than fetched from a font service
+- The menu sets the title off centre beside a board weaving the tour's sailboat thread by thread, which is not a shipped level, so it gives nothing away
+- The level list is a sampler: each swatch shows its picture in woven colours, which tells nothing the board doesn't already show, under a number tag
 - On a phone, Undo and Clear sit at the foot of the screen within reach of a thumb
 
 ## Targets

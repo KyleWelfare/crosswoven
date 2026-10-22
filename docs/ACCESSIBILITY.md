@@ -10,7 +10,7 @@ What the game supports for screen reader and keyboard users today, and what's st
 - How to Play is a native modal `<dialog>`: it traps focus, closes on Escape, and returns focus to the button that opened it
 - The win message sits in an `aria-live="polite"` region, so screen readers announce a solved level
 - How the Puzzles Are Made steps with Back and Next or the arrow keys. Its actor, heading and caption sit in an `aria-live="polite"` region, and the timeline marks the current step with `aria-current="step"`. The board and the badge that counts along with each animation are hidden from screen readers, since the caption describes the step. With reduced motion set, every animation shows its final frame, still
-- The masthead braid is decorative and hidden from screen readers
+- The masthead braid and the menu's weaving board are decorative and hidden from screen readers. With reduced motion set, the menu board shows its finished weave, still
 - The page declares its language
 
 ## Not yet
